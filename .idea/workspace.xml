@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a4475061-ddbc-45ce-ac94-9491fa653cff" name="Changes" comment="" />
+    <list default="true" id="a4475061-ddbc-45ce-ac94-9491fa653cff" name="Changes" comment="html files connected to sql-js.js">
+      <change afterPath="$PROJECT_DIR$/home.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tester.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,6 +47,7 @@
       <updated>1670091253371</updated>
       <workItem from="1670091255837" duration="577000" />
       <workItem from="1670091848269" duration="688000" />
+      <workItem from="1670094237589" duration="136000" />
     </task>
     <servers />
   </component>
@@ -60,5 +64,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="html files connected to sql-js.js" />
+    <option name="LAST_COMMIT_MESSAGE" value="html files connected to sql-js.js" />
   </component>
 </project>
