@@ -2,7 +2,7 @@ const mysql = require('mysql');
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-var con;
+let con;
 
 function haszuj(txt, p = 2137, M = 9223372036854775783) {
   let hash = 0;
@@ -20,20 +20,20 @@ function haszuj(txt, p = 2137, M = 9223372036854775783) {
 function create_user(username, password) {
   let hash_password = haszuj(password);
   console.log(hash_password);
-  var sql = "INSERT INTO users (username, pwd_hash) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "')";
-  con.query(sql, function(err, result) {
+  let sql = "INSERT INTO users (username, pwd_hash) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "')";
+  con.query(sql, function(err) {
     if(err) throw err;
     console.log("gud boi");
   })
 }
 
-function connect_to_db(host = "localhost", user = "sqluser", password = "password") {
+function connect_to_db(myHost, myUser, myPassword, myDatabase) {
 
   con = mysql.createConnection({
-    host: "localhost",
-    user: "sqluser",
-    password: "password",
-    database: "test_db"
+    host: myHost,
+    user: myUser,
+    password: myPassword,
+    database: myDatabase
   });
 
   con.connect(function(err) {
@@ -45,7 +45,7 @@ function connect_to_db(host = "localhost", user = "sqluser", password = "passwor
 
 
 function main() {
-  if(connect_to_db() !== 0) {
+  if(connect_to_db("localhost", "sqluser", "password", "test_db") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
@@ -77,16 +77,16 @@ function main() {
     let username = request.body.nick;
     let password = request.body.pwd;
     if(username && password) {
-      var sql = "SELECT * FROM users WHERE username = '?' AND pwd_hash = '?';";
-      var a = [username, haszuj(password)];
-      var i = 0;
+      let sql = "SELECT * FROM users WHERE username = '?' AND pwd_hash = '?';";
+      let a = [username, haszuj(password)];
+      let i = 0;
 
       while(sql.indexOf("?") >= 0) {
         sql = sql.replace("?", a[i++]);
       }
 
       //console.log(sql);
-      con.query(sql, function(err, result, fields) {
+      con.query(sql, function(err, result) {
         if(err) throw err;
         let gut = result.length !== 0;
         if(gut) {
