@@ -45,7 +45,7 @@ function connect_to_db(myHost, myUser, myPassword, myDatabase) {
 
 
 function main() {
-  if(connect_to_db("localhost", "sqluser", "password", "test_db") !== 0) {
+  if(connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
@@ -65,7 +65,7 @@ function main() {
   app.use(express.static(path.join(__dirname, 'static')));
 
   app.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname + '/tester.html'));
+    res.sendFile(path.join(__dirname + '/login/index.html'));
   });
 
   app.get('/wyloguj', function(req, res) {
@@ -77,7 +77,7 @@ function main() {
     let username = request.body.nick;
     let password = request.body.pwd;
     if(username && password) {
-      let sql = "SELECT * FROM users WHERE username = '?' AND pwd_hash = '?';";
+      let sql = "SELECT * FROM users WHERE Username = '?' AND PasswordHash = '?';";
       let a = [username, haszuj(password)];
       let i = 0;
 
@@ -92,7 +92,7 @@ function main() {
         if(gut) {
           request.session.loggedin = true;
           request.session.username = username;
-          response.redirect('/home');
+          response.redirect('/admin');
         }
         else {
           response.send('NOT GUT' +
@@ -114,9 +114,9 @@ function main() {
     }
   });
 
-  app.get('/home', function(request, response) {
+  app.get('/admin', function(request, response) {
     if(request.session.loggedin) {
-      response.sendFile(path.join(__dirname + '/home.html'));
+      response.sendFile(path.join(__dirname + '/admin_panel/index.html'));
     }
     else {
       response.send("Nie ma tak nigerze mały!" +
