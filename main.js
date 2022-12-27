@@ -58,7 +58,7 @@ function main() {
   app.use(session({
     secret: 'joe mama',
     resave: true,
-    saveUnitialized: true
+    saveUninitialized: true
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
