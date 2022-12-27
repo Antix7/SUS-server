@@ -70,6 +70,7 @@ function main() {
 
   app.get('/wyloguj', function(req, res) {
     req.session.loggedin = false;
+    req.session.isadmin = false;
     res.redirect('/');
   })
 
@@ -92,39 +93,41 @@ function main() {
         if(gut) {
           request.session.loggedin = true;
           request.session.username = username;
-          response.redirect('/admin');
+          if(result[0].czyAdmin) {
+            request.session.isadmin = true;
+            response.redirect('/admin');
+          }
+          else {
+            request.session.isadmin = false;
+            response.redirect('/user');
+          }
+          response.end();
         }
         else {
-          response.send('NOT GUT' +
-          "<br>\n" +
-          "<form action=\"/\" method=\"get\">\n" +
-          "    <input type=\"submit\" value=\"Logowanie\">\n" +
-          "</form>");
+          response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
         }
-        response.end();
       });
     }
     else {
-      response.send('U stupid' +
-      "<br>\n" +
-      "<form action=\"/\" method=\"get\">\n" +
-      "    <input type=\"submit\" value=\"Logowanie\">\n" +
-      "</form>");
-      response.end();
+      response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
     }
   });
 
   app.get('/admin', function(request, response) {
+    if(request.session.loggedin && request.session.isadmin) {
+      response.sendFile(path.join(__dirname + '/admin_panel/index.html'));
+    }
+    else {
+      response.sendFile(path.join(__dirname + '/login/oszust.html'));
+    }
+  });
+
+  app.get('/user', function(request, response) {
     if(request.session.loggedin) {
       response.sendFile(path.join(__dirname + '/admin_panel/index.html'));
     }
     else {
-      response.send("Nie ma tak nigerze mały!" +
-          "<br>\n" +
-          "<form action=\"/\" method=\"get\">\n" +
-          "    <input type=\"submit\" value=\"Logowanie\">\n" +
-          "</form>");
-      response.end();
+      response.sendFile(path.join(__dirname + '/login/oszust.html'));
     }
   });
 
