@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2JTKd3sJJJeOnarrPAiNOGKIDcV" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "javascript.nodejs.core.library.configured.version": "18.12.1",
+    "javascript.nodejs.core.library.typings.version": "18.11.18",
+    "last_opened_file_path": "C:/Users/Patryk/Desktop/System-Udokumentowywania-Sprzetu-SUS",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\Admin_panel" />
+      <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS" />
+      <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="" />
+      <created>1672096716702</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1672096716702</updated>
+      <workItem from="1672096719273" duration="1405000" />
+      <workItem from="1672098149987" duration="244000" />
+      <workItem from="1672098403969" duration="1149000" />
+    </task>
+    <task id="LOCAL-00001" summary="Categorising files">
+      <created>1672097439555</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1672097439555</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Separating administrators from normal users">
+      <created>1672098225297</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1672098225297</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Separating administrators from normal users">
+      <created>1672098772261</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1672098772261</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Creating seperate files for every page, so they're not sent as text from node.js, but as a file">
+      <created>1672099316065</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1672099316065</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Creating seperate files for every page, so they're not sent as text from node.js, but as a file">
+      <created>1672099475036</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1672099475036</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Categorising files" />
+    <MESSAGE value="Separating administrators from normal users" />
+    <MESSAGE value="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
+    <option name="LAST_COMMIT_MESSAGE" value="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
+  </component>
+</project>
