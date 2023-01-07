@@ -2,7 +2,20 @@ const mysql = require('mysql');
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const nodemailer = require('nodemailer');
+
+const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
+const myPasword = 'zxpjpmjufaegyxpx';
 let con;
+let myMail = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  safe: true,
+  port: 587,
+  auth: {
+    user: myAddress,
+    pass: myPasword
+  }
+});
 
 function haszuj(txt, p = 2137, M = 9223372036854775783) {
   let hash = 0;
@@ -42,7 +55,6 @@ function connect_to_db(myHost, myUser, myPassword, myDatabase) {
   });
   return 0;
 }
-
 
 function main() {
   if(connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
@@ -86,7 +98,6 @@ function main() {
         sql = sql.replace("?", a[i++]);
       }
 
-      //console.log(sql);
       con.query(sql, function(err, result) {
         if(err) throw err;
         let gut = result.length !== 0;
@@ -124,11 +135,66 @@ function main() {
 
   app.get('/user', function(request, response) {
     if(request.session.loggedin) {
-      response.sendFile(path.join(__dirname + '/admin_panel/index.html'));
+      response.sendFile(path.join(__dirname + '/user_panel/index.html'));
     }
     else {
       response.sendFile(path.join(__dirname + '/login/oszust.html'));
     }
+  });
+
+  app.get('/dodaj', function (req, res) {
+    if(req.session.isadmin && req.session.loggedin)
+      res.sendFile(__dirname + "/admin_panel/add_user.html");
+    else
+      res.sendFile(__dirname + "/login/oszust.html");
+  });
+
+  app.post('/dodaj_db', function (req, res){
+    if(!req.session.loggedin || !req.session.isadmin) {
+      res.sendFile(__dirname + '/login/oszust.html');
+      return 1;
+    }
+    let name = '';
+    for(let i = 0; i < 10; i++) {
+      let x = Math.floor(Math.random() * 62);
+      // 0 <= x <= 9  =>  dodajemy liczbę x
+      // 10 <= x <= 35  =>  dodajemy małą literę o nr x - 10
+      // 36 <= x <= 61  =>  dodajemy wielką literę o nr x - 36
+      if(x <= 9)
+        name += x.toString();
+      else if(x <= 35)
+        name += String.fromCharCode(x - 10 + 'a'.charCodeAt(0));
+      else
+        name += String.fromCharCode(x - 36 + 'A'.charCodeAt(0));
+    }
+    let mailOptions = {
+      from: myAddress,
+      to: req.body.email,
+      subject: "Założenie konta w Systemie Udokumentowywania Sprzętu",
+      text: "Witaj!\nOto kod do założenia konta w SUS: " + name
+    };
+    myMail.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        res.send("Coś poszło nie tak");
+        console.log(error);
+      }
+      else {
+        let toSend = "Wysłano e-mail na podany adres\n";
+
+        let czyAdmin = '0';
+        if(req.body.czyAdmin == 'on')
+          czyAdmin = '1';
+        let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + name + "', -1, " + czyAdmin + ");";
+        con.query(sql, function(error) {
+          if(error) {
+            console.log(error);
+            res.send(toSend + "Nie udało się dodać użytkownika");
+          }
+          else
+            res.send(toSend);
+        })
+      }
+    });
   });
 
   app.listen(3000, '0.0.0.0');

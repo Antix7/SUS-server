@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dodawanie użytkownika</title>
+</head>
+<body>
+    <br>
+    <form action = "/dodaj_db" method = "post">
+        <input type = "email" id = "email" name = "email" placeholder = "Adres e-mail"> <br>
+        <input type = "checkbox" id = "czyAdmin" name = "czyAdmin"> Czy to ma być admin? <br>
+        <input type = "submit" value = "Dodaj">
+    </form>
+    <br>
+    <form action = "/admin" method = "get">
+        <input type = "submit" value = "Wróć">
+    </form>
+</body>
+</html>

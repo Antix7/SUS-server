@@ -4,9 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Added the option to create new users from the admin panel">
+      <change afterPath="$PROJECT_DIR$/admin_panel/add_user.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin_panel/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/node_modules/.package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,7 +56,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.fonts.default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.sync&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -77,7 +82,10 @@
       <workItem from="1672098149987" duration="244000" />
       <workItem from="1672098403969" duration="1149000" />
       <workItem from="1672099576748" duration="384000" />
-      <workItem from="1672148823830" duration="441000" />
+      <workItem from="1672148823830" duration="646000" />
+      <workItem from="1672250015902" duration="1180000" />
+      <workItem from="1673049666134" duration="3694000" />
+      <workItem from="1673082397832" duration="3974000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -121,7 +129,14 @@
       <option name="project" value="LOCAL" />
       <updated>1672099881388</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="changed a typo, didn't work, then i dunno what i did but it's working now">
+      <created>1672149426009</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1672149426009</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -188,6 +203,7 @@
     <MESSAGE value="Separating administrators from normal users" />
     <MESSAGE value="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
     <MESSAGE value="Separating administrators from normal users&#10;Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
-    <option name="LAST_COMMIT_MESSAGE" value="Separating administrators from normal users&#10;Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
+    <MESSAGE value="changed a typo, didn't work, then i dunno what i did but it's working now" />
+    <option name="LAST_COMMIT_MESSAGE" value="changed a typo, didn't work, then i dunno what i did but it's working now" />
   </component>
 </project>
