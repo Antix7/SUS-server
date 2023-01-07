@@ -197,6 +197,51 @@ function main() {
     });
   });
 
+  app.get('/new', function (req, res){
+    res.sendFile(__dirname + '/login/add.html');
+  });
+
+  app.post('/new/auth', function (req, res) {
+    let onetime_id = req.body.id;
+    let nick = req.body.nick;
+    let pwd = req.body.pwd1;
+    let sql = "SELECT * FROM users WHERE Username='" + nick + "';";
+    con.query(sql, function(error, result) {
+      if(error) {
+        console.log(error);
+        res.send("Coś poszło nie tak");
+        return 0;
+      }
+      if(result.length > 0) {
+        res.send("Taki użytkownik już istnieje");
+        return 0;
+      }
+
+      sql = "SELECT * FROM users WHERE Username='" + onetime_id + "' AND PasswordHash=-1;";
+      con.query(sql, function(error, result) {
+        if(error) {
+          console.log(error);
+          res.send("Coś poszło nie tak");
+          return 0;
+        }
+        if(result.length == 0) {
+          res.send("Niepoprawny identyfikator");
+          return 0;
+        }
+
+        sql = "UPDATE users SET Username = '" + nick + "', PasswordHash = " + haszuj(pwd) + " WHERE Username='" + onetime_id + "';";
+        con.query(sql, function(error) {
+          if (error) {
+            console.log(error);
+            res.send("Coś poszło nie tak");
+            return 0;
+          }
+          res.send("Udało się!");
+        });
+      });
+    });
+  });
+
   app.listen(3000, '0.0.0.0');
 }
 
