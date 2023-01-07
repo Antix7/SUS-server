@@ -30,10 +30,10 @@ function haszuj(txt, p = 2137, M = 9223372036854775783) {
   return hash;
 }
 
-function create_user(username, password) {
+function create_user(username, password, admin) {
   let hash_password = haszuj(password);
   console.log(hash_password);
-  let sql = "INSERT INTO users (username, pwd_hash) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "')";
+  let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + username.toString() + "', " + hash_password.toString() + ", " + admin.toString() + ");";
   con.query(sql, function(err) {
     if(err) throw err;
     console.log("gud boi");
@@ -55,6 +55,7 @@ function connect_to_db(myHost, myUser, myPassword, myDatabase) {
   });
   return 0;
 }
+
 
 function main() {
   if(connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
@@ -98,6 +99,7 @@ function main() {
         sql = sql.replace("?", a[i++]);
       }
 
+      //console.log(sql);
       con.query(sql, function(err, result) {
         if(err) throw err;
         let gut = result.length !== 0;
@@ -135,7 +137,7 @@ function main() {
 
   app.get('/user', function(request, response) {
     if(request.session.loggedin) {
-      response.sendFile(path.join(__dirname + '/user_panel/index.html'));
+      response.sendFile(path.join(__dirname + '/admin_panel/index.html'));
     }
     else {
       response.sendFile(path.join(__dirname + '/login/oszust.html'));
@@ -246,6 +248,6 @@ function main() {
 }
 
 main();
-//connect_to_db();
-//create_user('admin', 'admin');
-//create_user('twoj_stary', '2137');
+//connect_to_db("localhost", "sqluser", "imposter", "test_db");
+//create_user('admin', 'admin', 1);
+//create_user('twoj_stary', '2137', 0);
