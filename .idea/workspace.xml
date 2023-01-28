@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Added">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/login/wygaslo.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin_panel/add_user.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/add_user.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -82,7 +82,7 @@
       <workItem from="1672250015902" duration="1180000" />
       <workItem from="1673049666134" duration="3694000" />
       <workItem from="1673082397832" duration="9886000" />
-      <workItem from="1674926772968" duration="5329000" />
+      <workItem from="1674926772968" duration="6254000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -147,7 +147,14 @@
       <option name="project" value="LOCAL" />
       <updated>1673092112100</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="When the admin creates a new account, it can have an expiry date">
+      <created>1674933151425</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1674933151425</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -217,6 +224,7 @@
     <MESSAGE value="changed a typo, didn't work, then i dunno what i did but it's working now" />
     <MESSAGE value="Added the option to create new users from the admin panel&#10;The identificator username gets sent to new user via email" />
     <MESSAGE value="Added the ability for new users to create acounts using the ID" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added the ability for new users to create acounts using the ID" />
+    <MESSAGE value="When the admin creates a new account, it can have an expiry date" />
+    <option name="LAST_COMMIT_MESSAGE" value="When the admin creates a new account, it can have an expiry date" />
   </component>
 </project>

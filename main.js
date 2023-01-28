@@ -104,8 +104,18 @@ function main() {
         if(err) throw err;
         let gut = result.length !== 0;
         if(gut) {
+          if(result[0].DataWygasniecia != null) {
+            let expiration_date = new Date(result[0].DataWygasniecia);
+            let current_date = new Date();
+            if (current_date > expiration_date) {
+              response.sendFile(__dirname + '/login/wygaslo.html');
+              return;
+            }
+          }
+
           request.session.loggedin = true;
           request.session.username = username;
+
           if(result[0].czyAdmin) {
             request.session.isadmin = true;
             response.redirect('/admin');
