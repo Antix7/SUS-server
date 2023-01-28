@@ -187,6 +187,13 @@ function main() {
         if(req.body.czyAdmin == 'on')
           czyAdmin = '1';
         let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + name + "', -1, " + czyAdmin + ");";
+        //console.log(req.body.expires);
+        //console.log(req.body.expires == 'on');
+        if(req.body.expires == 'on') {
+          let date = req.body.date;
+          //console.log(date);
+          sql = "INSERT INTO users (Username, PasswordHash, czyAdmin, DataWygasniecia) VALUES " + "('" + name + "', -1, " + czyAdmin + ", '" + date + "');";
+        }
         con.query(sql, function(error) {
           if(error) {
             console.log(error);
