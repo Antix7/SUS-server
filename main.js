@@ -118,11 +118,11 @@ function main() {
 
           if(result[0].czyAdmin) {
             request.session.isadmin = true;
-            response.redirect('/admin');
+            response.redirect('/panel');
           }
           else {
             request.session.isadmin = false;
-            response.redirect('/user');
+            response.redirect('/panel');
           }
           response.end();
         }
@@ -136,23 +136,16 @@ function main() {
     }
   });
 
-  app.get('/admin', function(request, response) {
-    if(request.session.loggedin && request.session.isadmin) {
-      response.sendFile(path.join(__dirname + '/admin_panel/index.html'));
-    }
-    else {
-      response.sendFile(path.join(__dirname + '/login/oszust.html'));
-    }
-  });
-
-  app.get('/user', function(request, response) {
+  app.get('/panel', function(request, response) {
     if(request.session.loggedin) {
-      response.sendFile(path.join(__dirname + '/admin_panel/index.html'));
+      if(request.session.isadmin)
+        response.sendFile(__dirname + '/admin_panel/index.html');
+      else
+        response.sendFile(__dirname + '/user_panel/index.html');
     }
-    else {
-      response.sendFile(path.join(__dirname + '/login/oszust.html'));
-    }
-  });
+    else
+      response.sendFile(__dirname + '/login/oszust.html');
+  })
 
   app.get('/dodaj', function (req, res) {
     if(req.session.isadmin && req.session.loggedin)
