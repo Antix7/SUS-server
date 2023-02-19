@@ -254,8 +254,39 @@ function main() {
     });
   });
 
+  app.get('/zmien_haslo', function(req, res) {
+    if(req.session.loggedin)
+      res.sendFile(__dirname + '/login/zmien_haslo.html');
+    else
+      res.sendFile(__dirname + '/login/oszust.html');
+  });
+
+  app.post('/zmien_haslo/auth', function(req, res) {
+    let nick = req.session.username;
+    let old_pwd = req.body.stare;
+    let new_pwd = req.body.nowe;
+    let sql = "SELECT * FROM users WHERE Username = '" + nick + "' AND PasswordHash = " + haszuj(old_pwd).toString() + ";";
+    con.query(sql, function(err, result) {
+      if(err)
+        throw err;
+      if(result.length == 0) {
+        res.send("stare hasło się nie zgadza");
+        res.end();
+        return;
+      }
+      let sql2 = "UPDATE users SET PasswordHash = " + haszuj(new_pwd) + " WHERE Username='" + nick + "';";
+      con.query(sql2, function(err, result) {
+        if(err)
+          throw err;
+        res.send("Hasło zmienione");
+        res.end();
+      })
+    });
+  })
+
   app.listen(3000, '0.0.0.0');
 }
+
 
 main();
 //connect_to_db("localhost", "sqluser", "imposter", "test_db");
