@@ -77,14 +77,14 @@ function main() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'static')));
 
-  app.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname + '/login/index.html'));
+  app.get('/', function(request, response) {
+    response.sendFile(path.join(__dirname + '/login/index.html'));
   });
 
-  app.get('/wyloguj', function(req, res) {
-    req.session.loggedin = false;
-    req.session.isadmin = false;
-    res.redirect('/');
+  app.get('/wyloguj', function(request, response) {
+    request.session.loggedin = false;
+    request.session.isadmin = false;
+    response.redirect('/');
   })
 
   app.post('/auth', function(request, response) {
@@ -147,16 +147,16 @@ function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   })
 
-  app.get('/dodaj', function (req, res) {
-    if(req.session.isadmin && req.session.loggedin)
-      res.sendFile(__dirname + "/admin_panel/add_user.html");
+  app.get('/dodaj', function (request, response) {
+    if(request.session.isadmin && request.session.loggedin)
+      response.sendFile(__dirname + "/admin_panel/add_user.html");
     else
-      res.sendFile(__dirname + "/login/oszust.html");
+      response.sendFile(__dirname + "/login/oszust.html");
   });
 
-  app.post('/dodaj_db', function (req, res){
-    if(!req.session.loggedin || !req.session.isadmin) {
-      res.sendFile(__dirname + '/login/oszust.html');
+  app.post('/dodaj_db', function (request, response){
+    if(!request.session.loggedin || !request.session.isadmin) {
+      response.sendFile(__dirname + '/login/oszust.html');
       return 1;
     }
     let name = '';
@@ -174,58 +174,58 @@ function main() {
     }
     let mailOptions = {
       from: myAddress,
-      to: req.body.email,
+      to: request.body.email,
       subject: "Założenie konta w Systemie Udokumentowywania Sprzętu",
       text: "Witaj!\nOto kod do założenia konta w SUS: " + name
     };
     myMail.sendMail(mailOptions, function(error, info) {
       if (error) {
-        res.send("Coś poszło nie tak");
+        response.send("Coś poszło nie tak");
         console.log(error);
       }
       else {
         let toSend = "Wysłano e-mail na podany adres\n";
 
         let czyAdmin = '0';
-        if(req.body.czyAdmin == 'on')
+        if(request.body.czyAdmin == 'on')
           czyAdmin = '1';
         let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + name + "', -1, " + czyAdmin + ");";
-        //console.log(req.body.expires);
-        //console.log(req.body.expires == 'on');
-        if(req.body.expires == 'on') {
-          let date = req.body.date;
+        //console.log(request.body.expires);
+        //console.log(request.body.expires == 'on');
+        if(request.body.expires == 'on') {
+          let date = request.body.date;
           //console.log(date);
           sql = "INSERT INTO users (Username, PasswordHash, czyAdmin, DataWygasniecia) VALUES " + "('" + name + "', -1, " + czyAdmin + ", '" + date + "');";
         }
         con.query(sql, function(error) {
           if(error) {
             console.log(error);
-            res.send(toSend + "Nie udało się dodać użytkownika");
+            response.send(toSend + "Nie udało się dodać użytkownika");
           }
           else
-            res.send(toSend);
+            response.send(toSend);
         })
       }
     });
   });
 
-  app.get('/new', function (req, res){
-    res.sendFile(__dirname + '/login/add.html');
+  app.get('/new', function (request, response){
+    response.sendFile(__dirname + '/login/add.html');
   });
 
-  app.post('/new/auth', function (req, res) {
-    let onetime_id = req.body.id;
-    let nick = req.body.nick;
-    let pwd = req.body.pwd1;
+  app.post('/new/auth', function (request, response) {
+    let onetime_id = request.body.id;
+    let nick = request.body.nick;
+    let pwd = request.body.pwd1;
     let sql = "SELECT * FROM users WHERE Username='" + nick + "';";
     con.query(sql, function(error, result) {
       if(error) {
         console.log(error);
-        res.send("Coś poszło nie tak");
+        response.send("Coś poszło nie tak");
         return 0;
       }
       if(result.length > 0) {
-        res.send("Taki użytkownik już istnieje");
+        response.send("Taki użytkownik już istnieje");
         return 0;
       }
 
@@ -233,11 +233,11 @@ function main() {
       con.query(sql, function(error, result) {
         if(error) {
           console.log(error);
-          res.send("Coś poszło nie tak");
+          response.send("Coś poszło nie tak");
           return 0;
         }
         if(result.length == 0) {
-          res.send("Niepoprawny identyfikator");
+          response.send("Niepoprawny identyfikator");
           return 0;
         }
 
@@ -245,41 +245,41 @@ function main() {
         con.query(sql, function(error) {
           if (error) {
             console.log(error);
-            res.send("Coś poszło nie tak");
+            response.send("Coś poszło nie tak");
             return 0;
           }
-          res.send("Udało się!");
+          response.send("Udało się!");
         });
       });
     });
   });
 
-  app.get('/zmien_haslo', function(req, res) {
-    if(req.session.loggedin)
-      res.sendFile(__dirname + '/login/zmien_haslo.html');
+  app.get('/zmien_haslo', function(request, response) {
+    if(request.session.loggedin)
+      response.sendFile(__dirname + '/login/zmien_haslo.html');
     else
-      res.sendFile(__dirname + '/login/oszust.html');
+      response.sendFile(__dirname + '/login/oszust.html');
   });
 
-  app.post('/zmien_haslo/auth', function(req, res) {
-    let nick = req.session.username;
-    let old_pwd = req.body.stare;
-    let new_pwd = req.body.nowe;
+  app.post('/zmien_haslo/auth', function(request, response) {
+    let nick = request.session.username;
+    let old_pwd = request.body.stare;
+    let new_pwd = request.body.nowe;
     let sql = "SELECT * FROM users WHERE Username = '" + nick + "' AND PasswordHash = " + haszuj(old_pwd).toString() + ";";
     con.query(sql, function(err, result) {
       if(err)
         throw err;
       if(result.length == 0) {
-        res.send("stare hasło się nie zgadza");
-        res.end();
+        response.send("stare hasło się nie zgadza");
+        response.end();
         return;
       }
       let sql2 = "UPDATE users SET PasswordHash = " + haszuj(new_pwd) + " WHERE Username='" + nick + "';";
       con.query(sql2, function(err, result) {
         if(err)
           throw err;
-        res.send("Hasło zmienione");
-        res.end();
+        response.send("Hasło zmienione");
+        response.end();
       })
     });
   })
