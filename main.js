@@ -147,14 +147,14 @@ function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   })
 
-  app.get('/dodaj', function (request, response) {
+  app.get('/panel/dodaj_uzytkownika', function (request, response) {
     if(request.session.isadmin && request.session.loggedin)
-      response.sendFile(__dirname + "/admin_panel/add_user.html");
+      response.sendFile(__dirname + "/admin_panel/dodaj_uzytkownika.html");
     else
       response.sendFile(__dirname + "/login/oszust.html");
   });
 
-  app.post('/dodaj_db', function (request, response){
+  app.post('/panel/dodaj_uzytkownika/auth', function (request, response){
     if(!request.session.loggedin || !request.session.isadmin) {
       response.sendFile(__dirname + '/login/oszust.html');
       return 1;
@@ -209,11 +209,11 @@ function main() {
     });
   });
 
-  app.get('/new', function (request, response){
-    response.sendFile(__dirname + '/login/add.html');
+  app.get('/aktywuj_konto', function (request, response){
+    response.sendFile(__dirname + '/login/aktywuj_konto.html');
   });
 
-  app.post('/new/auth', function (request, response) {
+  app.post('/aktywuj/auth', function (request, response) {
     let onetime_id = request.body.id;
     let nick = request.body.nick;
     let pwd = request.body.pwd1;
@@ -254,14 +254,14 @@ function main() {
     });
   });
 
-  app.get('/zmien_haslo', function(request, response) {
+  app.get('/panel/zmien_haslo', function(request, response) {
     if(request.session.loggedin)
       response.sendFile(__dirname + '/login/zmien_haslo.html');
     else
       response.sendFile(__dirname + '/login/oszust.html');
   });
 
-  app.post('/zmien_haslo/auth', function(request, response) {
+  app.post('/panel/zmien_haslo/auth', function(request, response) {
     let nick = request.session.username;
     let old_pwd = request.body.stare;
     let new_pwd = request.body.nowe;
