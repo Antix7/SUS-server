@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl-PL">
 <head>
     <meta charset="UTF-8">
     <title>Lista użytkowników</title>
@@ -12,9 +12,12 @@
 </head>
 <body>
     {{tablebody}}
-    <br>
+    <br><br>
+    <form action="/panel/dodaj_uzytkownika" method="get">
+        <input type="submit" value="Dodaj użytkownika"><br><br>
+    </form>
     <form action = "/panel" method = "get">
-        <input type = "submit" value = "Wróć">
+        <input type = "submit" value = "Wróć"><br>
     </form>
 </body>
 </html>
