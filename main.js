@@ -3,6 +3,8 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const handlebars = require('handlebars');
+const fs = require('fs');
 
 const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
 const myPasword = 'zxpjpmjufaegyxpx';
@@ -56,6 +58,25 @@ function connect_to_db(myHost, myUser, myPassword, myDatabase) {
   return 0;
 }
 
+
+function build_table(ob) {
+  let table = '<table><tr>';
+  for(let i in ob[0]) {
+    table += '<th>' + i.toString() + '</th>';
+  }
+  table += '</tr>';
+  for(let i in ob) {
+    table += '<tr>';
+    for(let j in ob[i]) {
+      table += '<td>';
+      table += ob[i][j];
+      table += '</td>';
+    }
+    table += '</tr>';
+  }
+  table += '</table>';
+  return table;
+}
 
 function main() {
   if(connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
@@ -284,6 +305,26 @@ function main() {
     });
   })
 
+  app.get('/panel/uzytkownicy', function(request, response) {
+    if(!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let sql = 'SELECT * FROM users';
+    con.query(sql, function(err, result) {
+      if(err)
+        throw err;
+      const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
+      //console.log(templateStr);
+      const template = handlebars.compile(templateStr, {noEscape: true});
+      const contents = template({tablebody: build_table(result)});
+      //console.log(contents);
+      //response.send(build_table(result));
+      response.send(contents);
+      response.end();
+    });
+  });
+
   app.listen(3000, '0.0.0.0');
 }
 
@@ -292,3 +333,4 @@ main();
 //connect_to_db("localhost", "sqluser", "imposter", "test_db");
 //create_user('admin', 'admin', 1);
 //create_user('twoj_stary', '2137', 0);
+//console.log(build_table([{"Username":"admin","PasswordHash":2023948189175633,"czyAdmin":1,"DataWygasniecia":null},{"Username":"twoj_stary","PasswordHash":488183148373,"czyAdmin":0,"DataWygasniecia":null}]));
