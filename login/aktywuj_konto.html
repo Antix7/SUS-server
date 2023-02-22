@@ -8,6 +8,7 @@
   <form action = "/aktywuj/auth" method = "post" onsubmit = "return checkPwd();">
     <input type = "text" placeholder = "Identyfikator otrzymany mailem" name = "id"><br>
     <input type = "text" placeholder = "Przyszły login" name = "nick"><br>
+    UWAGA! Login nie może zawierać znaków ' oraz " <br>
     <input type = "password" placeholder = "Przyszłe hasło" id = "pwd1" name = "pwd1" onchange="checkPwd()"><br>
     <input type = "password" placeholder = "Powtórz hasło" id = "pwd2" name = "pwd2" onchange="checkPwd()"><br>
     <input type = "submit" value = "Utwórz konto"><br>

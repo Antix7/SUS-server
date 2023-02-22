@@ -110,6 +110,10 @@ function main() {
 
   app.post('/auth', function(request, response) {
     let username = request.body.nick;
+    if(username.includes("'") || username.includes('"')) {
+      response.sendFile(__dirname + '/login/for_injectors.html');
+      return;
+    }
     let password = request.body.pwd;
     if(username && password) {
       let sql = "SELECT * FROM users WHERE Username = '?' AND PasswordHash = '?';";
@@ -236,7 +240,15 @@ function main() {
 
   app.post('/aktywuj/auth', function (request, response) {
     let onetime_id = request.body.id;
+    if(onetime_id.includes("'") || onetime_id.includes('"')) {
+      response.sendFile(__dirname + '/login/for_injectors.html');
+      return;
+    }
     let nick = request.body.nick;
+    if(nick.includes("'") || nick.includes('"')) {
+      response.sendFile(__dirname + '/login/for_injectors.html');
+      return;
+    }
     let pwd = request.body.pwd1;
     let sql = "SELECT * FROM users WHERE Username='" + nick + "';";
     con.query(sql, function(error, result) {
@@ -284,6 +296,10 @@ function main() {
 
   app.post('/panel/zmien_haslo/auth', function(request, response) {
     let nick = request.session.username;
+    if(nick.includes("'") || nick.includes('"')) {
+      response.sendFile(__dirname + '/login/for_injectors.html');
+      return;
+    }
     let old_pwd = request.body.stare;
     let new_pwd = request.body.nowe;
     let sql = "SELECT * FROM users WHERE Username = '" + nick + "' AND PasswordHash = " + haszuj(old_pwd).toString() + ";";
