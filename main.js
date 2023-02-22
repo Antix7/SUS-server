@@ -111,6 +111,7 @@ function main() {
   app.get('/wyloguj', function(request, response) {
     request.session.loggedin = false;
     request.session.isadmin = false;
+    request.session.username = null;
     response.redirect('/');
   })
 
@@ -301,6 +302,10 @@ function main() {
   });
 
   app.post('/panel/zmien_haslo/auth', function(request, response) {
+    if(!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
     let nick = request.session.username;
     if(nick.includes("'") || nick.includes('"')) {
       response.sendFile(__dirname + '/login/for_injectors.html');
