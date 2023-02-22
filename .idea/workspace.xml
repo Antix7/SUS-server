@@ -4,13 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="We're now preventing SQL injection. yay">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Activated html5 and added newlines where necessary.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin_panel/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin_panel/uzytkownicy.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/uzytkownicy.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/login/aktywuj_konto.html" beforeDir="false" afterPath="$PROJECT_DIR$/login/aktywuj_konto.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/login/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/login/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_panel/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,7 +102,7 @@
       <workItem from="1673082397832" duration="9886000" />
       <workItem from="1674926772968" duration="6254000" />
       <workItem from="1676805648178" duration="3536000" />
-      <workItem from="1677089077345" duration="7803000" />
+      <workItem from="1677089077345" duration="9308000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -213,7 +209,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677098417530</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Activated html5 and added newlines where necessary.">
+      <created>1677099491595</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1677099491595</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -289,6 +292,7 @@
     <MESSAGE value="changed filenames and addresses so they make more sense" />
     <MESSAGE value="Admins can now access a list of users&#10;It also uses file templates which are really cool" />
     <MESSAGE value="We're now preventing SQL injection. yay" />
-    <option name="LAST_COMMIT_MESSAGE" value="We're now preventing SQL injection. yay" />
+    <MESSAGE value="Activated html5 and added newlines where necessary." />
+    <option name="LAST_COMMIT_MESSAGE" value="Activated html5 and added newlines where necessary." />
   </component>
 </project>

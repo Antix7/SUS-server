@@ -59,11 +59,12 @@ function connect_to_db(myHost, myUser, myPassword, myDatabase) {
 }
 
 
-function build_table(ob) {
+function build_table_users(ob) {
   let table = '<table><tr>';
   for(let i in ob[0]) {
     table += '<th>' + i.toString() + '</th>';
   }
+  table += '<th> guziczki </th>';
   table += '</tr>';
   for(let i in ob) {
     table += '<tr>';
@@ -72,6 +73,11 @@ function build_table(ob) {
       table += ob[i][j];
       table += '</td>';
     }
+    table += '<td> ' +
+        '<form action="/panel/uzytkownicy/usun" method="post"> ' +
+        '<input type="submit" value="usuń"> ' +
+        '<input type="hidden" name="Username" value="' + ob[i].Username + '"> ' +
+        '</form> </td>';
     table += '</tr>';
   }
   table += '</table>';
@@ -333,11 +339,33 @@ function main() {
       const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
       //console.log(templateStr);
       const template = handlebars.compile(templateStr, {noEscape: true});
-      const contents = template({tablebody: build_table(result)});
+      const contents = template({tablebody: build_table_users(result)});
       //console.log(contents);
       //response.send(build_table(result));
       response.send(contents);
       response.end();
+    });
+  });
+
+  app.post('/panel/uzytkownicy/usun', function(request, response) {
+    if(!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let nick = request.body.Username;
+    if(nick.includes("'") || nick.includes('"')) {
+      response.sendFile(__dirname + '/login/for_injectors.html');
+      return;
+    }
+    if(nick == request.session.username) {
+      response.send("lol nie możesz usunąć własnego konta");
+      return;
+    }
+    let sql = "DELETE FROM users WHERE Username = '" + nick.toString() + "';";
+    con.query(sql, function(err, result) {
+      if(err)
+        throw err;
+      response.redirect('/panel/uzytkownicy');
     });
   });
 
