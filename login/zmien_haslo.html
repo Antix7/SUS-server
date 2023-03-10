@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zmiana hasła</title>
+  <script>
+    function checkPwd() {
+      let stare = document.getElementById("stare");
+      let nowe = document.getElementById("nowe");
+      let nowe2 = document.getElementById("nowe2");
+      let mySpan = document.getElementById("mySpan");
+      if(nowe.value !== nowe2.value) {
+        mySpan.innerText = "Hasła nie są takie same";
+        mySpan.style.color = "red";
+        return false;
+      }
+      else {
+        if(stare.value === nowe.value) {
+          mySpan.innerText = "Nowe hasło nie może być takie samo jak stare!";
+          mySpan.style.color = "rgb(0,153,255)";
+          return false;
+        }
+        mySpan.innerText = "Hasła są takie same";
+        mySpan.style.color = "rgb(0, 220, 0)";
+        return true;
+      }
+    }
+  </script>
+</head>
+<body>
+  <form action="/panel/zmien_haslo/auth" method="post" onsubmit="return checkPwd();">
+    <input type="password" name="stare" id="stare" placeholder="Wpisz stare hasło"><br>
+    <input type="password" name="nowe" id="nowe" placeholder="Wpisz nowe hasło" onchange="checkPwd()"><br>
+    <input type="password" name="nowe2" id="nowe2" placeholder="Powtórz nowe hasło" onchange="checkPwd()"><br>
+    <input type="submit" value="Zmień hasło"><br>
+  </form>
+  <span id="mySpan"></span>
+</body>
+</html>

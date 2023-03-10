@@ -1,7 +1,8 @@
+<!DOCTYPE html>
 <html lang="pl-PL">
 <head>
     <meta charset="UTF-8">
-    <title> sql_tests </title>
+    <title> Logowanie do SUS </title>
 </head>
 <body style="text-align: center">
 <form action = "/auth" method="post">
@@ -10,6 +11,13 @@
     <input type="password" name="pwd" id="pwd" placeholder="Wpisz hasło">
     <br><br>
     <input type="submit" value="Zaloguj">
+</form>
+<br>
+<br>
+<br>
+Masz kod do utworzenia konta?
+<form action = "/aktywuj_konto" method="get">
+    <input type = "submit" value = "Kliknij tutaj">
 </form>
 </body>
 </html>
