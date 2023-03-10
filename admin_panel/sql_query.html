@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>SQL query</title>
+    <style>
+        label {
+            font-weight: bolder;
+        }
+    </style>
+</head>
+<body>
+<form action="/panel/query/perform" method="post">
+    <label for="query" style="text-align: left"> Twoje query <br> </label>
+    <textarea cols="50" id="query" name="query" rows="3"></textarea> <br>
+    <input type="submit" style="text-align: center" value="Wyślij">
+</form>
+<br> <br>
+<form action = "/panel" method = "get">
+    <input type = "submit" value = "Wróć">
+</form>
+</body>
+</html>

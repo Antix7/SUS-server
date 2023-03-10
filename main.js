@@ -374,6 +374,37 @@ function main() {
     });
   });
 
+  app.get('/panel/query', function (request, response) {
+    if(!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    response.sendFile(__dirname + '/admin_panel/sql_query.html');
+  });
+
+  app.post('/panel/query/perform', function(request, response) {
+    if(!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let sql = request.body.query;
+    if(sql.toLowerCase().includes('drop') || sql.toLowerCase().includes('delete')) {
+      response.send('nie ma usuwania');
+      response.end();
+      return;
+    }
+    con.query(sql, function(err, result) {
+      if(err) {
+        response.send('chyba coś nie tak z twoim syntaxem');
+        response.end();
+        return;
+      }
+      //response.send('Odpowiedź serwera: \n');
+      response.send(result);
+      response.end();
+    });
+  });
+
   app.listen(3000, '0.0.0.0');
 }
 
