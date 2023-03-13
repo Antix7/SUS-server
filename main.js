@@ -6,6 +6,8 @@ const nodemailer = require('nodemailer');
 const handlebars = require('handlebars');
 const fs = require('fs');
 
+const crypto = require('crypto');
+
 const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
 const myPasword = 'zxpjpmjufaegyxpx';
 let con;
@@ -19,7 +21,8 @@ let myMail = nodemailer.createTransport({
   }
 });
 
-function haszuj(txt, p = 2137, M = 9223372036854775783) {
+function haszuj(txt) {
+  /*
   let hash = 0;
   for(let i = 0; i < txt.length; i++) {
     hash *= p;
@@ -29,13 +32,14 @@ function haszuj(txt, p = 2137, M = 9223372036854775783) {
     if(hash < 0) 
       hash += M;
   }
-  return hash;
+  */
+  return crypto.createHash('sha256').update(txt).digest('hex');
 }
 
 function create_user(username, password, admin) {
   let hash_password = haszuj(password);
   console.log(hash_password);
-  let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + username.toString() + "', " + hash_password.toString() + ", " + admin.toString() + ");";
+  let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
   con.query(sql, function(err) {
     if(err) throw err;
     console.log("gud boi");
@@ -281,7 +285,7 @@ function main() {
           return 0;
         }
 
-        sql = "UPDATE users SET Username = '" + nick + "', PasswordHash = " + haszuj(pwd) + " WHERE Username='" + onetime_id + "';";
+        sql = "UPDATE users SET Username = '" + nick + "', PasswordHash = '" + haszuj(pwd) + "' WHERE Username='" + onetime_id + "';";
         con.query(sql, function(error) {
           if (error) {
             console.log(error);
@@ -313,7 +317,7 @@ function main() {
     }
     let old_pwd = request.body.stare;
     let new_pwd = request.body.nowe;
-    let sql = "SELECT * FROM users WHERE Username = '" + nick + "' AND PasswordHash = " + haszuj(old_pwd).toString() + ";";
+    let sql = "SELECT * FROM users WHERE Username = '" + nick + "' AND PasswordHash = '" + haszuj(old_pwd).toString() + "';";
     con.query(sql, function(err, result) {
       if(err)
         throw err;
@@ -322,7 +326,7 @@ function main() {
         response.end();
         return;
       }
-      let sql2 = "UPDATE users SET PasswordHash = " + haszuj(new_pwd) + " WHERE Username='" + nick + "';";
+      let sql2 = "UPDATE users SET PasswordHash = '" + haszuj(new_pwd).toString() + "' WHERE Username='" + nick + "';";
       con.query(sql2, function(err, result) {
         if(err)
           throw err;
