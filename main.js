@@ -1,4 +1,5 @@
 const mysql = require('mysql2');
+const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
@@ -85,6 +86,27 @@ function build_table_users(ob) {
     table += '</tr>';
   }
   table += '</table>';
+  return table;
+}
+
+
+async function getTable(tableName, columnName) {  // works when a table has two columns: one ending with ID and hte ohter with Nazwa
+  let table = [];
+  let await_con = await mysql_promise.createConnection({
+    host: 'localhost',
+    user: 'sqluser',
+    password: 'imposter',
+    database: 'test_db'
+  });
+  let sql = 'SELECT * FROM ' + tableName + ';';
+  let [rows, columns] = await await_con.execute(sql);
+  await_con.end();
+
+  for (let i in rows) {
+    table[rows[i][columnName + 'ID']] = rows[i][columnName + 'Nazwa'];
+  }
+
+  //console.log(table);
   return table;
 }
 
@@ -413,8 +435,15 @@ function main() {
 }
 
 
+async function kms() {
+  let statusy = await getTable('statusy', 'Status');
+  console.log(statusy);
+}
+
 main();
 //connect_to_db("localhost", "sqluser", "imposter", "test_db");
 //create_user('admin', 'admin', 1);
 //create_user('twoj_stary', '2137', 0);
 //console.log(build_table([{"Username":"admin","PasswordHash":2023948189175633,"czyAdmin":1,"DataWygasniecia":null},{"Username":"twoj_stary","PasswordHash":488183148373,"czyAdmin":0,"DataWygasniecia":null}]));
+
+//kms();
