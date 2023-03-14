@@ -11,7 +11,7 @@ const crypto = require('crypto');
 
 const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
 const myPasword = 'zxpjpmjufaegyxpx';
-let con;
+let con, await_con;
 let myMail = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   safe: true,
@@ -47,13 +47,19 @@ function create_user(username, password, admin) {
   })
 }
 
-function connect_to_db(myHost, myUser, myPassword, myDatabase) {
+async function connect_to_db(myHost, myUser, myPassword, myDatabase) {
 
   con = mysql.createConnection({
     host: myHost,
     user: myUser,
     password: myPassword,
     database: myDatabase
+  });
+  await_con = await mysql_promise.createConnection({
+    host: 'localhost',
+    user: 'sqluser',
+    password: 'imposter',
+    database: 'test_db'
   });
 
   con.connect(function(err) {
@@ -92,12 +98,6 @@ function build_table_users(ob) {
 
 async function getTable(tableName, columnName) {  // works when a table has two columns: one ending with ID and hte ohter with Nazwa
   let table = [];
-  let await_con = await mysql_promise.createConnection({
-    host: 'localhost',
-    user: 'sqluser',
-    password: 'imposter',
-    database: 'test_db'
-  });
   let sql = 'SELECT * FROM ' + tableName + ';';
   let [rows, columns] = await await_con.execute(sql);
   await_con.end();
@@ -110,8 +110,8 @@ async function getTable(tableName, columnName) {  // works when a table has two 
   return table;
 }
 
-function main() {
-  if(connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
+async function main() {
+  if(await connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
