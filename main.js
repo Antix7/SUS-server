@@ -22,6 +22,8 @@ let myMail = nodemailer.createTransport({
   }
 });
 
+let kategorie, wlasciciele, lokalizacje, statusy;
+
 function haszuj(txt) {
   /*
   let hash = 0;
@@ -96,11 +98,41 @@ function build_table_users(ob) {
 }
 
 
+function build_table_body_sprzet(ob) {
+  let table = '<tbody>';
+  for(let i in ob) {
+    table += '<tr>';
+    for(let j in ob[i]) {
+      if(j === 'PrzedmiotID' || j.contains('_'))
+        continue;
+      table += '<td>';
+      if (j === 'KategoriaID')
+        table += kategorie[ob[i][j]];
+      else if (j === 'WlascicielID')
+        table += wlasciciele[ob[i][j]];
+      else if (j === 'LokalizacjaID')
+        table += lokalizacje[ob[i][j]];
+      else if (j === 'StatusID')
+        table += statusy[ob[i][j]];
+      else
+        table += ob[i][j];
+      table += '</td>';
+    }
+    /*table += '<td> ' +
+        '<form action="/panel/uzytkownicy/usun" method="post"> ' +
+        '<input type="submit" value="usuń"> ' +
+        '<input type="hidden" name="Username" value="' + ob[i].Username + '"> ' +
+        '</form> </td>';*/
+    table += '</tr>';
+  }
+  table += '</tbody>';
+  return table;
+}
+
 async function getTable(tableName, columnName) {  // works when a table has two columns: one ending with ID and hte ohter with Nazwa
   let table = [];
   let sql = 'SELECT * FROM ' + tableName + ';';
   let [rows, columns] = await await_con.execute(sql);
-  await_con.end();
 
   for (let i in rows) {
     table[rows[i][columnName + 'ID']] = rows[i][columnName + 'Nazwa'];
@@ -110,15 +142,20 @@ async function getTable(tableName, columnName) {  // works when a table has two 
   return table;
 }
 
+async function updateTables() {
+  statusy = await getTable("statusy", "Status");
+  lokalizacje = await getTable("lokalizacje", "Lokalizacja");
+  wlasciciele = await getTable("wlasciciele", "Wlasciciel");
+  kategorie = await getTable("kategorie", "Kategoria");
+}
+
 async function main() {
   if(await connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
 
-  //let lol = check_user('admin', 'admin');
-  //console.log("returned ", lol, global_shenadigans);
-
+  await updateTables();
 
   const app = express();
   app.use(session({
@@ -430,6 +467,28 @@ async function main() {
       response.end();
     });
   });
+
+  app.get('/baza', function(request, response) {
+    if(!request.session.loggedin) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let sql = 'SELECT * FROM sprzet';
+    con.query(sql, function(err, result) {
+      if(err)
+        throw err;
+      const templateStr = fs.readFileSync(__dirname + '/user_panel/baza.html').toString('utf8');
+      const template = handlebars.compile(templateStr, {noEscape: true});
+      const contents = template({tablebody: build_table_body_sprzet(result)});
+      response.send(contents);
+      response.end();
+    });
+  });
+
+  app.get('/baza/update', async function(request, response) {
+    await updateTables();
+    response.redirect('/baza');
+  })
 
   app.listen(3000, '0.0.0.0');
 }
