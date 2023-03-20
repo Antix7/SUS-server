@@ -224,7 +224,7 @@ async function main() {
         //console.log(date);
         sql = "INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES " + "('" + name + "', -1, " + czy_admin + ", '" + date + "');";
       }
-      let [rows, columns] = await await_con.execute(sql);
+      await await_con.execute(sql);
       response.send(toSend);
     });
   });
@@ -260,7 +260,7 @@ async function main() {
     }
 
     sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + haszuj(pwd) + "' WHERE username='" + onetime_id + "';";
-    [rows, columns] = await await_con.execute(sql);
+    await await_con.execute(sql);
     response.send("Udało się!");
   });
 
