@@ -37,12 +37,13 @@ function haszuj(txt) {
   return crypto.createHash('sha256').update(txt).digest('hex');
 }
 
-async function create_user(username, password, admin) {
+async function create_user(username, password, czy_admin) {
 
-  let hash_password = haszuj(password);
-  console.log(hash_password);
-  let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
-  await con.execute(sql);
+  let password_hash = haszuj(password);
+  console.log(password_hash);
+  let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
+  await con.execute(sql, [username, password_hash, czy_admin]);
+
 }
 
 async function connect_to_db(myHost, myUser, myPassword, myDatabase) {
@@ -365,10 +366,13 @@ async function main() {
 }
 
 
-main();
-// connect_to_db("localhost", "sqluser", "imposter", "test_db");
-// create_user('admin', 'admin', 1);
-// create_user('twoj_stary', '2137', 0);
+// main();
+connect_to_db("localhost", "sqluser", "imposter", "sus_database");
+setTimeout(function() {
+  create_user('admin', 'admin', 1);
+  // create_user('twoj_stary', '2137', 0);
+}, 1000);
+
 //console.log(build_table([{"username":"admin","password_hash":2023948189175633,"czy_admin":1,"data_wygasniecia":null},{"username":"twoj_stary","password_hash":488183148373,"czy_admin":0,"data_wygasniecia":null}]));
 
 //kms();
