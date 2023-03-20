@@ -11,7 +11,7 @@ const crypto = require('crypto');
 
 const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
 const myPasword = 'zxpjpmjufaegyxpx';
-let await_con;
+let con;
 let myMail = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   safe: true,
@@ -42,12 +42,12 @@ async function create_user(username, password, admin) {
   let hash_password = haszuj(password);
   console.log(hash_password);
   let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
-  await await_con.execute(sql);
+  await con.execute(sql);
 }
 
 async function connect_to_db(myHost, myUser, myPassword, myDatabase) {
 
-  await_con = await mysql_promise.createConnection({
+  con = await mysql_promise.createConnection({
     host: myHost,
     user: myUser,
     password: myPassword,
@@ -129,7 +129,7 @@ async function main() {
 
     let sql = "SELECT * FROM users WHERE username = '" + username + "' AND password_hash = '" + haszuj(password) + "';";
     //console.log(sql);
-    let [rows, columns] = await await_con.execute(sql);
+    let [rows, columns] = await con.execute(sql);
     let gut = rows.length !== 0;
 
     if(!gut) {
@@ -215,7 +215,7 @@ async function main() {
         //console.log(date);
         sql = "INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES " + "('" + name + "', -1, " + czy_admin + ", '" + date + "');";
       }
-      await await_con.execute(sql);
+      await con.execute(sql);
       response.send(toSend);
     });
   });
@@ -237,21 +237,21 @@ async function main() {
     }
     let pwd = request.body.pwd1;
     let sql = "SELECT * FROM users WHERE username='" + nick + "';";
-    let [rows, columns] = await await_con.execute(sql);
+    let [rows, columns] = await con.execute(sql);
     if (rows.length > 0) {
       response.send("Taki użytkownik już istnieje");
       return 0;
     }
 
     sql = "SELECT * FROM users WHERE username='" + onetime_id + "' AND password_hash=-1;";
-    [rows, columns] = await await_con.execute(sql);
+    [rows, columns] = await con.execute(sql);
     if (rows.length === 0) {
       response.send("Niepoprawny identyfikator");
       return 0;
     }
 
     sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + haszuj(pwd) + "' WHERE username='" + onetime_id + "';";
-    await await_con.execute(sql);
+    await con.execute(sql);
     response.send("Udało się!");
   });
 
@@ -275,14 +275,14 @@ async function main() {
     let old_pwd = request.body.stare;
     let new_pwd = request.body.nowe;
     let sql = "SELECT * FROM users WHERE username = '" + nick + "' AND password_hash = '" + haszuj(old_pwd).toString() + "';";
-    let [rows, columns] = await await_con.execute(sql);
+    let [rows, columns] = await con.execute(sql);
     if (rows.length === 0) {
       response.send("stare hasło się nie zgadza");
       response.end();
       return;
     }
     sql = "UPDATE users SET password_hash = '" + haszuj(new_pwd).toString() + "' WHERE username='" + nick + "';";
-    await await_con.execute(sql);
+    await con.execute(sql);
     response.send("Hasło zmienione");
     response.end();
   });
@@ -293,7 +293,7 @@ async function main() {
       return;
     }
     let sql = 'SELECT * FROM users';
-    let [rows, columns] = await await_con.execute(sql);
+    let [rows, columns] = await con.execute(sql);
 
     const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
     const template = handlebars.compile(templateStr, {noEscape: true});
@@ -317,7 +317,7 @@ async function main() {
       return;
     }
     let sql = "DELETE FROM users WHERE username = '" + nick.toString() + "';";
-    await await_con.execute(sql);
+    await con.execute(sql);
     response.redirect('/panel/uzytkownicy');
   });
 
@@ -341,7 +341,7 @@ async function main() {
       return;
     }
     try {
-      let [rows, columns] = await await_con.execute(sql);
+      let [rows, columns] = await con.execute(sql);
       response.send(rows);
       response.end();
     }
