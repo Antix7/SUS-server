@@ -11,7 +11,7 @@ const crypto = require('crypto');
 
 const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
 const myPasword = 'zxpjpmjufaegyxpx';
-let con, await_con;
+let await_con;
 let myMail = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   safe: true,
@@ -38,6 +38,7 @@ function haszuj(txt) {
 }
 
 async function create_user(username, password, admin) {
+
   let hash_password = haszuj(password);
   console.log(hash_password);
   let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
@@ -46,23 +47,13 @@ async function create_user(username, password, admin) {
 
 async function connect_to_db(myHost, myUser, myPassword, myDatabase) {
 
-  con = mysql.createConnection({
+  await_con = await mysql_promise.createConnection({
     host: myHost,
     user: myUser,
     password: myPassword,
     database: myDatabase
   });
-  await_con = await mysql_promise.createConnection({
-    host: 'localhost',
-    user: 'sqluser',
-    password: 'imposter',
-    database: 'test_db'
-  });
 
-  con.connect(function(err) {
-    if (err) throw err;
-    //console.log("Connected!");
-  });
   return 0;
 }
 
@@ -94,7 +85,7 @@ function build_table_users(ob) {
 
 
 async function main() {
-  if(await connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
+  if(await connect_to_db("localhost", "sqluser", "imposter", "sus_database") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
