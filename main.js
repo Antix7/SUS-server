@@ -22,24 +22,15 @@ let myMail = nodemailer.createTransport({
   }
 });
 
-function haszuj(txt) {
-  /*
-  let hash = 0;
-  for(let i = 0; i < txt.length; i++) {
-    hash *= p;
-    //hash += txt[i].toInteger();
-    hash += txt.charCodeAt(i);
-    hash %= M;
-    if(hash < 0)
-      hash += M;
-  }
-  */
-  return crypto.createHash('sha256').update(txt).digest('hex');
+function create_hash(password) {
+
+  return crypto.createHash('sha256').update(password).digest('hex');
+
 }
 
 async function create_user(username, password, czy_admin) {
 
-  let password_hash = haszuj(password);
+  let password_hash = create_hash(password);
   console.log(password_hash);
   let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
   await con.execute(sql, [username, password_hash, czy_admin]);
@@ -128,7 +119,7 @@ async function main() {
       return;
     }
 
-    let sql = "SELECT * FROM users WHERE username = '" + username + "' AND password_hash = '" + haszuj(password) + "';";
+    let sql = "SELECT * FROM users WHERE username = '" + username + "' AND password_hash = '" + create_hash(password) + "';";
     //console.log(sql);
     let [rows, columns] = await con.execute(sql);
     let gut = rows.length !== 0;
@@ -251,7 +242,7 @@ async function main() {
       return 0;
     }
 
-    sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + haszuj(pwd) + "' WHERE username='" + onetime_id + "';";
+    sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + create_hash(pwd) + "' WHERE username='" + onetime_id + "';";
     await con.execute(sql);
     response.send("Udało się!");
   });
@@ -275,14 +266,14 @@ async function main() {
     }
     let old_pwd = request.body.stare;
     let new_pwd = request.body.nowe;
-    let sql = "SELECT * FROM users WHERE username = '" + nick + "' AND password_hash = '" + haszuj(old_pwd).toString() + "';";
+    let sql = "SELECT * FROM users WHERE username = '" + nick + "' AND password_hash = '" + create_hash(old_pwd).toString() + "';";
     let [rows, columns] = await con.execute(sql);
     if (rows.length === 0) {
       response.send("stare hasło się nie zgadza");
       response.end();
       return;
     }
-    sql = "UPDATE users SET password_hash = '" + haszuj(new_pwd).toString() + "' WHERE username='" + nick + "';";
+    sql = "UPDATE users SET password_hash = '" + create_hash(new_pwd).toString() + "' WHERE username='" + nick + "';";
     await con.execute(sql);
     response.send("Hasło zmienione");
     response.end();
