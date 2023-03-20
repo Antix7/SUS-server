@@ -106,23 +106,18 @@ async function main() {
   })
 
   app.post('/auth', async function(request, response) {
+
     let username = request.body.nick;
-    if(username.includes("'") || username.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
     let password = request.body.pwd;
     if(!(username && password)) {
       response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
       return;
     }
 
-    let sql = "SELECT * FROM users WHERE username = '" + username + "' AND password_hash = '" + create_hash(password) + "';";
-    //console.log(sql);
-    let [rows, columns] = await con.execute(sql);
-    let gut = rows.length !== 0;
+    let query = "SELECT * FROM users WHERE username = ? AND password_hash = ?;";
+    let [rows, columns] = await con.execute(query, [username, create_hash(password)]);
 
-    if(!gut) {
+    if(rows.length === 0) {
       response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
       return;
     }
