@@ -40,7 +40,7 @@ function haszuj(txt) {
 async function create_user(username, password, admin) {
   let hash_password = haszuj(password);
   console.log(hash_password);
-  let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
+  let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
   await await_con.execute(sql);
 }
 
@@ -84,7 +84,7 @@ function build_table_users(ob) {
     table += '<td> ' +
         '<form action="/panel/uzytkownicy/usun" method="post"> ' +
         '<input type="submit" value="usuń"> ' +
-        '<input type="hidden" name="Username" value="' + ob[i].Username + '"> ' +
+        '<input type="hidden" name="username" value="' + ob[i].username + '"> ' +
         '</form> </td>';
     table += '</tr>';
   }
@@ -98,6 +98,10 @@ async function main() {
     console.log("Problem z bazą danych");
     return -1;
   }
+
+  // create_user('admin', 'admin', 1);
+  // create_user('twoj_stary', '2137', 0);
+  // return 0;
 
   const app = express();
   app.use(session({
@@ -132,7 +136,7 @@ async function main() {
       return;
     }
 
-    let sql = "SELECT * FROM users WHERE Username = '" + username + "' AND PasswordHash = '" + haszuj(password) + "';";
+    let sql = "SELECT * FROM users WHERE username = '" + username + "' AND password_hash = '" + haszuj(password) + "';";
     //console.log(sql);
     let [rows, columns] = await await_con.execute(sql);
     let gut = rows.length !== 0;
@@ -142,8 +146,8 @@ async function main() {
       return;
     }
 
-    if(rows[0].DataWygasniecia != null) {
-      let expiration_date = new Date(rows[0].DataWygasniecia);
+    if(rows[0].data_wygasniecia != null) {
+      let expiration_date = new Date(rows[0].data_wygasniecia);
       let current_date = new Date();
       if (current_date > expiration_date) {
         response.sendFile(__dirname + '/login/wygaslo.html');
@@ -153,7 +157,7 @@ async function main() {
 
     request.session.loggedin = true;
     request.session.username = username;
-    request.session.isadmin = !!rows[0].czyAdmin;
+    request.session.isadmin = !!rows[0].czy_admin;
     response.redirect('/panel');
     response.end();
 
@@ -209,16 +213,16 @@ async function main() {
       }
 
       let toSend = "Wysłano e-mail na podany adres\n";
-      let czyAdmin = '0';
-      if (request.body.czyAdmin == 'on')
-        czyAdmin = '1';
-      let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + name + "', -1, " + czyAdmin + ");";
+      let czy_admin = '0';
+      if (request.body.czy_admin == 'on')
+        czy_admin = '1';
+      let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + name + "', -1, " + czy_admin + ");";
       //console.log(request.body.expires);
       //console.log(request.body.expires == 'on');
       if (request.body.expires == 'on') {
         let date = request.body.date;
         //console.log(date);
-        sql = "INSERT INTO users (Username, PasswordHash, czyAdmin, DataWygasniecia) VALUES " + "('" + name + "', -1, " + czyAdmin + ", '" + date + "');";
+        sql = "INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES " + "('" + name + "', -1, " + czy_admin + ", '" + date + "');";
       }
       let [rows, columns] = await await_con.execute(sql);
       response.send(toSend);
@@ -241,21 +245,21 @@ async function main() {
       return;
     }
     let pwd = request.body.pwd1;
-    let sql = "SELECT * FROM users WHERE Username='" + nick + "';";
+    let sql = "SELECT * FROM users WHERE username='" + nick + "';";
     let [rows, columns] = await await_con.execute(sql);
     if (rows.length > 0) {
       response.send("Taki użytkownik już istnieje");
       return 0;
     }
 
-    sql = "SELECT * FROM users WHERE Username='" + onetime_id + "' AND PasswordHash=-1;";
+    sql = "SELECT * FROM users WHERE username='" + onetime_id + "' AND password_hash=-1;";
     [rows, columns] = await await_con.execute(sql);
     if (rows.length === 0) {
       response.send("Niepoprawny identyfikator");
       return 0;
     }
 
-    sql = "UPDATE users SET Username = '" + nick + "', PasswordHash = '" + haszuj(pwd) + "' WHERE Username='" + onetime_id + "';";
+    sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + haszuj(pwd) + "' WHERE username='" + onetime_id + "';";
     [rows, columns] = await await_con.execute(sql);
     response.send("Udało się!");
   });
@@ -279,14 +283,14 @@ async function main() {
     }
     let old_pwd = request.body.stare;
     let new_pwd = request.body.nowe;
-    let sql = "SELECT * FROM users WHERE Username = '" + nick + "' AND PasswordHash = '" + haszuj(old_pwd).toString() + "';";
+    let sql = "SELECT * FROM users WHERE username = '" + nick + "' AND password_hash = '" + haszuj(old_pwd).toString() + "';";
     let [rows, columns] = await await_con.execute(sql);
     if (rows.length === 0) {
       response.send("stare hasło się nie zgadza");
       response.end();
       return;
     }
-    sql = "UPDATE users SET PasswordHash = '" + haszuj(new_pwd).toString() + "' WHERE Username='" + nick + "';";
+    sql = "UPDATE users SET password_hash = '" + haszuj(new_pwd).toString() + "' WHERE username='" + nick + "';";
     await await_con.execute(sql);
     response.send("Hasło zmienione");
     response.end();
@@ -312,7 +316,7 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let nick = request.body.Username;
+    let nick = request.body.username;
     if (nick.includes("'") || nick.includes('"')) {
       response.sendFile(__dirname + '/login/for_injectors.html');
       return;
@@ -321,7 +325,7 @@ async function main() {
       response.send("lol nie możesz usunąć własnego konta");
       return;
     }
-    let sql = "DELETE FROM users WHERE Username = '" + nick.toString() + "';";
+    let sql = "DELETE FROM users WHERE username = '" + nick.toString() + "';";
     await await_con.execute(sql);
     response.redirect('/panel/uzytkownicy');
   });
@@ -371,9 +375,9 @@ async function main() {
 
 
 main();
-//connect_to_db("localhost", "sqluser", "imposter", "test_db");
-//create_user('admin', 'admin', 1);
-//create_user('twoj_stary', '2137', 0);
-//console.log(build_table([{"Username":"admin","PasswordHash":2023948189175633,"czyAdmin":1,"DataWygasniecia":null},{"Username":"twoj_stary","PasswordHash":488183148373,"czyAdmin":0,"DataWygasniecia":null}]));
+// connect_to_db("localhost", "sqluser", "imposter", "test_db");
+// create_user('admin', 'admin', 1);
+// create_user('twoj_stary', '2137', 0);
+//console.log(build_table([{"username":"admin","password_hash":2023948189175633,"czy_admin":1,"data_wygasniecia":null},{"username":"twoj_stary","password_hash":488183148373,"czy_admin":0,"data_wygasniecia":null}]));
 
 //kms();
