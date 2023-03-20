@@ -283,8 +283,8 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let sql = 'SELECT * FROM users';
-    let [rows, columns] = await con.execute(sql);
+    let query = 'SELECT * FROM users';
+    let [rows, columns] = await con.execute(query);
 
     const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
     const template = handlebars.compile(templateStr, {noEscape: true});
@@ -298,17 +298,13 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let nick = request.body.username;
-    if (nick.includes("'") || nick.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
-    if (nick == request.session.username) {
+    let username = request.body.username;
+    if (username == request.session.username) {
       response.send("lol nie możesz usunąć własnego konta");
       return;
     }
-    let sql = "DELETE FROM users WHERE username = '" + nick.toString() + "';";
-    await con.execute(sql);
+    let query = "DELETE FROM users WHERE username = ?;";
+    await con.execute(query, [username]);
     response.redirect('/panel/uzytkownicy');
   });
 
@@ -325,14 +321,14 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let sql = request.body.query;
-    if (sql.toLowerCase().includes('drop') || sql.toLowerCase().includes('delete')) {
+    let query = request.body.query;
+    if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
       response.send('nie ma usuwania');
       response.end();
       return;
     }
     try {
-      let [rows, columns] = await con.execute(sql);
+      let [rows, columns] = await con.execute(query);
       response.send(rows);
       response.end();
     }
@@ -348,7 +344,7 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let sql = 'SELECT * FROM sprzet';
+    let query = 'SELECT * FROM sprzet';
     response.send('not. yet.');
   });
 
