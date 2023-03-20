@@ -84,6 +84,11 @@
       </EXTENSION>
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Attach to Node.js/Chrome.sus2" />
+      <item itemvalue="JavaScript Debug.sus JavaScript" />
+      <item itemvalue="Node.js.sus" />
+    </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -108,7 +113,7 @@
       <workItem from="1679318426321" duration="789000" />
       <workItem from="1679319809259" duration="751000" />
       <workItem from="1679336677685" duration="645000" />
-      <workItem from="1679337361300" duration="2255000" />
+      <workItem from="1679337361300" duration="3422000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -299,7 +304,21 @@
       <option name="project" value="LOCAL" />
       <updated>1679339256470</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="Authorization now uses prepared statements">
+      <created>1679339683558</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339683558</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Minor tweaks">
+      <created>1679339714522</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339714522</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -362,7 +381,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Categorising files" />
     <MESSAGE value="Separating administrators from normal users" />
     <MESSAGE value="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
     <MESSAGE value="Separating administrators from normal users&#10;Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
@@ -386,6 +404,7 @@
     <MESSAGE value="Changed create_user function to use prepared statements. This prevents SQL injection." />
     <MESSAGE value="Changed haszuj function" />
     <MESSAGE value="Changed connect_to_db function" />
+    <MESSAGE value="Authorization now uses prepared statements" />
     <MESSAGE value="Minor tweaks" />
     <option name="LAST_COMMIT_MESSAGE" value="Minor tweaks" />
   </component>
