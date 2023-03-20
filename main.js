@@ -49,6 +49,23 @@ async function connect_to_database(host, user, password, database) {
   return 0;
 }
 
+function generate_random(length) {
+  let name = '';
+  for(let i = 0; i < length; i++) {
+    let x = Math.floor(Math.random() * 62);
+    // 0 <= x <= 9  =>  dodajemy liczbę x
+    // 10 <= x <= 35  =>  dodajemy małą literę o nr x - 10
+    // 36 <= x <= 61  =>  dodajemy wielką literę o nr x - 36
+    if(x <= 9)
+      name += x.toString();
+    else if(x <= 35)
+      name += String.fromCharCode(x - 10 + 'a'.charCodeAt(0));
+    else
+      name += String.fromCharCode(x - 36 + 'A'.charCodeAt(0));
+  }
+  return name;
+}
+
 function build_table_users(ob) {
   let table = '<table><tr>';
   for(let i in ob[0]) {
@@ -157,24 +174,15 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
   });
 
+  // TODO not ready yet
   app.post('/panel/dodaj_uzytkownika/auth', function (request, response){
     if(!request.session.loggedin || !request.session.isadmin) {
       response.sendFile(__dirname + '/login/oszust.html');
       return 1;
     }
-    let name = '';
-    for(let i = 0; i < 10; i++) {
-      let x = Math.floor(Math.random() * 62);
-      // 0 <= x <= 9  =>  dodajemy liczbę x
-      // 10 <= x <= 35  =>  dodajemy małą literę o nr x - 10
-      // 36 <= x <= 61  =>  dodajemy wielką literę o nr x - 36
-      if(x <= 9)
-        name += x.toString();
-      else if(x <= 35)
-        name += String.fromCharCode(x - 10 + 'a'.charCodeAt(0));
-      else
-        name += String.fromCharCode(x - 36 + 'A'.charCodeAt(0));
-    }
+
+    let name = generate_random(10);
+
     let mailOptions = {
       from: myAddress,
       to: request.body.email,
@@ -209,6 +217,7 @@ async function main() {
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
   });
 
+  // TODO not ready yet
   app.post('/aktywuj/auth', async function (request, response) {
     let onetime_id = request.body.id;
     if (onetime_id.includes("'") || onetime_id.includes('"')) {
@@ -252,22 +261,19 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let nick = request.session.username;
-    if (nick.includes("'") || nick.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
-    let old_pwd = request.body.stare;
-    let new_pwd = request.body.nowe;
-    let sql = "SELECT * FROM users WHERE username = '" + nick + "' AND password_hash = '" + create_hash(old_pwd).toString() + "';";
-    let [rows, columns] = await con.execute(sql);
+    let username = request.session.username;
+    let old_password = request.body.stare;
+    let new_password = request.body.nowe;
+    // TODO write this as a single query
+    let query = "SELECT * FROM users WHERE username = ? AND password_hash = ?;";
+    let [rows, columns] = await con.execute(query, [username, create_hash(old_password)]);
     if (rows.length === 0) {
-      response.send("stare hasło się nie zgadza");
+      response.send("Stare hasło się nie zgadza");
       response.end();
       return;
     }
-    sql = "UPDATE users SET password_hash = '" + create_hash(new_pwd).toString() + "' WHERE username='" + nick + "';";
-    await con.execute(sql);
+    query = "UPDATE users SET password_hash = ? WHERE username = ?;";
+    await con.execute(query, [create_hash(new_password), username]);
     response.send("Hasło zmienione");
     response.end();
   });
