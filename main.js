@@ -37,16 +37,15 @@ async function create_user(username, password, czy_admin) {
 
 }
 
-async function connect_to_db(myHost, myUser, myPassword, myDatabase) {
+async function connect_to_database(host, user, password, database) {
 
   con = await mysql_promise.createConnection({
-    host: myHost,
-    user: myUser,
-    password: myPassword,
-    database: myDatabase
+    host: host,
+    user: user,
+    password: password,
+    database: database
   });
 
-  return 0;
 }
 
 
@@ -77,7 +76,7 @@ function build_table_users(ob) {
 
 
 async function main() {
-  if(await connect_to_db("localhost", "sqluser", "imposter", "sus_database") !== 0) {
+  if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
@@ -358,7 +357,7 @@ async function main() {
 
 
 // main();
-connect_to_db("localhost", "sqluser", "imposter", "sus_database");
+connect_to_database("localhost", "sqluser", "imposter", "sus_database");
 setTimeout(function() {
   create_user('admin', 'admin', 1);
   // create_user('twoj_stary', '2137', 0);
