@@ -1,4 +1,5 @@
-const mysql = require('mysql');
+const mysql = require('mysql2');
+const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
@@ -10,7 +11,7 @@ const crypto = require('crypto');
 
 const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
 const myPasword = 'zxpjpmjufaegyxpx';
-let con;
+let con, await_con;
 let myMail = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   safe: true,
@@ -29,30 +30,33 @@ function haszuj(txt) {
     //hash += txt[i].toInteger();
     hash += txt.charCodeAt(i);
     hash %= M;
-    if(hash < 0) 
+    if(hash < 0)
       hash += M;
   }
   */
   return crypto.createHash('sha256').update(txt).digest('hex');
 }
 
-function create_user(username, password, admin) {
+async function create_user(username, password, admin) {
   let hash_password = haszuj(password);
   console.log(hash_password);
   let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
-  con.query(sql, function(err) {
-    if(err) throw err;
-    console.log("gud boi");
-  })
+  await await_con.execute(sql);
 }
 
-function connect_to_db(myHost, myUser, myPassword, myDatabase) {
+async function connect_to_db(myHost, myUser, myPassword, myDatabase) {
 
   con = mysql.createConnection({
     host: myHost,
     user: myUser,
     password: myPassword,
     database: myDatabase
+  });
+  await_con = await mysql_promise.createConnection({
+    host: 'localhost',
+    user: 'sqluser',
+    password: 'imposter',
+    database: 'test_db'
   });
 
   con.connect(function(err) {
@@ -88,15 +92,12 @@ function build_table_users(ob) {
   return table;
 }
 
-function main() {
-  if(connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
+
+async function main() {
+  if(await connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
-
-  //let lol = check_user('admin', 'admin');
-  //console.log("returned ", lol, global_shenadigans);
-
 
   const app = express();
   app.use(session({
@@ -119,57 +120,43 @@ function main() {
     response.redirect('/');
   })
 
-  app.post('/auth', function(request, response) {
+  app.post('/auth', async function(request, response) {
     let username = request.body.nick;
     if(username.includes("'") || username.includes('"')) {
       response.sendFile(__dirname + '/login/for_injectors.html');
       return;
     }
     let password = request.body.pwd;
-    if(username && password) {
-      let sql = "SELECT * FROM users WHERE Username = '?' AND PasswordHash = '?';";
-      let a = [username, haszuj(password)];
-      let i = 0;
-
-      while(sql.indexOf("?") >= 0) {
-        sql = sql.replace("?", a[i++]);
-      }
-
-      //console.log(sql);
-      con.query(sql, function(err, result) {
-        if(err) throw err;
-        let gut = result.length !== 0;
-        if(gut) {
-          if(result[0].DataWygasniecia != null) {
-            let expiration_date = new Date(result[0].DataWygasniecia);
-            let current_date = new Date();
-            if (current_date > expiration_date) {
-              response.sendFile(__dirname + '/login/wygaslo.html');
-              return;
-            }
-          }
-
-          request.session.loggedin = true;
-          request.session.username = username;
-
-          if(result[0].czyAdmin) {
-            request.session.isadmin = true;
-            response.redirect('/panel');
-          }
-          else {
-            request.session.isadmin = false;
-            response.redirect('/panel');
-          }
-          response.end();
-        }
-        else {
-          response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
-        }
-      });
-    }
-    else {
+    if(!(username && password)) {
       response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
+      return;
     }
+
+    let sql = "SELECT * FROM users WHERE Username = '" + username + "' AND PasswordHash = '" + haszuj(password) + "';";
+    //console.log(sql);
+    let [rows, columns] = await await_con.execute(sql);
+    let gut = rows.length !== 0;
+
+    if(!gut) {
+      response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
+      return;
+    }
+
+    if(rows[0].DataWygasniecia != null) {
+      let expiration_date = new Date(rows[0].DataWygasniecia);
+      let current_date = new Date();
+      if (current_date > expiration_date) {
+        response.sendFile(__dirname + '/login/wygaslo.html');
+        return;
+      }
+    }
+
+    request.session.loggedin = true;
+    request.session.username = username;
+    request.session.isadmin = !!rows[0].czyAdmin;
+    response.redirect('/panel');
+    response.end();
+
   });
 
   app.get('/panel', function(request, response) {
@@ -214,34 +201,27 @@ function main() {
       subject: "Założenie konta w Systemie Udokumentowywania Sprzętu",
       text: "Witaj!\nOto kod do założenia konta w SUS: " + name
     };
-    myMail.sendMail(mailOptions, function(error, info) {
+    myMail.sendMail(mailOptions, async function (error, info) {
       if (error) {
         response.send("Coś poszło nie tak");
         console.log(error);
+        return;
       }
-      else {
-        let toSend = "Wysłano e-mail na podany adres\n";
 
-        let czyAdmin = '0';
-        if(request.body.czyAdmin == 'on')
-          czyAdmin = '1';
-        let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + name + "', -1, " + czyAdmin + ");";
-        //console.log(request.body.expires);
-        //console.log(request.body.expires == 'on');
-        if(request.body.expires == 'on') {
-          let date = request.body.date;
-          //console.log(date);
-          sql = "INSERT INTO users (Username, PasswordHash, czyAdmin, DataWygasniecia) VALUES " + "('" + name + "', -1, " + czyAdmin + ", '" + date + "');";
-        }
-        con.query(sql, function(error) {
-          if(error) {
-            console.log(error);
-            response.send(toSend + "Nie udało się dodać użytkownika");
-          }
-          else
-            response.send(toSend);
-        })
+      let toSend = "Wysłano e-mail na podany adres\n";
+      let czyAdmin = '0';
+      if (request.body.czyAdmin == 'on')
+        czyAdmin = '1';
+      let sql = "INSERT INTO users (Username, PasswordHash, czyAdmin) VALUES ('" + name + "', -1, " + czyAdmin + ");";
+      //console.log(request.body.expires);
+      //console.log(request.body.expires == 'on');
+      if (request.body.expires == 'on') {
+        let date = request.body.date;
+        //console.log(date);
+        sql = "INSERT INTO users (Username, PasswordHash, czyAdmin, DataWygasniecia) VALUES " + "('" + name + "', -1, " + czyAdmin + ", '" + date + "');";
       }
+      let [rows, columns] = await await_con.execute(sql);
+      response.send(toSend);
     });
   });
 
@@ -249,53 +229,35 @@ function main() {
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
   });
 
-  app.post('/aktywuj/auth', function (request, response) {
+  app.post('/aktywuj/auth', async function (request, response) {
     let onetime_id = request.body.id;
-    if(onetime_id.includes("'") || onetime_id.includes('"')) {
+    if (onetime_id.includes("'") || onetime_id.includes('"')) {
       response.sendFile(__dirname + '/login/for_injectors.html');
       return;
     }
     let nick = request.body.nick;
-    if(nick.includes("'") || nick.includes('"')) {
+    if (nick.includes("'") || nick.includes('"')) {
       response.sendFile(__dirname + '/login/for_injectors.html');
       return;
     }
     let pwd = request.body.pwd1;
     let sql = "SELECT * FROM users WHERE Username='" + nick + "';";
-    con.query(sql, function(error, result) {
-      if(error) {
-        console.log(error);
-        response.send("Coś poszło nie tak");
-        return 0;
-      }
-      if(result.length > 0) {
-        response.send("Taki użytkownik już istnieje");
-        return 0;
-      }
+    let [rows, columns] = await await_con.execute(sql);
+    if (rows.length > 0) {
+      response.send("Taki użytkownik już istnieje");
+      return 0;
+    }
 
-      sql = "SELECT * FROM users WHERE Username='" + onetime_id + "' AND PasswordHash=-1;";
-      con.query(sql, function(error, result) {
-        if(error) {
-          console.log(error);
-          response.send("Coś poszło nie tak");
-          return 0;
-        }
-        if(result.length == 0) {
-          response.send("Niepoprawny identyfikator");
-          return 0;
-        }
+    sql = "SELECT * FROM users WHERE Username='" + onetime_id + "' AND PasswordHash=-1;";
+    [rows, columns] = await await_con.execute(sql);
+    if (rows.length === 0) {
+      response.send("Niepoprawny identyfikator");
+      return 0;
+    }
 
-        sql = "UPDATE users SET Username = '" + nick + "', PasswordHash = '" + haszuj(pwd) + "' WHERE Username='" + onetime_id + "';";
-        con.query(sql, function(error) {
-          if (error) {
-            console.log(error);
-            response.send("Coś poszło nie tak");
-            return 0;
-          }
-          response.send("Udało się!");
-        });
-      });
-    });
+    sql = "UPDATE users SET Username = '" + nick + "', PasswordHash = '" + haszuj(pwd) + "' WHERE Username='" + onetime_id + "';";
+    [rows, columns] = await await_con.execute(sql);
+    response.send("Udało się!");
   });
 
   app.get('/panel/zmien_haslo', function(request, response) {
@@ -305,77 +267,63 @@ function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   });
 
-  app.post('/panel/zmien_haslo/auth', function(request, response) {
-    if(!(request.session.loggedin)) {
+  app.post('/panel/zmien_haslo/auth', async function (request, response) {
+    if (!(request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
     let nick = request.session.username;
-    if(nick.includes("'") || nick.includes('"')) {
+    if (nick.includes("'") || nick.includes('"')) {
       response.sendFile(__dirname + '/login/for_injectors.html');
       return;
     }
     let old_pwd = request.body.stare;
     let new_pwd = request.body.nowe;
     let sql = "SELECT * FROM users WHERE Username = '" + nick + "' AND PasswordHash = '" + haszuj(old_pwd).toString() + "';";
-    con.query(sql, function(err, result) {
-      if(err)
-        throw err;
-      if(result.length == 0) {
-        response.send("stare hasło się nie zgadza");
-        response.end();
-        return;
-      }
-      let sql2 = "UPDATE users SET PasswordHash = '" + haszuj(new_pwd).toString() + "' WHERE Username='" + nick + "';";
-      con.query(sql2, function(err, result) {
-        if(err)
-          throw err;
-        response.send("Hasło zmienione");
-        response.end();
-      })
-    });
-  })
+    let [rows, columns] = await await_con.execute(sql);
+    if (rows.length === 0) {
+      response.send("stare hasło się nie zgadza");
+      response.end();
+      return;
+    }
+    sql = "UPDATE users SET PasswordHash = '" + haszuj(new_pwd).toString() + "' WHERE Username='" + nick + "';";
+    await await_con.execute(sql);
+    response.send("Hasło zmienione");
+    response.end();
+  });
 
-  app.get('/panel/uzytkownicy', function(request, response) {
-    if(!(request.session.isadmin && request.session.loggedin)) {
+  app.get('/panel/uzytkownicy', async function (request, response) {
+    if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
     let sql = 'SELECT * FROM users';
-    con.query(sql, function(err, result) {
-      if(err)
-        throw err;
-      const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
-      //console.log(templateStr);
-      const template = handlebars.compile(templateStr, {noEscape: true});
-      const contents = template({tablebody: build_table_users(result)});
-      //console.log(contents);
-      //response.send(build_table(result));
-      response.send(contents);
-      response.end();
-    });
+    let [rows, columns] = await await_con.execute(sql);
+
+    const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
+    const template = handlebars.compile(templateStr, {noEscape: true});
+    const contents = template({tablebody: build_table_users(rows)});
+    response.send(contents);
+    response.end();
   });
 
-  app.post('/panel/uzytkownicy/usun', function(request, response) {
-    if(!(request.session.isadmin && request.session.loggedin)) {
+  app.post('/panel/uzytkownicy/usun', async function (request, response) {
+    if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
     let nick = request.body.Username;
-    if(nick.includes("'") || nick.includes('"')) {
+    if (nick.includes("'") || nick.includes('"')) {
       response.sendFile(__dirname + '/login/for_injectors.html');
       return;
     }
-    if(nick == request.session.username) {
+    if (nick == request.session.username) {
       response.send("lol nie możesz usunąć własnego konta");
       return;
     }
     let sql = "DELETE FROM users WHERE Username = '" + nick.toString() + "';";
-    con.query(sql, function(err, result) {
-      if(err)
-        throw err;
-      response.redirect('/panel/uzytkownicy');
-    });
+    await await_con.execute(sql);
+    response.redirect('/panel/uzytkownicy');
   });
 
   app.get('/panel/query', function (request, response) {
@@ -386,27 +334,36 @@ function main() {
     response.sendFile(__dirname + '/admin_panel/sql_query.html');
   });
 
-  app.post('/panel/query/perform', function(request, response) {
-    if(!(request.session.isadmin && request.session.loggedin)) {
+  app.post('/panel/query/perform', async function (request, response) {
+    if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
     let sql = request.body.query;
-    if(sql.toLowerCase().includes('drop') || sql.toLowerCase().includes('delete')) {
+    if (sql.toLowerCase().includes('drop') || sql.toLowerCase().includes('delete')) {
       response.send('nie ma usuwania');
       response.end();
       return;
     }
-    con.query(sql, function(err, result) {
-      if(err) {
-        response.send('chyba coś nie tak z twoim syntaxem');
-        response.end();
-        return;
-      }
-      //response.send('Odpowiedź serwera: \n');
-      response.send(result);
+    try {
+      let [rows, columns] = await await_con.execute(sql);
+      response.send(rows);
       response.end();
-    });
+    }
+    catch(err) {
+      response.send("Coś poszło nie tak, sprawdź swój syntax");
+      response.end();
+      console.log(err);
+    }
+  });
+
+  app.get('/baza', function(request, response) {
+    if(!request.session.loggedin) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let sql = 'SELECT * FROM sprzet';
+    response.send('not. yet.');
   });
 
   app.listen(3000, '0.0.0.0');
@@ -418,3 +375,5 @@ main();
 //create_user('admin', 'admin', 1);
 //create_user('twoj_stary', '2137', 0);
 //console.log(build_table([{"Username":"admin","PasswordHash":2023948189175633,"czyAdmin":1,"DataWygasniecia":null},{"Username":"twoj_stary","PasswordHash":488183148373,"czyAdmin":0,"DataWygasniecia":null}]));
+
+//kms();
