@@ -32,8 +32,8 @@ async function create_user(username, password, czy_admin) {
 
   let password_hash = create_hash(password);
   console.log(password_hash);
-  let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
-  await con.execute(sql, [username, password_hash, czy_admin]);
+  let query = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
+  await con.execute(query, [username, password_hash, czy_admin]);
 
 }
 
