@@ -345,9 +345,16 @@ async function main() {
       response.end();
       return;
     }
-    let [rows, columns] = await await_con.execute(sql);
-    response.send(rows);
-    response.end();
+    try {
+      let [rows, columns] = await await_con.execute(sql);
+      response.send(rows);
+      response.end();
+    }
+    catch(err) {
+      response.send("Coś poszło nie tak, sprawdź swój syntax");
+      response.end();
+      console.log(err);
+    }
   });
 
   app.get('/baza', function(request, response) {
