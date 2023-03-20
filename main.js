@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+// const mysql = require('mysql2');
 const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
@@ -46,8 +46,8 @@ async function connect_to_database(host, user, password, database) {
     database: database
   });
 
+  return 0;
 }
-
 
 function build_table_users(ob) {
   let table = '<table><tr>';
@@ -73,7 +73,6 @@ function build_table_users(ob) {
   table += '</table>';
   return table;
 }
-
 
 async function main() {
   if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
@@ -356,12 +355,12 @@ async function main() {
 }
 
 
-// main();
-connect_to_database("localhost", "sqluser", "imposter", "sus_database");
-setTimeout(function() {
-  create_user('admin', 'admin', 1);
+main();
+// connect_to_database("localhost", "sqluser", "imposter", "sus_database");
+// setTimeout(function() {
+  // create_user('admin', 'admin', 1);
   // create_user('twoj_stary', '2137', 0);
-}, 1000);
+// }, 1000);
 
 //console.log(build_table([{"username":"admin","password_hash":2023948189175633,"czy_admin":1,"data_wygasniecia":null},{"username":"twoj_stary","password_hash":488183148373,"czy_admin":0,"data_wygasniecia":null}]));
 
