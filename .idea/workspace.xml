@@ -38,24 +38,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "javascript.nodejs.core.library.configured.version": "18.12.1",
-    "javascript.nodejs.core.library.typings.version": "18.11.18",
-    "last_opened_file_path": "C:/Users/Patryk/Desktop/System-Udokumentowywania-Sprzetu-SUS/main.js",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;18.12.1&quot;,
+    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;18.11.18&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Antek/Desktop/Antek/Programowanie/SUS&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
+    ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS" />
@@ -66,7 +71,7 @@
       <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\" />
     </key>
   </component>
-  <component name="RunManager" selected="Node.js.sus">
+  <component name="RunManager">
     <configuration name="sus2" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" port="3000">
       <method v="2" />
     </configuration>
@@ -107,6 +112,8 @@
       <workItem from="1678473916880" duration="3999000" />
       <workItem from="1679318426321" duration="789000" />
       <workItem from="1679319809259" duration="751000" />
+      <workItem from="1679336677685" duration="645000" />
+      <workItem from="1679337361300" duration="3422000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -255,7 +262,63 @@
       <option name="project" value="LOCAL" />
       <updated>1679319173619</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Deleted old con variable in favor of await_con">
+      <created>1679337418902</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1679337418902</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Changed await_con to con">
+      <created>1679337463437</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1679337463437</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Changed create_user function to use prepared statements. This prevents SQL injection.">
+      <created>1679338703172</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1679338703172</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Changed haszuj function">
+      <created>1679338806273</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1679338806273</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Changed connect_to_db function">
+      <created>1679338931425</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1679338931425</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Minor tweaks">
+      <created>1679339256470</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339256470</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Authorization now uses prepared statements">
+      <created>1679339683558</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339683558</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Minor tweaks">
+      <created>1679339714522</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339714522</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -318,7 +381,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Categorising files" />
     <MESSAGE value="Separating administrators from normal users" />
     <MESSAGE value="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
     <MESSAGE value="Separating administrators from normal users&#10;Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
@@ -337,6 +399,13 @@
     <MESSAGE value="admins can perform sql queries through the panel" />
     <MESSAGE value="de-nested all the sql queries using the mysql2 module" />
     <MESSAGE value="fixed the app crashing when sql syntax in admin's personal query was wrong" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed the app crashing when sql syntax in admin's personal query was wrong" />
+    <MESSAGE value="Deleted old con variable in favor of await_con" />
+    <MESSAGE value="Changed await_con to con" />
+    <MESSAGE value="Changed create_user function to use prepared statements. This prevents SQL injection." />
+    <MESSAGE value="Changed haszuj function" />
+    <MESSAGE value="Changed connect_to_db function" />
+    <MESSAGE value="Authorization now uses prepared statements" />
+    <MESSAGE value="Minor tweaks" />
+    <option name="LAST_COMMIT_MESSAGE" value="Minor tweaks" />
   </component>
 </project>

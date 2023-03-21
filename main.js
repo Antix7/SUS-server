@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+// const mysql = require('mysql2');
 const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
@@ -11,7 +11,7 @@ const crypto = require('crypto');
 
 const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
 const myPasword = 'zxpjpmjufaegyxpx';
-let con, await_con;
+let con;
 let myMail = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   safe: true,
@@ -22,50 +22,49 @@ let myMail = nodemailer.createTransport({
   }
 });
 
-function haszuj(txt) {
-  /*
-  let hash = 0;
-  for(let i = 0; i < txt.length; i++) {
-    hash *= p;
-    //hash += txt[i].toInteger();
-    hash += txt.charCodeAt(i);
-    hash %= M;
-    if(hash < 0)
-      hash += M;
-  }
-  */
-  return crypto.createHash('sha256').update(txt).digest('hex');
+function create_hash(password) {
+
+  return crypto.createHash('sha256').update(password).digest('hex');
+
 }
 
-async function create_user(username, password, admin) {
-  let hash_password = haszuj(password);
-  console.log(hash_password);
-  let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + username.toString() + "', '" + hash_password.toString() + "', " + admin.toString() + ");";
-  await await_con.execute(sql);
+async function create_user(username, password, czy_admin) {
+
+  let password_hash = create_hash(password);
+  console.log(password_hash);
+  let query = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
+  await con.execute(query, [username, password_hash, czy_admin]);
+
 }
 
-async function connect_to_db(myHost, myUser, myPassword, myDatabase) {
+async function connect_to_database(host, user, password, database) {
 
-  con = mysql.createConnection({
-    host: myHost,
-    user: myUser,
-    password: myPassword,
-    database: myDatabase
-  });
-  await_con = await mysql_promise.createConnection({
-    host: 'localhost',
-    user: 'sqluser',
-    password: 'imposter',
-    database: 'test_db'
+  con = await mysql_promise.createConnection({
+    host: host,
+    user: user,
+    password: password,
+    database: database
   });
 
-  con.connect(function(err) {
-    if (err) throw err;
-    //console.log("Connected!");
-  });
   return 0;
 }
 
+function generate_random(length) {
+  let name = '';
+  for(let i = 0; i < length; i++) {
+    let x = Math.floor(Math.random() * 62);
+    // 0 <= x <= 9  =>  dodajemy liczbę x
+    // 10 <= x <= 35  =>  dodajemy małą literę o nr x - 10
+    // 36 <= x <= 61  =>  dodajemy wielką literę o nr x - 36
+    if(x <= 9)
+      name += x.toString();
+    else if(x <= 35)
+      name += String.fromCharCode(x - 10 + 'a'.charCodeAt(0));
+    else
+      name += String.fromCharCode(x - 36 + 'A'.charCodeAt(0));
+  }
+  return name;
+}
 
 function build_table_users(ob) {
   let table = '<table><tr>';
@@ -92,9 +91,8 @@ function build_table_users(ob) {
   return table;
 }
 
-
 async function main() {
-  if(await connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
+  if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
@@ -125,23 +123,18 @@ async function main() {
   })
 
   app.post('/auth', async function(request, response) {
+
     let username = request.body.nick;
-    if(username.includes("'") || username.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
     let password = request.body.pwd;
     if(!(username && password)) {
       response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
       return;
     }
 
-    let sql = "SELECT * FROM users WHERE username = '" + username + "' AND password_hash = '" + haszuj(password) + "';";
-    //console.log(sql);
-    let [rows, columns] = await await_con.execute(sql);
-    let gut = rows.length !== 0;
+    let query = "SELECT * FROM users WHERE username = ? AND password_hash = ?;";
+    let [rows, columns] = await con.execute(query, [username, create_hash(password)]);
 
-    if(!gut) {
+    if(rows.length === 0) {
       response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
       return;
     }
@@ -181,24 +174,15 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
   });
 
+  // TODO not ready yet
   app.post('/panel/dodaj_uzytkownika/auth', function (request, response){
     if(!request.session.loggedin || !request.session.isadmin) {
       response.sendFile(__dirname + '/login/oszust.html');
       return 1;
     }
-    let name = '';
-    for(let i = 0; i < 10; i++) {
-      let x = Math.floor(Math.random() * 62);
-      // 0 <= x <= 9  =>  dodajemy liczbę x
-      // 10 <= x <= 35  =>  dodajemy małą literę o nr x - 10
-      // 36 <= x <= 61  =>  dodajemy wielką literę o nr x - 36
-      if(x <= 9)
-        name += x.toString();
-      else if(x <= 35)
-        name += String.fromCharCode(x - 10 + 'a'.charCodeAt(0));
-      else
-        name += String.fromCharCode(x - 36 + 'A'.charCodeAt(0));
-    }
+
+    let name = generate_random(10);
+
     let mailOptions = {
       from: myAddress,
       to: request.body.email,
@@ -224,7 +208,7 @@ async function main() {
         //console.log(date);
         sql = "INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES " + "('" + name + "', -1, " + czy_admin + ", '" + date + "');";
       }
-      await await_con.execute(sql);
+      await con.execute(sql);
       response.send(toSend);
     });
   });
@@ -233,6 +217,7 @@ async function main() {
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
   });
 
+  // TODO not ready yet
   app.post('/aktywuj/auth', async function (request, response) {
     let onetime_id = request.body.id;
     if (onetime_id.includes("'") || onetime_id.includes('"')) {
@@ -246,21 +231,21 @@ async function main() {
     }
     let pwd = request.body.pwd1;
     let sql = "SELECT * FROM users WHERE username='" + nick + "';";
-    let [rows, columns] = await await_con.execute(sql);
+    let [rows, columns] = await con.execute(sql);
     if (rows.length > 0) {
       response.send("Taki użytkownik już istnieje");
       return 0;
     }
 
     sql = "SELECT * FROM users WHERE username='" + onetime_id + "' AND password_hash=-1;";
-    [rows, columns] = await await_con.execute(sql);
+    [rows, columns] = await con.execute(sql);
     if (rows.length === 0) {
       response.send("Niepoprawny identyfikator");
       return 0;
     }
 
-    sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + haszuj(pwd) + "' WHERE username='" + onetime_id + "';";
-    await await_con.execute(sql);
+    sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + create_hash(pwd) + "' WHERE username='" + onetime_id + "';";
+    await con.execute(sql);
     response.send("Udało się!");
   });
 
@@ -276,22 +261,19 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let nick = request.session.username;
-    if (nick.includes("'") || nick.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
-    let old_pwd = request.body.stare;
-    let new_pwd = request.body.nowe;
-    let sql = "SELECT * FROM users WHERE username = '" + nick + "' AND password_hash = '" + haszuj(old_pwd).toString() + "';";
-    let [rows, columns] = await await_con.execute(sql);
+    let username = request.session.username;
+    let old_password = request.body.stare;
+    let new_password = request.body.nowe;
+    // TODO write this as a single query
+    let query = "SELECT * FROM users WHERE username = ? AND password_hash = ?;";
+    let [rows, columns] = await con.execute(query, [username, create_hash(old_password)]);
     if (rows.length === 0) {
-      response.send("stare hasło się nie zgadza");
+      response.send("Stare hasło się nie zgadza");
       response.end();
       return;
     }
-    sql = "UPDATE users SET password_hash = '" + haszuj(new_pwd).toString() + "' WHERE username='" + nick + "';";
-    await await_con.execute(sql);
+    query = "UPDATE users SET password_hash = ? WHERE username = ?;";
+    await con.execute(query, [create_hash(new_password), username]);
     response.send("Hasło zmienione");
     response.end();
   });
@@ -301,8 +283,8 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let sql = 'SELECT * FROM users';
-    let [rows, columns] = await await_con.execute(sql);
+    let query = 'SELECT * FROM users';
+    let [rows, columns] = await con.execute(query);
 
     const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
     const template = handlebars.compile(templateStr, {noEscape: true});
@@ -316,17 +298,13 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let nick = request.body.username;
-    if (nick.includes("'") || nick.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
-    if (nick == request.session.username) {
+    let username = request.body.username;
+    if (username == request.session.username) {
       response.send("lol nie możesz usunąć własnego konta");
       return;
     }
-    let sql = "DELETE FROM users WHERE username = '" + nick.toString() + "';";
-    await await_con.execute(sql);
+    let query = "DELETE FROM users WHERE username = ?;";
+    await con.execute(query, [username]);
     response.redirect('/panel/uzytkownicy');
   });
 
@@ -343,14 +321,14 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let sql = request.body.query;
-    if (sql.toLowerCase().includes('drop') || sql.toLowerCase().includes('delete')) {
+    let query = request.body.query;
+    if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
       response.send('nie ma usuwania');
       response.end();
       return;
     }
     try {
-      let [rows, columns] = await await_con.execute(sql);
+      let [rows, columns] = await con.execute(query);
       response.send(rows);
       response.end();
     }
@@ -366,7 +344,7 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let sql = 'SELECT * FROM sprzet';
+    let query = 'SELECT * FROM sprzet';
     response.send('not. yet.');
   });
 
@@ -375,9 +353,12 @@ async function main() {
 
 
 main();
-// connect_to_db("localhost", "sqluser", "imposter", "test_db");
-// create_user('admin', 'admin', 1);
-// create_user('twoj_stary', '2137', 0);
+// connect_to_database("localhost", "sqluser", "imposter", "sus_database");
+// setTimeout(function() {
+  // create_user('admin', 'admin', 1);
+  // create_user('twoj_stary', '2137', 0);
+// }, 1000);
+
 //console.log(build_table([{"username":"admin","password_hash":2023948189175633,"czy_admin":1,"data_wygasniecia":null},{"username":"twoj_stary","password_hash":488183148373,"czy_admin":0,"data_wygasniecia":null}]));
 
 //kms();
