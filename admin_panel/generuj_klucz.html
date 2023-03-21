@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pl-PL">
+<head>
+  <meta charset="UTF-8">
+  <title>Generator kluczy</title>
+</head>
+<body>
+<form action = "/panel/generuj_klucz/auth" method = "post" onsubmit = "return date_update();">
+  <input type = "checkbox" id = "czy_admin" name = "czy_admin"> Uprawnienia administratora <br>
+  <input type = "checkbox" id = "czy_wygasa" name = "czy_wygasa" onclick = "change_visibility();"> Konto wygasa <br>
+  <div id = "dateDiv" style = "Display: none; margin-top: 0.6em; margin-bottom: 0.6em">
+    <input type = "date" id = "date" name = "date" onchange="date_update()"> <br>
+    Zaznacz ostatni dzień, w którym konto będzie aktywne <br>
+    <span id = "badDate"></span>
+  </div>
+  <input type = "submit" value = "Generuj klucz">
+</form>
+<br>
+<p id="key"></p>
+<br>
+<form action = "/panel" method = "get">
+  <input type = "submit" value = "Wróć">
+</form>
+
+<script>
+  function change_visibility() {
+    let checkbox = document.getElementById("czy_wygasa");
+    let dateDiv = document.getElementById("dateDiv");
+    console.log(checkbox.checked);
+    if(checkbox.checked)
+      dateDiv.style.display = "block";
+    else
+      dateDiv.style.display = "none";
+  }
+  function date_update() {
+    let dateDiv = document.getElementById("dateDiv");
+    let date = document.getElementById("date");
+    let badDate = document.getElementById("badDate");
+    console.log(date.valueAsDate);
+    if(dateDiv.style.display == "none")
+      return true;
+    if(date.valueAsDate != null) {
+      badDate.innerText = "Data jest ok";
+      badDate.style.color = "rgb(0, 220, 0)";
+      return true;
+    }
+    badDate.innerText = "Data nie może być pusta!";
+    badDate.style.color = "red";
+    return false;
+
+  }
+</script>
+</body>
+</html>

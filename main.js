@@ -37,7 +37,7 @@ async function connect_to_database(host, user, password, database) {
   return 0;
 }
 
-function generate_random(length) {
+function generate_random_string(length) {
   let name = '';
   for(let i = 0; i < length; i++) {
     let x = Math.floor(Math.random() * 62);
@@ -157,6 +157,23 @@ async function main() {
 
   app.get('/aktywuj_konto', function (request, response){
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
+  });
+
+  app.get('/panel/generuj_klucz', function (request, response){
+    if (!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    response.sendFile(__dirname + '/admin_panel/generuj_klucz.html');
+  });
+
+  app.post('/panel/generuj_klucz/auth', async function (request, response) {
+    if (!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+
+
   });
 
   // TODO not ready yet
