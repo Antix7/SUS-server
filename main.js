@@ -3,24 +3,12 @@ const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const nodemailer = require('nodemailer');
 const handlebars = require('handlebars');
 const fs = require('fs');
-
 const crypto = require('crypto');
 
-const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
-const myPasword = 'zxpjpmjufaegyxpx';
 let con;
-let myMail = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  safe: true,
-  port: 587,
-  auth: {
-    user: myAddress,
-    pass: myPasword
-  }
-});
+
 
 function create_hash(password) {
 
@@ -166,52 +154,6 @@ async function main() {
     else
       response.sendFile(__dirname + '/login/oszust.html');
   })
-
-  app.get('/panel/dodaj_uzytkownika', function (request, response) {
-    if(request.session.isadmin && request.session.loggedin)
-      response.sendFile(__dirname + "/admin_panel/dodaj_uzytkownika.html");
-    else
-      response.sendFile(__dirname + "/login/oszust.html");
-  });
-
-  // TODO not ready yet
-  app.post('/panel/dodaj_uzytkownika/auth', function (request, response){
-    if(!request.session.loggedin || !request.session.isadmin) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return 1;
-    }
-
-    let name = generate_random(10);
-
-    let mailOptions = {
-      from: myAddress,
-      to: request.body.email,
-      subject: "Założenie konta w Systemie Udokumentowywania Sprzętu",
-      text: "Witaj!\nOto kod do założenia konta w SUS: " + name
-    };
-    myMail.sendMail(mailOptions, async function (error, info) {
-      if (error) {
-        response.send("Coś poszło nie tak");
-        console.log(error);
-        return;
-      }
-
-      let toSend = "Wysłano e-mail na podany adres\n";
-      let czy_admin = '0';
-      if (request.body.czy_admin == 'on')
-        czy_admin = '1';
-      let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + name + "', -1, " + czy_admin + ");";
-      //console.log(request.body.expires);
-      //console.log(request.body.expires == 'on');
-      if (request.body.expires == 'on') {
-        let date = request.body.date;
-        //console.log(date);
-        sql = "INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES " + "('" + name + "', -1, " + czy_admin + ", '" + date + "');";
-      }
-      await con.execute(sql);
-      response.send(toSend);
-    });
-  });
 
   app.get('/aktywuj_konto', function (request, response){
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
