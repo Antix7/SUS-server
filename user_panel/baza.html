@@ -58,6 +58,15 @@
                     errorDiv.innerText = "An error occurred. Please try again later.";
                 })
         });
+        function delay(time) {
+            return new Promise(resolve => setTimeout(resolve, time));
+        }
+        window.onscroll = async function(ev) {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+                form1.dispatchEvent(new Event("submit"));
+                await delay(1000);
+            }
+        };
     </script>
 </body>
 </html>
