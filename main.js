@@ -96,15 +96,19 @@ function build_table_users(ob) {
 }
 
 
-function build_table_sprzet(ob) {
-  let table = '<tbody>';
+function build_thead_sprzet(ob) {
 
-  table += '<tr>';
-  for(let i in ob[0]) {
+  let table = '<thead>';
+  for (let i in ob[0]) {
     table += '<th>' + i.toString() + '</th>';
   }
-  table += '</tr>';
+  table += '</thead>';
 
+  return table;
+}
+function build_table_sprzet(ob) {
+
+  let table = '';
   for(let i in ob) {
     table += '<tr>';
     for(let j in ob[i]) {
@@ -114,7 +118,7 @@ function build_table_sprzet(ob) {
     }
     table += '</tr>';
   }
-  table += '</tbody>';
+
   return table;
 }
 
@@ -458,12 +462,44 @@ async function main() {
         'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
         'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
         'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
-        'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id';
+        'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
+        'WHERE sprzet.przedmiot_id >= 1 AND sprzet.przedmiot_id < 51';
     let [rows, columns] = await await_con.execute(sql);
     const templateStr = fs.readFileSync(__dirname + '/user_panel/baza.html').toString('utf8');
     const template = handlebars.compile(templateStr, {noEscape: true});
-    const contents = template({tablebody: build_table_sprzet(rows)});
+    const contents = template({tablebody: (build_thead_sprzet(rows) + build_table_sprzet(rows))});
     response.send(contents);
+    response.end();
+  });
+
+  app.post('/wincyj', async function(request, response) {
+    if (!request.session.loggedin) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let gdzie = request.headers.zacznij_od;
+    let sql = 'SELECT\n' +
+        '    sprzet.nazwa as Nazwa,\n' +
+        '    sprzet.ilosc as Ilość,\n' +
+        '    sprzet.zdjecie as Zdjęcie,\n' +
+        '    kat.kategoria_nazwa as Kategoria,\n' +
+        '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
+        '    wla.podmiot_nazwa as Właściciel,\n' +
+        '    uzy.podmiot_nazwa as Użytkownik,\n' +
+        '    stat.status_nazwa as Status,\n' +
+        '    stan.stan_nazwa as Stan,\n' +
+        '    sprzet.opis as Opis\n' +
+        '\n' +
+        'FROM sprzet\n' +
+        'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
+        'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
+        'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
+        'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
+        'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
+        'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
+        'WHERE sprzet.przedmiot_id >= ' + gdzie + ' AND sprzet.przedmiot_id < ' + (parseInt(gdzie) + 50).toString();
+    let [rows, columns] = await await_con.execute(sql);
+    response.json({more_rows: build_table_sprzet(rows)});
     response.end();
   });
 

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Added a website for accessing the main database which may or may not work">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="oh shit i didn't delete the remains">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/user_panel/baza.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/baza.html" afterDir="false" />
@@ -76,7 +76,7 @@
       <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Node.js.sus">
     <configuration name="sus2" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" port="3000">
       <method v="2" />
     </configuration>
@@ -117,7 +117,7 @@
       <workItem from="1678473916880" duration="3999000" />
       <workItem from="1678814866658" duration="10547000" />
       <workItem from="1679001889926" duration="269000" />
-      <workItem from="1679501466725" duration="4430000" />
+      <workItem from="1679501466725" duration="11235000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -294,7 +294,21 @@
       <option name="project" value="LOCAL" />
       <updated>1678832168157</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="made the website work in a way that won't get me crucified, please don't look up the earlier commit">
+      <created>1679506653173</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1679506653173</updated>
+    </task>
+    <task id="LOCAL-00027" summary="oh shit i didn't delete the remains">
+      <created>1679506830950</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1679506830950</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -391,6 +405,8 @@
     <MESSAGE value="created a function that makes an array out of a table, the 'kms()' function demonstrates its usage" />
     <MESSAGE value="brought await_con to the global scope and connect_to_db function &#10;also made main() async" />
     <MESSAGE value="Added a website for accessing the main database which may or may not work" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added a website for accessing the main database which may or may not work" />
+    <MESSAGE value="made the website work in a way that won't get me crucified, please don't look up the earlier commit" />
+    <MESSAGE value="oh shit i didn't delete the remains" />
+    <option name="LAST_COMMIT_MESSAGE" value="oh shit i didn't delete the remains" />
   </component>
 </project>
