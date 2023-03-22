@@ -227,21 +227,21 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
+
     let username = request.session.username;
-    let old_password = request.body.stare;
-    let new_password = request.body.nowe;
-    // TODO write this as a single query
-    let query = "SELECT * FROM users WHERE username = ? AND password_hash = ?;";
-    let [rows, columns] = await con.execute(query, [username, create_hash(old_password)]);
-    if (rows.length === 0) {
-      response.send("Stare hasło się nie zgadza");
-      response.end();
+    let password_old = request.body.password_old;
+    let password_new = request.body.password_new1;
+
+    let query = "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash = ?;";
+    let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
+
+    if(res[0].changedRows === 0) {
+      response.json({message: 'Hasło niepoprawne'});
       return;
     }
-    query = "UPDATE users SET password_hash = ? WHERE username = ?;";
-    await con.execute(query, [create_hash(new_password), username]);
-    response.send("Hasło zmienione");
+    response.json({message: 'Pomyślnie zmieniono hasło'});
     response.end();
+
   });
 
   app.get('/panel/uzytkownicy', async function (request, response) {

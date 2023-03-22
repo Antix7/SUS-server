@@ -3,37 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <title>Zmiana hasła</title>
-  <script>
-    function checkPwd() {
-      let stare = document.getElementById("stare");
-      let nowe = document.getElementById("nowe");
-      let nowe2 = document.getElementById("nowe2");
-      let mySpan = document.getElementById("mySpan");
-      if(nowe.value !== nowe2.value) {
-        mySpan.innerText = "Hasła nie są takie same";
-        mySpan.style.color = "red";
-        return false;
-      }
-      else {
-        if(stare.value === nowe.value) {
-          mySpan.innerText = "Nowe hasło nie może być takie samo jak stare!";
-          mySpan.style.color = "rgb(0,153,255)";
-          return false;
-        }
-        mySpan.innerText = "Hasła są takie same";
-        mySpan.style.color = "rgb(0, 220, 0)";
-        return true;
-      }
-    }
-  </script>
 </head>
 <body>
-  <form action="/panel/zmien_haslo/auth" method="post" onsubmit="return checkPwd();">
-    <input type="password" name="stare" id="stare" placeholder="Wpisz stare hasło"><br>
-    <input type="password" name="nowe" id="nowe" placeholder="Wpisz nowe hasło" onchange="checkPwd()"><br>
-    <input type="password" name="nowe2" id="nowe2" placeholder="Powtórz nowe hasło" onchange="checkPwd()"><br>
-    <input type="submit" value="Zmień hasło"><br>
+  <form id="form">
+    <input type="password" name="password_old" id="password_old" placeholder="Stare hasło"><br>
+    <input type="password" name="password_new1" id="password_new1" placeholder="Nowe hasło"><br>
+    <input type="password" name="password_new2" id="password_new2" placeholder="Powtórz nowe hasło">
+    <span id="match"></span><br>
+    <input type="submit" id="submit_btn" value="Zmień hasło"><br>
   </form>
-  <span id="mySpan"></span>
+
+  <p id="status"></p>
+
+  <form action="/panel" method="get">
+    <input type="submit" value="Wróć">
+  </form>
+
+
+  <script>
+
+  const form = document.getElementById("form");
+  const password_old = document.getElementById("password_old");
+  const password_new1 = document.getElementById("password_new1");
+  const password_new2 = document.getElementById("password_new2");
+  const match = document.getElementById("match");
+  const status = document.getElementById("status");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    if(password_new1.value !== password_new2.value) {
+      match.innerText = "Hasła nie są takie same";
+      match.style.color = "red";
+      return;
+    }
+    if(password_old.value === password_new1.value) {
+      match.innerText = "Nowe hasło nie może być takie samo jak stare";
+      match.style.color = "red";
+      return;
+    }
+
+    fetch("/panel/zmien_haslo/auth", {
+      method: "POST",
+      body: new FormData(form)
+    })
+            .then(response => response.json())
+            .then(data => {
+              status.innerText = data.message;
+            })
+            .catch(error => {
+              status.innerText = "Nastąpił błąd, spróbuj ponownie później.";
+            })
+  });
+
+</script>
+
 </body>
 </html>

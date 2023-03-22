@@ -31,7 +31,7 @@
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
-        if (password1.value !== password2.value) {
+        if(password1.value !== password2.value) {
             match.innerText = "Hasła nie są takie same";
             match.style.color = "red";
             return;
