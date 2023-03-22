@@ -124,8 +124,6 @@ async function main() {
     return -1;
   }
 
-  await updateTables();
-
   const app = express();
   app.use(session({
     secret: 'joe mama',
