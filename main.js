@@ -6,6 +6,7 @@ const path = require('path');
 const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
+const multer = require('multer');
 
 let con;
 
@@ -98,10 +99,7 @@ async function main() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'static')));
-  const bodyParser = require("body-parser");
-
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json());
+  app.use(multer().none());
 
   app.get('/', function(request, response) {
     response.sendFile(path.join(__dirname + '/login/index.html'));
@@ -165,37 +163,53 @@ async function main() {
 
   app.get('/panel/generuj_klucz', function (request, response){
     if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+      response.sendFile(__dirname + '/login/oszust.html');
       return;
     }
     response.sendFile(__dirname + '/admin_panel/generuj_klucz.html');
   });
 
-  app.post('/panel/generuj_klucz/auth', async function (request, response) {
-    console.log('dotarlo xd')
+  app.post('/panel/generuj_klucz/auth', (request, response) => {
     if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+      response.sendFile(__dirname + '/login/oszust.html');
       return;
     }
-    const { name, email } = request.body;
+    let czy_admin = request.body.czy_admin;
+    let czy_wygasa = request.body.czy_wygasa;
 
-    // Do something with the data (e.g. save to database)
-    // ...
+    console.log(request.body);
+
+    let username = czy_admin ? 'a_' : '';
+    username += generate_random_string(10);
+
 
     // Send a response back to the client
-    response.json({ message: generate_random_string(10) });
+    response.json({ message: username });
 
   });
 
-  app.post("/submit-form", (req, res) => {
+  // app.post("/submit-form", async function (req, res) {
+  //   const { name, email } = req.body;
+  //   console.log(req);
+  //   // Do something with the data (e.g. save to database)
+  //   // ...
+  //
+  //   // Send a response back to the client
+  //   res.json({ message: "Data received successfully!" });
+  // });
+
+
+  app.post('/submit-form', async function (req, res) {
     const { name, email } = req.body;
-
+    console.log(req.body);
     // Do something with the data (e.g. save to database)
     // ...
 
     // Send a response back to the client
-    res.json({ message: "Data received successfully!" });
+    res.json({ message: 'Data received successfully!' });
   });
+
+
 
   // TODO not ready yet
   app.post('/aktywuj/auth', async function (request, response) {

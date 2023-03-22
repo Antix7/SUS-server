@@ -16,18 +16,27 @@
 <p id="response"></p>
 
 <script>
-  const form = document.getElementById("myForm");
+  const form1 = document.getElementById("myForm");
   const submitBtn = document.getElementById("submitBtn");
   const responseEl = document.getElementById("response");
 
-  form.addEventListener("submit", (e) => {
+  form1.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const formData = new FormData(form);
+    const formData = new FormData(form1);
+    for (let key of formData.keys()) {
+      console.log(key);
+    }
+    for (let key of formData.values()) {
+      console.log(key);
+    }
 
     fetch("/submit-form", {
       method: "POST",
-      body: formData
+      body: new FormData(form1)
+      // headers: {
+      //   "Content-Type": "multipart/form-data"
+      // }
     })
             .then(response => response.json())
             .then(data => {

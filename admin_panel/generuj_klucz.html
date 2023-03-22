@@ -11,30 +11,32 @@
   <input type="checkbox" id="czy_wygasa" name="czy_wygasa" onclick="change_visibility();">
   <label for="czy_wygasa"> Konto wygasa </label> <br>
 
-  <div id="dateDiv" style="Display: none; margin-top: 0.6em; margin-bottom: 0.6em">
-    <input type = "date" id = "date" name = "date" onchange="date_update()"> <br>
-    Zaznacz ostatni dzień, w którym konto będzie aktywne <br>
-    <span id = "badDate"></span>
+  <div id="data_div" style="Display: none; margin-top: 0.6em; margin-bottom: 0.6em">
+    <input type="date" id="data" name="data" onchange="date_update()"> <br>
+    <label for="data"> Zaznacz ostatni dzień, w którym konto będzie aktywne </label><br>
+    <span id="data_status"></span>
   </div>
+  <br>
   <input type="submit" id="submit_btn" value="Generuj klucz">
 </form>
-<br>
+
 <p id="key"></p>
-<br>
+
 <form action="/panel" method="get">
   <input type="submit" value="Wróć">
 </form>
 
 <script>
 
-  const form = document.getElementById("key_form");
+  // dzieki chatgpt
+  const key_form = document.getElementById("key_form");
   const submitBtn = document.getElementById("submit_btn");
-  const responseEl = document.getElementById("key");
+  const key_paragraph = document.getElementById("key");
 
-  form.addEventListener("submit", (e) => {
+  key_form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const formData = new FormData(form);
+    const formData = new FormData(key_form);
 
     fetch("/panel/generuj_klucz/auth", {
       method: "POST",
@@ -42,36 +44,36 @@
     })
             .then(response => response.json())
             .then(data => {
-              responseEl.innerText = data.message;
+              key_paragraph.innerText = data.message;
             })
             .catch(error => {
-              responseEl.innerText = "An error occurred. Please try again later.";
+              key_paragraph.innerText = "An error occurred. Please try again later.";
             })
   });
 
   function change_visibility() {
     let checkbox = document.getElementById("czy_wygasa");
-    let dateDiv = document.getElementById("dateDiv");
+    let data_div = document.getElementById("data_div");
     console.log(checkbox.checked);
     if(checkbox.checked)
-      dateDiv.style.display = "block";
+      data_div.style.display = "block";
     else
-      dateDiv.style.display = "none";
+      data_div.style.display = "none";
   }
   function date_update() {
-    let dateDiv = document.getElementById("dateDiv");
-    let date = document.getElementById("date");
-    let badDate = document.getElementById("badDate");
-    console.log(date.valueAsDate);
-    if(dateDiv.style.display == "none")
+    let data_div = document.getElementById("data_div");
+    let data = document.getElementById("data");
+    let data_status = document.getElementById("data_status");
+    console.log(data.valueAsDate);
+    if(data_div.style.display === "none")
       return true;
-    if(date.valueAsDate != null) {
-      badDate.innerText = "Data jest ok";
-      badDate.style.color = "rgb(0, 220, 0)";
+    if(data.valueAsDate != null) {
+      data_status.innerText = "Data jest ok";
+      data_status.style.color = "rgb(0, 220, 0)";
       return true;
     }
-    badDate.innerText = "Data nie może być pusta!";
-    badDate.style.color = "red";
+    data_status.innerText = "Data nie może być pusta!";
+    data_status.style.color = "red";
     return false;
 
   }
