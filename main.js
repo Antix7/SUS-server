@@ -3,24 +3,14 @@ const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const nodemailer = require('nodemailer');
 const handlebars = require('handlebars');
 const fs = require('fs');
-
 const crypto = require('crypto');
+const multer = require('multer');
+const {query} = require("express");
 
-const myAddress = 'mnbvcxzlkmjnhgfdsapoiuytrewq@gmail.com'; // tbd oficjalny email
-const myPasword = 'zxpjpmjufaegyxpx';
 let con;
-let myMail = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  safe: true,
-  port: 587,
-  auth: {
-    user: myAddress,
-    pass: myPasword
-  }
-});
+
 
 function create_hash(password) {
 
@@ -49,7 +39,7 @@ async function connect_to_database(host, user, password, database) {
   return 0;
 }
 
-function generate_random(length) {
+function generate_random_string(length) {
   let name = '';
   for(let i = 0; i < length; i++) {
     let x = Math.floor(Math.random() * 62);
@@ -110,6 +100,7 @@ async function main() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'static')));
+  app.use(multer().none());
 
   app.get('/', function(request, response) {
     response.sendFile(path.join(__dirname + '/login/index.html'));
@@ -167,86 +158,61 @@ async function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   })
 
-  app.get('/panel/dodaj_uzytkownika', function (request, response) {
-    if(request.session.isadmin && request.session.loggedin)
-      response.sendFile(__dirname + "/admin_panel/dodaj_uzytkownika.html");
-    else
-      response.sendFile(__dirname + "/login/oszust.html");
-  });
-
-  // TODO not ready yet
-  app.post('/panel/dodaj_uzytkownika/auth', function (request, response){
-    if(!request.session.loggedin || !request.session.isadmin) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return 1;
-    }
-
-    let name = generate_random(10);
-
-    let mailOptions = {
-      from: myAddress,
-      to: request.body.email,
-      subject: "Założenie konta w Systemie Udokumentowywania Sprzętu",
-      text: "Witaj!\nOto kod do założenia konta w SUS: " + name
-    };
-    myMail.sendMail(mailOptions, async function (error, info) {
-      if (error) {
-        response.send("Coś poszło nie tak");
-        console.log(error);
-        return;
-      }
-
-      let toSend = "Wysłano e-mail na podany adres\n";
-      let czy_admin = '0';
-      if (request.body.czy_admin == 'on')
-        czy_admin = '1';
-      let sql = "INSERT INTO users (username, password_hash, czy_admin) VALUES ('" + name + "', -1, " + czy_admin + ");";
-      //console.log(request.body.expires);
-      //console.log(request.body.expires == 'on');
-      if (request.body.expires == 'on') {
-        let date = request.body.date;
-        //console.log(date);
-        sql = "INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES " + "('" + name + "', -1, " + czy_admin + ", '" + date + "');";
-      }
-      await con.execute(sql);
-      response.send(toSend);
-    });
-  });
-
   app.get('/aktywuj_konto', function (request, response){
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
   });
 
-  // TODO not ready yet
-  app.post('/aktywuj/auth', async function (request, response) {
-    let onetime_id = request.body.id;
-    if (onetime_id.includes("'") || onetime_id.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
+  app.get('/panel/generuj_klucz', function (request, response){
+    if (!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + '/login/oszust.html');
       return;
     }
-    let nick = request.body.nick;
-    if (nick.includes("'") || nick.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
+    response.sendFile(__dirname + '/admin_panel/generuj_klucz.html');
+  });
+
+  app.post('/panel/generuj_klucz/auth', async function (request, response) {
+    if (!(request.session.isadmin && request.session.loggedin)) {
+      response.sendFile(__dirname + '/login/oszust.html');
       return;
-    }
-    let pwd = request.body.pwd1;
-    let sql = "SELECT * FROM users WHERE username='" + nick + "';";
-    let [rows, columns] = await con.execute(sql);
-    if (rows.length > 0) {
-      response.send("Taki użytkownik już istnieje");
-      return 0;
     }
 
-    sql = "SELECT * FROM users WHERE username='" + onetime_id + "' AND password_hash=-1;";
-    [rows, columns] = await con.execute(sql);
+    let czy_admin = request.body.czy_admin ? 1 : 0;
+    let data = request.body.data ? request.body.data : null;
+
+    let username = czy_admin ? 'a_' : '';
+    username += generate_random_string(10);
+
+    let query = 'INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES (?, ?, ?, ?);';
+    await con.execute(query, [username, -1, czy_admin, data]);
+
+    response.json({message: username});
+    response.end();
+
+  });
+
+  app.post('/aktywuj_konto/auth', async function (request, response) {
+
+    let key = request.body.key;
+    let username = request.body.username;
+    let password = request.body.password1;
+
+    let query = "SELECT * FROM users WHERE username = ? AND password_hash = -1;";
+    let [rows, columns] = await con.execute(query, [key]);
     if (rows.length === 0) {
-      response.send("Niepoprawny identyfikator");
-      return 0;
+      response.json({message: 'Niewłaściwy klucz'});
+      return;
     }
+    query = 'SELECT * FROM users WHERE username = ?';
+    [rows, columns] = await con.execute(query, [username]);
+    if (rows.length > 0) {
+      response.json({message: 'Użytkownik o takiej nazwie już istnieje'});
+      return;
+    }
+    query = 'UPDATE users SET username = ?, password_hash = ? WHERE username = ?;';
+    await con.execute(query, [username, create_hash(password), key]);
+    response.json({message: 'Użytkownik został pomyślnie stworzony'});
+    response.end();
 
-    sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + create_hash(pwd) + "' WHERE username='" + onetime_id + "';";
-    await con.execute(sql);
-    response.send("Udało się!");
   });
 
   app.get('/panel/zmien_haslo', function(request, response) {
@@ -261,21 +227,21 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
+
     let username = request.session.username;
-    let old_password = request.body.stare;
-    let new_password = request.body.nowe;
-    // TODO write this as a single query
-    let query = "SELECT * FROM users WHERE username = ? AND password_hash = ?;";
-    let [rows, columns] = await con.execute(query, [username, create_hash(old_password)]);
-    if (rows.length === 0) {
-      response.send("Stare hasło się nie zgadza");
-      response.end();
+    let password_old = request.body.password_old;
+    let password_new = request.body.password_new1;
+
+    let query = "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash = ?;";
+    let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
+
+    if(res[0].changedRows === 0) {
+      response.json({message: 'Hasło niepoprawne'});
       return;
     }
-    query = "UPDATE users SET password_hash = ? WHERE username = ?;";
-    await con.execute(query, [create_hash(new_password), username]);
-    response.send("Hasło zmienione");
+    response.json({message: 'Pomyślnie zmieniono hasło'});
     response.end();
+
   });
 
   app.get('/panel/uzytkownicy', async function (request, response) {

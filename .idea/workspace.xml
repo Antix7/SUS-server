@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="fixed the app crashing when sql syntax in admin's personal query was wrong">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Key generation complete">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login/aktywuj_konto.html" beforeDir="false" afterPath="$PROJECT_DIR$/login/aktywuj_konto.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login/zmien_haslo.html" beforeDir="false" afterPath="$PROJECT_DIR$/login/zmien_haslo.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -23,12 +25,19 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="sql-injection-prevention" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="MIXED" />
     <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -45,14 +54,15 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;18.12.1&quot;,
-    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;18.11.18&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Antek/Desktop/Antek/Programowanie/SUS&quot;,
+    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;18.15.5&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Antek/Downloads/JetBrains-Discord-Integration-1.11.0.zip&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;discord-application&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -71,11 +81,14 @@
       <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Attach to Node.js/Chrome.sus2">
     <configuration name="sus2" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" port="3000">
       <method v="2" />
     </configuration>
     <configuration name="sus JavaScript" type="JavascriptDebugType" engineId="37cae5b9-e8b2-4949-9172-aafa37fbc09c" uri="http://localhost:3000">
+      <method v="2" />
+    </configuration>
+    <configuration name="main.js" type="NodeJSConfigurationType" path-to-node="$PROJECT_DIR$/../../../../../../Program Files/nodejs/node" nameIsGenerated="true" path-to-js-file="main.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <configuration name="sus" type="NodeJSConfigurationType" activateToolWindowBeforeRun="false" path-to-js-file="main.js" show_console_on_std_err="true" show_console_on_std_out="true" working-dir="$PROJECT_DIR$">
@@ -87,6 +100,7 @@
     <list>
       <item itemvalue="Attach to Node.js/Chrome.sus2" />
       <item itemvalue="JavaScript Debug.sus JavaScript" />
+      <item itemvalue="Node.js.main.js" />
       <item itemvalue="Node.js.sus" />
     </list>
   </component>
@@ -113,7 +127,16 @@
       <workItem from="1679318426321" duration="789000" />
       <workItem from="1679319809259" duration="751000" />
       <workItem from="1679336677685" duration="645000" />
-      <workItem from="1679337361300" duration="3422000" />
+      <workItem from="1679337361300" duration="3842000" />
+      <workItem from="1679411710087" duration="800000" />
+      <workItem from="1679413624646" duration="3522000" />
+      <workItem from="1679469882080" duration="1907000" />
+      <workItem from="1679472590134" duration="899000" />
+      <workItem from="1679474249533" duration="693000" />
+      <workItem from="1679480070918" duration="1585000" />
+      <workItem from="1679494220788" duration="8818000" />
+      <workItem from="1679504936818" duration="210000" />
+      <workItem from="1679505158453" duration="30000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -318,7 +341,63 @@
       <option name="project" value="LOCAL" />
       <updated>1679339714522</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="Updated /panel/zmien_haslo/auth to include prepared statements">
+      <created>1679340841626</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1679340841626</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Updated /panel/zmien_haslo/auth to include prepared statements">
+      <created>1679340854323</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1679340854323</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Minor fixes">
+      <created>1679341087806</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1679341087806</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Deleted email account activation">
+      <created>1679413985672</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1679413985672</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Server-client communication tests successful">
+      <created>1679502212111</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1679502212111</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Server-client communication tests successful">
+      <created>1679502293942</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1679502293942</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Key generation complete">
+      <created>1679504275726</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1679504275726</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Account activation complete">
+      <created>1679508520675</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1679508520675</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -381,12 +460,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Separating administrators from normal users" />
-    <MESSAGE value="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
-    <MESSAGE value="Separating administrators from normal users&#10;Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
-    <MESSAGE value="changed a typo, didn't work, then i dunno what i did but it's working now" />
-    <MESSAGE value="Added the option to create new users from the admin panel&#10;The identificator username gets sent to new user via email" />
-    <MESSAGE value="Added the ability for new users to create acounts using the ID" />
     <MESSAGE value="When the admin creates a new account, it can have an expiry date" />
     <MESSAGE value="Changed the address to the user/admin panel, so it's the same for both" />
     <MESSAGE value="Code refactoring" />
@@ -406,6 +479,12 @@
     <MESSAGE value="Changed connect_to_db function" />
     <MESSAGE value="Authorization now uses prepared statements" />
     <MESSAGE value="Minor tweaks" />
-    <option name="LAST_COMMIT_MESSAGE" value="Minor tweaks" />
+    <MESSAGE value="Updated /panel/zmien_haslo/auth to include prepared statements" />
+    <MESSAGE value="Minor fixes" />
+    <MESSAGE value="Deleted email account activation" />
+    <MESSAGE value="Server-client communication tests successful" />
+    <MESSAGE value="Key generation complete" />
+    <MESSAGE value="Account activation complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="Account activation complete" />
   </component>
 </project>
