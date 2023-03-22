@@ -22,8 +22,6 @@ let myMail = nodemailer.createTransport({
   }
 });
 
-let kategorie, wlasciciele, lokalizacje, statusy;
-
 function haszuj(txt) {
   /*
   let hash = 0;
@@ -98,55 +96,26 @@ function build_table_users(ob) {
 }
 
 
-function build_table_body_sprzet(ob) {
+function build_table_sprzet(ob) {
   let table = '<tbody>';
+
+  table += '<tr>';
+  for(let i in ob[0]) {
+    table += '<th>' + i.toString() + '</th>';
+  }
+  table += '</tr>';
+
   for(let i in ob) {
     table += '<tr>';
     for(let j in ob[i]) {
-      if(j === 'PrzedmiotID' || j.contains('_'))
-        continue;
       table += '<td>';
-      if (j === 'KategoriaID')
-        table += kategorie[ob[i][j]];
-      else if (j === 'WlascicielID')
-        table += wlasciciele[ob[i][j]];
-      else if (j === 'LokalizacjaID')
-        table += lokalizacje[ob[i][j]];
-      else if (j === 'StatusID')
-        table += statusy[ob[i][j]];
-      else
-        table += ob[i][j];
+      table += ob[i][j];
       table += '</td>';
     }
-    /*table += '<td> ' +
-        '<form action="/panel/uzytkownicy/usun" method="post"> ' +
-        '<input type="submit" value="usuń"> ' +
-        '<input type="hidden" name="Username" value="' + ob[i].Username + '"> ' +
-        '</form> </td>';*/
     table += '</tr>';
   }
   table += '</tbody>';
   return table;
-}
-
-async function getTable(tableName, columnName) {  // works when a table has two columns: one ending with ID and hte ohter with Nazwa
-  let table = [];
-  let sql = 'SELECT * FROM ' + tableName + ';';
-  let [rows, columns] = await await_con.execute(sql);
-
-  for (let i in rows) {
-    table[rows[i][columnName + 'ID']] = rows[i][columnName + 'Nazwa'];
-  }
-
-  //console.log(table);
-  return table;
-}
-
-async function updateTables() {
-  statusy = await getTable("statusy", "Status");
-  lokalizacje = await getTable("lokalizacje", "Lokalizacja");
-  wlasciciele = await getTable("wlasciciele", "Wlasciciel");
-  kategorie = await getTable("kategorie", "Kategoria");
 }
 
 async function main() {
@@ -468,36 +437,41 @@ async function main() {
     });
   });
 
-  app.get('/baza', function(request, response) {
-    if(!request.session.loggedin) {
+  app.get('/baza', async function (request, response) {
+    if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let sql = 'SELECT * FROM sprzet';
-    con.query(sql, function(err, result) {
-      if(err)
-        throw err;
-      const templateStr = fs.readFileSync(__dirname + '/user_panel/baza.html').toString('utf8');
-      const template = handlebars.compile(templateStr, {noEscape: true});
-      const contents = template({tablebody: build_table_body_sprzet(result)});
-      response.send(contents);
-      response.end();
-    });
+    let sql = 'SELECT\n' +
+        '    sprzet.nazwa as Nazwa,\n' +
+        '    sprzet.ilosc as Ilość,\n' +
+        '    sprzet.zdjecie as Zdjęcie,\n' +
+        '    kat.kategoria_nazwa as Kategoria,\n' +
+        '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
+        '    wla.podmiot_nazwa as Właściciel,\n' +
+        '    uzy.podmiot_nazwa as Użytkownik,\n' +
+        '    stat.status_nazwa as Status,\n' +
+        '    stan.stan_nazwa as Stan,\n' +
+        '    sprzet.opis as Opis\n' +
+        '\n' +
+        'FROM sprzet\n' +
+        'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
+        'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
+        'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
+        'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
+        'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
+        'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id';
+    let [rows, columns] = await await_con.execute(sql);
+    const templateStr = fs.readFileSync(__dirname + '/user_panel/baza.html').toString('utf8');
+    const template = handlebars.compile(templateStr, {noEscape: true});
+    const contents = template({tablebody: build_table_sprzet(rows)});
+    response.send(contents);
+    response.end();
   });
-
-  app.get('/baza/update', async function(request, response) {
-    await updateTables();
-    response.redirect('/baza');
-  })
 
   app.listen(3000, '0.0.0.0');
 }
 
-
-async function kms() {
-  let statusy = await getTable('statusy', 'Status');
-  console.log(statusy);
-}
 
 main();
 //connect_to_db("localhost", "sqluser", "imposter", "test_db");
