@@ -185,42 +185,34 @@ async function main() {
     let query = 'INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES (?, ?, ?, ?);';
     await con.execute(query, [username, -1, czy_admin, data]);
 
-    response.json({ message: username });
+    response.json({message: username});
     response.end();
 
   });
 
+  app.post('/aktywuj_konto/auth', async function (request, response) {
 
-  // TODO not ready yet
-  app.post('/aktywuj/auth', async function (request, response) {
-    let onetime_id = request.body.id;
-    if (onetime_id.includes("'") || onetime_id.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
-    let nick = request.body.nick;
-    if (nick.includes("'") || nick.includes('"')) {
-      response.sendFile(__dirname + '/login/for_injectors.html');
-      return;
-    }
-    let pwd = request.body.pwd1;
-    let sql = "SELECT * FROM users WHERE username='" + nick + "';";
-    let [rows, columns] = await con.execute(sql);
-    if (rows.length > 0) {
-      response.send("Taki użytkownik już istnieje");
-      return 0;
-    }
+    let key = request.body.key;
+    let username = request.body.username;
+    let password = request.body.password1;
 
-    sql = "SELECT * FROM users WHERE username='" + onetime_id + "' AND password_hash=-1;";
-    [rows, columns] = await con.execute(sql);
+    let query = "SELECT * FROM users WHERE username = ? AND password_hash = -1;";
+    let [rows, columns] = await con.execute(query, [key]);
     if (rows.length === 0) {
-      response.send("Niepoprawny identyfikator");
-      return 0;
+      response.json({message: 'Niewłaściwy klucz'});
+      return;
     }
+    query = 'SELECT * FROM users WHERE username = ?';
+    [rows, columns] = await con.execute(query, [username]);
+    if (rows.length > 0) {
+      response.json({message: 'Użytkownik o takiej nazwie już istnieje'});
+      return;
+    }
+    query = 'UPDATE users SET username = ?, password_hash = ? WHERE username = ?;';
+    await con.execute(query, [username, create_hash(password), key]);
+    response.json({message: 'Użytkownik został pomyślnie stworzony'});
+    response.end();
 
-    sql = "UPDATE users SET username = '" + nick + "', password_hash = '" + create_hash(pwd) + "' WHERE username='" + onetime_id + "';";
-    await con.execute(sql);
-    response.send("Udało się!");
   });
 
   app.get('/panel/zmien_haslo', function(request, response) {

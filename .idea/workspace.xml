@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Server-client communication tests successful">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Key generation complete">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin_panel/generuj_klucz.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/generuj_klucz.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login/aktywuj_konto.html" beforeDir="false" afterPath="$PROJECT_DIR$/login/aktywuj_konto.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -54,14 +55,14 @@
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;18.12.1&quot;,
     &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;18.15.5&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Program Files/nodejs/node.exe&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Antek/Downloads/JetBrains-Discord-Integration-1.11.0.zip&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.grazie&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;discord-application&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -80,7 +81,7 @@
       <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\" />
     </key>
   </component>
-  <component name="RunManager" selected="Attach to Node.js/Chrome.sus2">
+  <component name="RunManager" selected="Node.js.main.js">
     <configuration name="sus2" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" port="3000">
       <method v="2" />
     </configuration>
@@ -133,7 +134,9 @@
       <workItem from="1679472590134" duration="899000" />
       <workItem from="1679474249533" duration="693000" />
       <workItem from="1679480070918" duration="1585000" />
-      <workItem from="1679494220788" duration="8030000" />
+      <workItem from="1679494220788" duration="8818000" />
+      <workItem from="1679504936818" duration="210000" />
+      <workItem from="1679505158453" duration="30000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -380,7 +383,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679502293942</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Key generation complete">
+      <created>1679504275726</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1679504275726</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -443,7 +453,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added the option to create new users from the admin panel&#10;The identificator username gets sent to new user via email" />
     <MESSAGE value="Added the ability for new users to create acounts using the ID" />
     <MESSAGE value="When the admin creates a new account, it can have an expiry date" />
     <MESSAGE value="Changed the address to the user/admin panel, so it's the same for both" />
@@ -468,6 +477,7 @@
     <MESSAGE value="Minor fixes" />
     <MESSAGE value="Deleted email account activation" />
     <MESSAGE value="Server-client communication tests successful" />
-    <option name="LAST_COMMIT_MESSAGE" value="Server-client communication tests successful" />
+    <MESSAGE value="Key generation complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="Key generation complete" />
   </component>
 </project>
