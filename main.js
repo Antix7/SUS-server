@@ -7,6 +7,7 @@ const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+const {query} = require("express");
 
 let con;
 
@@ -169,46 +170,25 @@ async function main() {
     response.sendFile(__dirname + '/admin_panel/generuj_klucz.html');
   });
 
-  app.post('/panel/generuj_klucz/auth', (request, response) => {
+  app.post('/panel/generuj_klucz/auth', async function (request, response) {
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + '/login/oszust.html');
       return;
     }
-    let czy_admin = request.body.czy_admin;
-    let czy_wygasa = request.body.czy_wygasa;
 
-    console.log(request.body);
+    let czy_admin = request.body.czy_admin ? 1 : 0;
+    let data = request.body.data ? request.body.data : null;
 
     let username = czy_admin ? 'a_' : '';
     username += generate_random_string(10);
 
+    let query = 'INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES (?, ?, ?, ?);';
+    await con.execute(query, [username, -1, czy_admin, data]);
 
-    // Send a response back to the client
     response.json({ message: username });
+    response.end();
 
   });
-
-  // app.post("/submit-form", async function (req, res) {
-  //   const { name, email } = req.body;
-  //   console.log(req);
-  //   // Do something with the data (e.g. save to database)
-  //   // ...
-  //
-  //   // Send a response back to the client
-  //   res.json({ message: "Data received successfully!" });
-  // });
-
-
-  app.post('/submit-form', async function (req, res) {
-    const { name, email } = req.body;
-    console.log(req.body);
-    // Do something with the data (e.g. save to database)
-    // ...
-
-    // Send a response back to the client
-    res.json({ message: 'Data received successfully!' });
-  });
-
 
 
   // TODO not ready yet

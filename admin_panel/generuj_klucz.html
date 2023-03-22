@@ -6,18 +6,17 @@
 </head>
 <body>
 <form id="key_form">
+
   <input type="checkbox" id="czy_admin" name="czy_admin">
   <label for="czy_admin"> Uprawnienia administratora </label> <br>
-  <input type="checkbox" id="czy_wygasa" name="czy_wygasa" onclick="change_visibility();">
-  <label for="czy_wygasa"> Konto wygasa </label> <br>
 
-  <div id="data_div" style="Display: none; margin-top: 0.6em; margin-bottom: 0.6em">
-    <input type="date" id="data" name="data" onchange="date_update()"> <br>
-    <label for="data"> Zaznacz ostatni dzień, w którym konto będzie aktywne </label><br>
-    <span id="data_status"></span>
-  </div>
-  <br>
+  <label for="data"> Data wygaśnięcia &nbsp; </label>
+  <input type="date" id="data" name="data"><br>
+  <label for="data"> Zostaw ustawione na dd/mm/yyyy aby konto nie wygasło </label>
+
+  <br><br>
   <input type="submit" id="submit_btn" value="Generuj klucz">
+
 </form>
 
 <p id="key"></p>
@@ -30,53 +29,24 @@
 
   // dzieki chatgpt
   const key_form = document.getElementById("key_form");
-  const submitBtn = document.getElementById("submit_btn");
   const key_paragraph = document.getElementById("key");
 
   key_form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const formData = new FormData(key_form);
-
     fetch("/panel/generuj_klucz/auth", {
       method: "POST",
-      body: formData
+      body: new FormData(key_form)
     })
             .then(response => response.json())
             .then(data => {
               key_paragraph.innerText = data.message;
             })
             .catch(error => {
-              key_paragraph.innerText = "An error occurred. Please try again later.";
+              key_paragraph.innerText = "Nastąpił błąd, spróbuj ponownie później.";
             })
   });
 
-  function change_visibility() {
-    let checkbox = document.getElementById("czy_wygasa");
-    let data_div = document.getElementById("data_div");
-    console.log(checkbox.checked);
-    if(checkbox.checked)
-      data_div.style.display = "block";
-    else
-      data_div.style.display = "none";
-  }
-  function date_update() {
-    let data_div = document.getElementById("data_div");
-    let data = document.getElementById("data");
-    let data_status = document.getElementById("data_status");
-    console.log(data.valueAsDate);
-    if(data_div.style.display === "none")
-      return true;
-    if(data.valueAsDate != null) {
-      data_status.innerText = "Data jest ok";
-      data_status.style.color = "rgb(0, 220, 0)";
-      return true;
-    }
-    data_status.innerText = "Data nie może być pusta!";
-    data_status.style.color = "red";
-    return false;
-
-  }
 </script>
 </body>
 </html>
