@@ -98,6 +98,10 @@ async function main() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'static')));
+  const bodyParser = require("body-parser");
+
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
 
   app.get('/', function(request, response) {
     response.sendFile(path.join(__dirname + '/login/index.html'));
@@ -168,12 +172,29 @@ async function main() {
   });
 
   app.post('/panel/generuj_klucz/auth', async function (request, response) {
+    console.log('dotarlo xd')
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
+    const { name, email } = request.body;
 
+    // Do something with the data (e.g. save to database)
+    // ...
 
+    // Send a response back to the client
+    response.json({ message: generate_random_string(10) });
+
+  });
+
+  app.post("/submit-form", (req, res) => {
+    const { name, email } = req.body;
+
+    // Do something with the data (e.g. save to database)
+    // ...
+
+    // Send a response back to the client
+    res.json({ message: "Data received successfully!" });
   });
 
   // TODO not ready yet

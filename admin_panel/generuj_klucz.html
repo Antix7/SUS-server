@@ -5,24 +5,50 @@
   <title>Generator kluczy</title>
 </head>
 <body>
-<form action = "/panel/generuj_klucz/auth" method = "post" onsubmit = "return date_update();">
-  <input type = "checkbox" id = "czy_admin" name = "czy_admin"> Uprawnienia administratora <br>
-  <input type = "checkbox" id = "czy_wygasa" name = "czy_wygasa" onclick = "change_visibility();"> Konto wygasa <br>
-  <div id = "dateDiv" style = "Display: none; margin-top: 0.6em; margin-bottom: 0.6em">
+<form id="key_form">
+  <input type="checkbox" id="czy_admin" name="czy_admin">
+  <label for="czy_admin"> Uprawnienia administratora </label> <br>
+  <input type="checkbox" id="czy_wygasa" name="czy_wygasa" onclick="change_visibility();">
+  <label for="czy_wygasa"> Konto wygasa </label> <br>
+
+  <div id="dateDiv" style="Display: none; margin-top: 0.6em; margin-bottom: 0.6em">
     <input type = "date" id = "date" name = "date" onchange="date_update()"> <br>
     Zaznacz ostatni dzień, w którym konto będzie aktywne <br>
     <span id = "badDate"></span>
   </div>
-  <input type = "submit" value = "Generuj klucz">
+  <input type="submit" id="submit_btn" value="Generuj klucz">
 </form>
 <br>
 <p id="key"></p>
 <br>
-<form action = "/panel" method = "get">
-  <input type = "submit" value = "Wróć">
+<form action="/panel" method="get">
+  <input type="submit" value="Wróć">
 </form>
 
 <script>
+
+  const form = document.getElementById("key_form");
+  const submitBtn = document.getElementById("submit_btn");
+  const responseEl = document.getElementById("key");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    fetch("/panel/generuj_klucz/auth", {
+      method: "POST",
+      body: formData
+    })
+            .then(response => response.json())
+            .then(data => {
+              responseEl.innerText = data.message;
+            })
+            .catch(error => {
+              responseEl.innerText = "An error occurred. Please try again later.";
+            })
+  });
+
   function change_visibility() {
     let checkbox = document.getElementById("czy_wygasa");
     let dateDiv = document.getElementById("dateDiv");

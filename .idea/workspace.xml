@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Deleted email account activation">
-      <change afterPath="$PROJECT_DIR$/admin_panel/generuj_klucz.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin_panel/test.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin_panel/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin_panel/uzytkownicy.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/uzytkownicy.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/admin_panel/generuj_klucz.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/generuj_klucz.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/node_modules/.package-lock.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +33,13 @@
     <option name="RESET_MODE" value="MIXED" />
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -47,15 +54,16 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;18.12.1&quot;,
-    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;18.11.18&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Antek/Desktop/Antek/Programowanie/SUS&quot;,
+    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;18.15.0&quot;,
+    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;18.15.0&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Program Files/nodejs/node.exe&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -81,6 +89,9 @@
     <configuration name="sus JavaScript" type="JavascriptDebugType" engineId="37cae5b9-e8b2-4949-9172-aafa37fbc09c" uri="http://localhost:3000">
       <method v="2" />
     </configuration>
+    <configuration name="main.js" type="NodeJSConfigurationType" path-to-node="$PROJECT_DIR$/../../../../../../Program Files/nodejs/node" nameIsGenerated="true" path-to-js-file="main.js" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
     <configuration name="sus" type="NodeJSConfigurationType" activateToolWindowBeforeRun="false" path-to-js-file="main.js" show_console_on_std_err="true" show_console_on_std_out="true" working-dir="$PROJECT_DIR$">
       <EXTENSION ID="com.jetbrains.nodejs.run.NodeStartBrowserRunConfigurationExtension">
         <browser name="37cae5b9-e8b2-4949-9172-aafa37fbc09c" start="true" url="http://localhost:3000" />
@@ -90,6 +101,7 @@
     <list>
       <item itemvalue="Attach to Node.js/Chrome.sus2" />
       <item itemvalue="JavaScript Debug.sus JavaScript" />
+      <item itemvalue="Node.js.main.js" />
       <item itemvalue="Node.js.sus" />
     </list>
   </component>
@@ -119,6 +131,10 @@
       <workItem from="1679337361300" duration="3842000" />
       <workItem from="1679411710087" duration="800000" />
       <workItem from="1679413624646" duration="3522000" />
+      <workItem from="1679469882080" duration="1907000" />
+      <workItem from="1679472590134" duration="899000" />
+      <workItem from="1679474249533" duration="693000" />
+      <workItem from="1679480070918" duration="1585000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
