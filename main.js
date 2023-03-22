@@ -7,9 +7,17 @@ const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const {query} = require("express");
 
 let con;
+let mail_client = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'noreply.sus@gmail.com',
+    pass: 'sus69amo_gus420imposter2137'
+  }
+});
 
 
 function create_hash(password) {
