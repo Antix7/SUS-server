@@ -166,10 +166,6 @@ async function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   })
 
-  app.get('/aktywuj_konto', function (request, response){
-    response.sendFile(__dirname + '/login/aktywuj_konto.html');
-  });
-
   app.get('/panel/generuj_klucz', function (request, response){
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + '/login/oszust.html');
@@ -198,6 +194,11 @@ async function main() {
 
   });
 
+  app.get('/aktywuj_konto', function (request, response){
+    response.sendFile(__dirname + '/login/aktywuj_konto.html');
+  });
+
+
   app.post('/aktywuj_konto/auth', async function (request, response) {
 
     let key = request.body.key;
@@ -222,6 +223,15 @@ async function main() {
     response.end();
 
   });
+
+  app.get('/resetuj_haslo', function (request, response){
+    response.sendFile(__dirname + '/login/resetuj_haslo.html');
+  });
+
+  app.post('/resetuj_haslo/auth', async function (request, response) {
+
+  });
+
 
   app.get('/panel/zmien_haslo', function(request, response) {
     if(request.session.loggedin)
