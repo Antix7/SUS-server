@@ -85,4 +85,3 @@ CREATE TABLE zdjecia_uszkodzen
         FOREIGN KEY (przedmiot_id) REFERENCES sprzet (przedmiot_id)
 );
 
-

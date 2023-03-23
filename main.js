@@ -11,11 +11,15 @@ const nodemailer = require('nodemailer');
 const {query} = require("express");
 
 let con;
+const sus_email_address = 'noreply.sus@gmail.com';
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'noreply.sus@gmail.com',
-    pass: 'sus69amo_gus420imposter2137'
+    user: sus_email_address,
+    pass: 'fnoizumcdgzkrisd'
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
@@ -204,6 +208,7 @@ async function main() {
     let key = request.body.key;
     let username = request.body.username;
     let password = request.body.password1;
+    let email = request.body.email;
 
     let query = "SELECT * FROM users WHERE username = ? AND password_hash = -1;";
     let [rows, columns] = await con.execute(query, [key]);
@@ -217,8 +222,8 @@ async function main() {
       response.json({message: 'Użytkownik o takiej nazwie już istnieje'});
       return;
     }
-    query = 'UPDATE users SET username = ?, password_hash = ? WHERE username = ?;';
-    await con.execute(query, [username, create_hash(password), key]);
+    query = "UPDATE users SET username = ?, password_hash = ?, adres_email = ? WHERE username = ?;";
+    await con.execute(query, [username, create_hash(password), email, key]);
     response.json({message: 'Użytkownik został pomyślnie stworzony'});
     response.end();
 
@@ -228,7 +233,32 @@ async function main() {
     response.sendFile(__dirname + '/login/resetuj_haslo.html');
   });
 
-  app.post('/resetuj_haslo/auth', async function (request, response) {
+  app.post('/resetuj_haslo/get_code', async function (request, response) {
+    console.log('xddd');
+    let username = request.body.username;
+    let query = 'SELECT adres_email, password_hash FROM users WHERE username = ?;';
+    let [rows, columns] = await con.execute(query, [username]);
+    if(rows.length === 0) {
+      response.json({message: 'Taki użytkownik nie istnieje'})
+      return;
+    }
+    let user_email = rows[0].adres_email;
+    if(user_email === null) {
+      response.json({message: 'Konto nie ma przypisanego adresu e-mail'})
+      return;
+    }
+    let mail = {
+      from: sus_email_address,
+      to: user_email,
+      subject: 'Reset hasła do SUS',
+      text: `Kod do resetu hasła dla użytkownika ${username}: ${rows[0].password_hash}`
+    };
+    await mail_client.sendMail(mail)
+        .then(response.json({message: 'Pomyślnie wysłano e-mail'}))
+        .catch(error => {
+          console.log(error);
+          response.json({message: 'Wystąpił błąd, spróbuj ponownie później'});
+        });
 
   });
 

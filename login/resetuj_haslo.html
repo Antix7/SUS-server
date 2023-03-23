@@ -1,10 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl-PL">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Reset hasła</title>
 </head>
 <body>
+<form id="get_code_form">
+    <input required type="text" name="username" id="username" placeholder="Nazwa użytkownika"><br>
+    <input type="submit" value="Wyślij kod"><br>
+</form>
+
+<p id="get_code_status"></p>
+
+<form id="enter_code_form">
+    <input required type="text" name="code" id="code" placeholder="Kod otrzymany mailem"><br>
+    <input type="submit" value="Resetuj hasło"><br>
+</form>
+
+<p id="enter_code_status"></p>
+
+<form action="/panel" method="get">
+    <input type="submit" value="Wróć">
+</form>
+
+
+<script>
+
+    const get_code_form = document.getElementById("get_code_form");
+    const get_code_status = document.getElementById("get_code_status");
+    const enter_code_form = document.getElementById("enter_code_form");
+    const enter_code_status = document.getElementById("enter_code_status");
+
+    get_code_form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        fetch("/resetuj_haslo/get_code", {
+            method: "POST",
+            body: new FormData(get_code_form)
+        })
+            .then(response => response.json())
+            .then(data => {
+                get_code_status.innerText = data.message;
+            })
+            .catch(error => {
+                get_code_status.innerText = "Nastąpił błąd, spróbuj ponownie później.";
+            })
+    });
+
+</script>
 
 </body>
 </html>
