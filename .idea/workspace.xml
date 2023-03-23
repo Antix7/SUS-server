@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="The database doesn't instantly get pulled in one go, instead it goes in chunks of 50 rows">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Key generation complete">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_panel/baza.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/baza.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login/aktywuj_konto.html" beforeDir="false" afterPath="$PROJECT_DIR$/login/aktywuj_konto.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login/zmien_haslo.html" beforeDir="false" afterPath="$PROJECT_DIR$/login/zmien_haslo.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +25,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
+
         <entry key="$PROJECT_DIR$" value="login-system" />
       </map>
     </option>
@@ -30,13 +33,12 @@
     <option name="RESET_MODE" value="MIXED" />
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
-  <component name="GithubPullRequestsUISettings">
-    <option name="recentNewPullRequestHead">
-      <RepoCoordinatesHolder>
-        <option name="owner" value="Antix7" />
-        <option name="repository" value="System-Udokumentowywania-Sprzetu-SUS" />
-      </RepoCoordinatesHolder>
-    </option>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -59,9 +61,15 @@
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
+    ]
   }
 }</component>
   <component name="RecentsManager">
@@ -75,11 +83,14 @@
       <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\" />
     </key>
   </component>
-  <component name="RunManager" selected="Node.js.sus">
+  <component name="RunManager" selected="Attach to Node.js/Chrome.sus2">
     <configuration name="sus2" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" port="3000">
       <method v="2" />
     </configuration>
     <configuration name="sus JavaScript" type="JavascriptDebugType" engineId="37cae5b9-e8b2-4949-9172-aafa37fbc09c" uri="http://localhost:3000">
+      <method v="2" />
+    </configuration>
+    <configuration name="main.js" type="NodeJSConfigurationType" path-to-node="$PROJECT_DIR$/../../../../../../Program Files/nodejs/node" nameIsGenerated="true" path-to-js-file="main.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <configuration name="sus" type="NodeJSConfigurationType" activateToolWindowBeforeRun="false" path-to-js-file="main.js" show_console_on_std_err="true" show_console_on_std_out="true" working-dir="$PROJECT_DIR$">
@@ -91,6 +102,7 @@
     <list>
       <item itemvalue="Attach to Node.js/Chrome.sus2" />
       <item itemvalue="JavaScript Debug.sus JavaScript" />
+      <item itemvalue="Node.js.main.js" />
       <item itemvalue="Node.js.sus" />
     </list>
   </component>
@@ -114,9 +126,25 @@
       <workItem from="1676805648178" duration="3536000" />
       <workItem from="1677089077345" duration="9697000" />
       <workItem from="1678473916880" duration="3999000" />
+
       <workItem from="1678814866658" duration="10547000" />
       <workItem from="1679001889926" duration="269000" />
       <workItem from="1679501466725" duration="12358000" />
+
+      <workItem from="1679318426321" duration="789000" />
+      <workItem from="1679319809259" duration="751000" />
+      <workItem from="1679336677685" duration="645000" />
+      <workItem from="1679337361300" duration="3842000" />
+      <workItem from="1679411710087" duration="800000" />
+      <workItem from="1679413624646" duration="3522000" />
+      <workItem from="1679469882080" duration="1907000" />
+      <workItem from="1679472590134" duration="899000" />
+      <workItem from="1679474249533" duration="693000" />
+      <workItem from="1679480070918" duration="1585000" />
+      <workItem from="1679494220788" duration="8818000" />
+      <workItem from="1679504936818" duration="210000" />
+      <workItem from="1679505158453" duration="30000" />
+
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -251,6 +279,7 @@
       <option name="project" value="LOCAL" />
       <updated>1678476543292</updated>
     </task>
+
     <task id="LOCAL-00020" summary="made the language identical for every html file">
       <created>1678813604523</created>
       <option name="number" value="00020" />
@@ -315,6 +344,135 @@
       <updated>1679527903360</updated>
     </task>
     <option name="localTasksCounter" value="29" />
+
+    <task id="LOCAL-00020" summary="de-nested all the sql queries using the mysql2 module">
+      <created>1679317603625</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1679317603625</updated>
+    </task>
+    <task id="LOCAL-00021" summary="fixed the app crashing when sql syntax in admin's personal query was wrong">
+      <created>1679319173619</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1679319173619</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Deleted old con variable in favor of await_con">
+      <created>1679337418902</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1679337418902</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Changed await_con to con">
+      <created>1679337463437</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1679337463437</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Changed create_user function to use prepared statements. This prevents SQL injection.">
+      <created>1679338703172</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1679338703172</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Changed haszuj function">
+      <created>1679338806273</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1679338806273</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Changed connect_to_db function">
+      <created>1679338931425</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1679338931425</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Minor tweaks">
+      <created>1679339256470</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339256470</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Authorization now uses prepared statements">
+      <created>1679339683558</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339683558</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Minor tweaks">
+      <created>1679339714522</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1679339714522</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Updated /panel/zmien_haslo/auth to include prepared statements">
+      <created>1679340841626</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1679340841626</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Updated /panel/zmien_haslo/auth to include prepared statements">
+      <created>1679340854323</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1679340854323</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Minor fixes">
+      <created>1679341087806</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1679341087806</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Deleted email account activation">
+      <created>1679413985672</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1679413985672</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Server-client communication tests successful">
+      <created>1679502212111</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1679502212111</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Server-client communication tests successful">
+      <created>1679502293942</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1679502293942</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Key generation complete">
+      <created>1679504275726</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1679504275726</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Account activation complete">
+      <created>1679508520675</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1679508520675</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
+
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -389,13 +547,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Categorising files" />
-    <MESSAGE value="Separating administrators from normal users" />
-    <MESSAGE value="Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
-    <MESSAGE value="Separating administrators from normal users&#10;Creating seperate files for every page, so they're not sent as text from node.js, but as a file" />
-    <MESSAGE value="changed a typo, didn't work, then i dunno what i did but it's working now" />
-    <MESSAGE value="Added the option to create new users from the admin panel&#10;The identificator username gets sent to new user via email" />
-    <MESSAGE value="Added the ability for new users to create acounts using the ID" />
     <MESSAGE value="When the admin creates a new account, it can have an expiry date" />
     <MESSAGE value="Changed the address to the user/admin panel, so it's the same for both" />
     <MESSAGE value="Code refactoring" />
@@ -406,6 +557,21 @@
     <MESSAGE value="Admins can now also delete accounts" />
     <MESSAGE value="Secutity stuff" />
     <MESSAGE value="admins can perform sql queries through the panel" />
+    <MESSAGE value="de-nested all the sql queries using the mysql2 module" />
+    <MESSAGE value="fixed the app crashing when sql syntax in admin's personal query was wrong" />
+    <MESSAGE value="Deleted old con variable in favor of await_con" />
+    <MESSAGE value="Changed await_con to con" />
+    <MESSAGE value="Changed create_user function to use prepared statements. This prevents SQL injection." />
+    <MESSAGE value="Changed haszuj function" />
+    <MESSAGE value="Changed connect_to_db function" />
+    <MESSAGE value="Authorization now uses prepared statements" />
+    <MESSAGE value="Minor tweaks" />
+    <MESSAGE value="Updated /panel/zmien_haslo/auth to include prepared statements" />
+    <MESSAGE value="Minor fixes" />
+    <MESSAGE value="Deleted email account activation" />
+    <MESSAGE value="Server-client communication tests successful" />
+    <MESSAGE value="Key generation complete" />
+    <MESSAGE value="Account activation complete" />
     <MESSAGE value="made the language identical for every html file" />
     <MESSAGE value="changed from mysql module to mysql2 because it's faster and allows for synchronised queries" />
     <MESSAGE value="created a function that makes an array out of a table, the 'kms()' function demonstrates its usage" />
@@ -415,5 +581,6 @@
     <MESSAGE value="oh shit i didn't delete the remains" />
     <MESSAGE value="The database doesn't instantly get pulled in one go, instead it goes in chunks of 50 rows" />
     <option name="LAST_COMMIT_MESSAGE" value="The database doesn't instantly get pulled in one go, instead it goes in chunks of 50 rows" />
+
   </component>
 </project>

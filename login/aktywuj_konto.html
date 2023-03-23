@@ -2,34 +2,54 @@
 <html lang="pl-PL">
 <head>
     <meta charset="UTF-8">
-    <title>Tworzenie konta</title>
+    <title>Zakładanie konta</title>
 </head>
 <body>
-  <form action = "/aktywuj/auth" method = "post" onsubmit = "return checkPwd();">
-    <input type = "text" placeholder = "Identyfikator otrzymany mailem" name = "id"><br><br>
-    <input type = "text" placeholder = "Przyszły login" name = "nick"><br>
-    UWAGA! Login nie może zawierać znaków ' oraz " <br><br>
-    <input type = "password" placeholder = "Przyszłe hasło" id = "pwd1" name = "pwd1" onchange="checkPwd()"><br><br>
-    <input type = "password" placeholder = "Powtórz hasło" id = "pwd2" name = "pwd2" onchange="checkPwd()"><br><br>
-    <input type = "submit" value = "Utwórz konto"><br>
+  <form id="form">
+    <input type="text" placeholder="Klucz dostępu" name="key"><br>
+    <input type="text" placeholder="Nowa nazwa użytkownika" name="username"><br>
+    <input type="password" placeholder="Nowe hasło" id="password1" name="password1"><br>
+    <input type="password" placeholder="Powtórz nowe hasło" id="password2" name="password2">
+      <span id="match"></span><br><br>
+    <input type="submit" id="submit_btn" value="Utwórz konto"><br>
   </form>
-<span id = "zgadza_sie"></span>
+
+  <p id="status"></p>
+
+  <form action="/" method="get">
+      <input type="submit" value="Wróć">
+  </form>
+
 <script>
-    function checkPwd() {
-        let mySpan = document.getElementById("zgadza_sie");
-        let pwd1 = document.getElementById("pwd1");
-        let pwd2 = document.getElementById("pwd2");
-        if (pwd1.value !== pwd2.value) {
-            mySpan.innerText = "Hasła nie są takie same";
-            mySpan.style.color = "red";
-            return false;
+
+    const form = document.getElementById("form");
+    const password1 = document.getElementById("password1");
+    const password2 = document.getElementById("password2");
+    const match = document.getElementById("match");
+    const status = document.getElementById("status");
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        if(password1.value !== password2.value) {
+            match.innerText = "Hasła nie są takie same";
+            match.style.color = "red";
+            return;
         }
-        else {
-            mySpan.innerText = "Hasła są takie same";
-            mySpan.style.color = "rgb(0, 220, 0)";
-            return true;
-        }
-    }
+
+        fetch("/aktywuj_konto/auth", {
+            method: "POST",
+            body: new FormData(form)
+        })
+            .then(response => response.json())
+            .then(data => {
+                status.innerText = data.message;
+            })
+            .catch(error => {
+                status.innerText = "Nastąpił błąd, spróbuj ponownie później.";
+            })
+    });
+
 </script>
 </body>
 </html>
