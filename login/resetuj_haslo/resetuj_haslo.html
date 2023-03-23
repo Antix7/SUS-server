@@ -9,9 +9,8 @@
     <script>
         $(document).ready(function(){
 
-            let form_data = $("#get_code_form").serializeArray();
             $("#get_code_submit_btn").click(function() {
-                $.post("/resetuj_haslo/get_code", form_data, function(data, status) {
+                $.post("/resetuj_haslo/get_code", $("#get_code_form").serializeArray(), function(data, status) {
                     $("#get_code_status").text(data);
                 });
             });

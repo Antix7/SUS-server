@@ -235,7 +235,7 @@ async function main() {
 
   app.post('/resetuj_haslo/get_code', async function (request, response) {
     console.log('jdjd');
-    console.log('request');
+    console.log(request);
     let username = request.body.username;
     let query = 'SELECT adres_email, password_hash FROM users WHERE username = ?;';
     let [rows, columns] = await con.execute(query, [username]);
