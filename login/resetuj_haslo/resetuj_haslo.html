@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pl-PL">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset hasła</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function(){
+
+            let form_data = $("#get_code_form").serializeArray();
+            $("#get_code_submit_btn").click(function() {
+                $.post("/resetuj_haslo/get_code", form_data, function(data, status) {
+                    $("#get_code_status").text(data);
+                });
+            });
+
+        });
+    </script>
+
+</head>
+<body>
+<form id="get_code_form">
+    <input required type="text" name="username" id="username" placeholder="Nazwa użytkownika"><br>
+    <input type="button" id="get_code_submit_btn" value="Wyślij kod"><br>
+</form>
+
+<p id="get_code_status"></p>
+
+<form id="enter_code_form">
+    <input required type="text" name="code" id="code" placeholder="Kod otrzymany mailem"><br>
+    <input type="submit" id="enter_code_submit_btn" value="Resetuj hasło"><br>
+</form>
+
+<p id="enter_code_status"></p>
+
+<form action="/panel" method="get">
+    <input type="submit" value="Wróć">
+</form>
+
+</body>
+</html>

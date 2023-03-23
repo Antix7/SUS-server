@@ -230,21 +230,22 @@ async function main() {
   });
 
   app.get('/resetuj_haslo', function (request, response){
-    response.sendFile(__dirname + '/login/resetuj_haslo.html');
+    response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo.html');
   });
 
   app.post('/resetuj_haslo/get_code', async function (request, response) {
-    console.log('xddd');
+    console.log('jdjd');
+    console.log('request');
     let username = request.body.username;
     let query = 'SELECT adres_email, password_hash FROM users WHERE username = ?;';
     let [rows, columns] = await con.execute(query, [username]);
     if(rows.length === 0) {
-      response.json({message: 'Taki użytkownik nie istnieje'})
+      response.send('Taki użytkownik nie istnieje')
       return;
     }
     let user_email = rows[0].adres_email;
     if(user_email === null) {
-      response.json({message: 'Konto nie ma przypisanego adresu e-mail'})
+      response.send('Konto nie ma przypisanego adresu e-mail')
       return;
     }
     let mail = {
@@ -254,10 +255,11 @@ async function main() {
       text: `Kod do resetu hasła dla użytkownika ${username}: ${rows[0].password_hash}`
     };
     await mail_client.sendMail(mail)
-        .then(response.json({message: 'Pomyślnie wysłano e-mail'}))
+        .then(() => {
+          response.send('Pomyślnie wysłano e-mail')
+        })
         .catch(error => {
-          console.log(error);
-          response.json({message: 'Wystąpił błąd, spróbuj ponownie później'});
+          response.send('Wystąpił błąd, spróbuj ponownie później');
         });
 
   });
