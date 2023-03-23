@@ -25,6 +25,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
+
         <entry key="$PROJECT_DIR$" value="login-system" />
       </map>
     </option>
@@ -82,7 +83,7 @@
       <recent name="C:\Users\Patryk\Desktop\System-Udokumentowywania-Sprzetu-SUS\" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Attach to Node.js/Chrome.sus2">
     <configuration name="sus2" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" port="3000">
       <method v="2" />
     </configuration>
@@ -125,9 +126,11 @@
       <workItem from="1676805648178" duration="3536000" />
       <workItem from="1677089077345" duration="9697000" />
       <workItem from="1678473916880" duration="3999000" />
+
       <workItem from="1678814866658" duration="10547000" />
       <workItem from="1679001889926" duration="269000" />
       <workItem from="1679501466725" duration="12358000" />
+
       <workItem from="1679318426321" duration="789000" />
       <workItem from="1679319809259" duration="751000" />
       <workItem from="1679336677685" duration="645000" />
@@ -141,6 +144,7 @@
       <workItem from="1679494220788" duration="8818000" />
       <workItem from="1679504936818" duration="210000" />
       <workItem from="1679505158453" duration="30000" />
+
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -275,6 +279,7 @@
       <option name="project" value="LOCAL" />
       <updated>1678476543292</updated>
     </task>
+
     <task id="LOCAL-00020" summary="made the language identical for every html file">
       <created>1678813604523</created>
       <option name="number" value="00020" />
@@ -339,6 +344,7 @@
       <updated>1679527903360</updated>
     </task>
     <option name="localTasksCounter" value="29" />
+
     <task id="LOCAL-00020" summary="de-nested all the sql queries using the mysql2 module">
       <created>1679317603625</created>
       <option name="number" value="00020" />
@@ -466,6 +472,7 @@
       <updated>1679508520675</updated>
     </task>
     <option name="localTasksCounter" value="38" />
+
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -574,5 +581,6 @@
     <MESSAGE value="oh shit i didn't delete the remains" />
     <MESSAGE value="The database doesn't instantly get pulled in one go, instead it goes in chunks of 50 rows" />
     <option name="LAST_COMMIT_MESSAGE" value="The database doesn't instantly get pulled in one go, instead it goes in chunks of 50 rows" />
+
   </component>
 </project>

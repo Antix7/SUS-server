@@ -114,7 +114,7 @@ function build_table_sprzet(ob) {
 }
 
 async function main() {
-  if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
+  if(await connect_to_db("localhost", "sqluser", "imposter", "test_db") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
