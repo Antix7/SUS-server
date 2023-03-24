@@ -10,10 +10,25 @@
         $(document).ready(function(){
 
             $("#get_code_submit_btn").click(function() {
-                $.post("/resetuj_haslo/get_code", $("#get_code_form").serializeArray(), function(data, status) {
-                    $("#get_code_status").text(data);
-                });
+                $.post(
+                    "/resetuj_haslo/get_code",
+                    $("#get_code_form").serializeArray(),
+                    function(data, status) {
+                        $("#get_code_status").text(data);
+                        window.location.href = data;
+                    });
             });
+
+            $("#enter_code_submit_btn").click(function() {
+                $.post(
+                    "/resetuj_haslo/submit_code",
+                    $.extend($("#get_code_form").serializeArray(), $("#enter_code_form").serializeArray()),
+                    function(data, status) {
+
+                        $("#enter_code_status").text(data);
+                    });
+            });
+
 
         });
     </script>
@@ -29,7 +44,7 @@
 
 <form id="enter_code_form">
     <input required type="text" name="code" id="code" placeholder="Kod otrzymany mailem"><br>
-    <input type="submit" id="enter_code_submit_btn" value="Resetuj hasło"><br>
+    <input type="button" id="enter_code_submit_btn" value="Resetuj hasło"><br>
 </form>
 
 <p id="enter_code_status"></p>

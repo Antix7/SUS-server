@@ -234,8 +234,6 @@ async function main() {
   });
 
   app.post('/resetuj_haslo/get_code', async function (request, response) {
-    console.log('jdjd');
-    console.log(request);
     let username = request.body.username;
     let query = 'SELECT adres_email, password_hash FROM users WHERE username = ?;';
     let [rows, columns] = await con.execute(query, [username]);
@@ -245,7 +243,9 @@ async function main() {
     }
     let user_email = rows[0].adres_email;
     if(user_email === null) {
-      response.send('Konto nie ma przypisanego adresu e-mail')
+      // response.send('Konto nie ma przypisanego adresu e-mail')
+      console.log("jdjdjd");
+      response.send('/aktywuj_konto');
       return;
     }
     let mail = {
