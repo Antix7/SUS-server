@@ -73,7 +73,7 @@
         fetch("/wincyj", {
             method: "POST",
             headers: {
-                "zacznij_od" : tabelka.rows.length
+                "X-zacznij_od" : tabelka.rows.length
             },
             body: new FormData(form1)
         })

@@ -369,7 +369,7 @@ async function main() {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    let gdzie = request.headers.zacznij_od;
+    let gdzie = request.find('X-zacznij_od');
     let sql = 'SELECT\n' +
         '    sprzet.nazwa as Nazwa,\n' +
         '    sprzet.ilosc as Ilość,\n' +
