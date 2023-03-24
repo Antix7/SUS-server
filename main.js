@@ -1,4 +1,3 @@
-// const mysql = require('mysql2');
 const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
@@ -243,9 +242,7 @@ async function main() {
     }
     let user_email = rows[0].adres_email;
     if(user_email === null) {
-      // response.send('Konto nie ma przypisanego adresu e-mail')
-      console.log("jdjdjd");
-      response.send('/aktywuj_konto');
+      response.send('Konto nie ma przypisanego adresu e-mail')
       return;
     }
     let mail = {
@@ -262,6 +259,27 @@ async function main() {
           response.send('Wystąpił błąd, spróbuj ponownie później');
         });
 
+  });
+
+  app.post('/resetuj_haslo/submit_code', async function(request, response) {
+    let username = request.body.username;
+    let code = request.body.code;
+    let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
+    let [rows, columns] = await con.execute(query, [username, code]);
+    if(rows.length === 0) {
+      response.send({text: 'Klucz i/lub nazwa użytkownika nieprawidłowa'});
+      return;
+    }
+    request.session.username = username;
+    response.send({redirect: '/resetuj_haslo_form'})
+
+  });
+
+  app.get('/resetuj_haslo_form', function(request, response) {
+    if(!request.session.username) {
+      response.sendFile(__dirname + 'login/oszust.html');
+    }
+    response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo_form.html');
   });
 
 

@@ -15,20 +15,22 @@
                     $("#get_code_form").serializeArray(),
                     function(data, status) {
                         $("#get_code_status").text(data);
-                        window.location.href = data;
                     });
             });
 
             $("#enter_code_submit_btn").click(function() {
                 $.post(
                     "/resetuj_haslo/submit_code",
-                    $.extend($("#get_code_form").serializeArray(), $("#enter_code_form").serializeArray()),
+                    $.merge($("#get_code_form").serializeArray(), $("#enter_code_form").serializeArray()),
                     function(data, status) {
-
-                        $("#enter_code_status").text(data);
+                        if(data.text) {
+                            $("#enter_code_status").text(data.text);
+                        }
+                        if(data.redirect) {
+                            window.location.href = data.redirect;
+                        }
                     });
             });
-
 
         });
     </script>
