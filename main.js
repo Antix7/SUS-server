@@ -1,4 +1,3 @@
-// const mysql = require('mysql2');
 const mysql_promise = require('mysql2/promise');
 const express = require('express');
 const session = require('express-session');
@@ -7,9 +6,21 @@ const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const {query} = require("express");
 
 let con;
+const sus_email_address = 'noreply.sus@gmail.com';
+let mail_client = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: sus_email_address,
+    pass: 'fnoizumcdgzkrisd'
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
 
 
 function create_hash(password) {
@@ -184,10 +195,6 @@ async function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   })
 
-  app.get('/aktywuj_konto', function (request, response){
-    response.sendFile(__dirname + '/login/aktywuj_konto.html');
-  });
-
   app.get('/panel/generuj_klucz', function (request, response){
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + '/login/oszust.html');
@@ -216,11 +223,16 @@ async function main() {
 
   });
 
+  app.get('/aktywuj_konto', function (request, response){
+    response.sendFile(__dirname + '/login/aktywuj_konto.html');
+  });
+
   app.post('/aktywuj_konto/auth', async function (request, response) {
 
     let key = request.body.key;
     let username = request.body.username;
     let password = request.body.password1;
+    let email = request.body.email;
 
     let query = "SELECT * FROM users WHERE username = ? AND password_hash = -1;";
     let [rows, columns] = await con.execute(query, [key]);
@@ -234,12 +246,85 @@ async function main() {
       response.json({message: 'Użytkownik o takiej nazwie już istnieje'});
       return;
     }
-    query = 'UPDATE users SET username = ?, password_hash = ? WHERE username = ?;';
-    await con.execute(query, [username, create_hash(password), key]);
+    query = "UPDATE users SET username = ?, password_hash = ?, adres_email = ? WHERE username = ?;";
+    await con.execute(query, [username, create_hash(password), email, key]);
     response.json({message: 'Użytkownik został pomyślnie stworzony'});
     response.end();
 
   });
+
+  app.get('/resetuj_haslo', function (request, response){
+    response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo.html');
+  });
+
+  app.post('/resetuj_haslo/get_code', async function (request, response) {
+    let username = request.body.username;
+    let query = 'SELECT adres_email, password_hash FROM users WHERE username = ?;';
+    let [rows, columns] = await con.execute(query, [username]);
+    if(rows.length === 0) {
+      response.send('Taki użytkownik nie istnieje')
+      return;
+    }
+    let user_email = rows[0].adres_email;
+    if(user_email === null) {
+      response.send('Konto nie ma przypisanego adresu e-mail')
+      return;
+    }
+    let mail = {
+      from: sus_email_address,
+      to: user_email,
+      subject: 'Reset hasła do SUS',
+      text: `Kod do resetu hasła dla użytkownika ${username}: ${rows[0].password_hash}`
+    };
+    await mail_client.sendMail(mail)
+        .then(() => {
+          response.send('Pomyślnie wysłano e-mail')
+        })
+        .catch(error => {
+          response.send('Wystąpił błąd, spróbuj ponownie później');
+        });
+
+  });
+
+  app.post('/resetuj_haslo/submit_code', async function(request, response) {
+    let username = request.body.username;
+    let code = request.body.code;
+    let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
+    let [rows, columns] = await con.execute(query, [username, code]);
+    if(rows.length === 0) {
+      response.send({text: 'Klucz i/lub nazwa użytkownika nieprawidłowa'});
+      return;
+    }
+    request.session.username = username;
+    response.send({redirect: '/resetuj_haslo_form'})
+
+  });
+
+  app.get('/resetuj_haslo_form', function(request, response) {
+    if(!request.session.username) {
+      response.sendFile(__dirname + '/login/oszust.html');
+    }
+    response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo_form.html');
+  });
+
+  app.post('/resetuj_haslo_form/auth', async function(request, response) {
+    let username = request.session.username;
+    if(!username) {
+      response.send('Nie ma tak nigerze mały');
+    }
+    let password = request.body.password1;
+    let query = 'UPDATE users SET password_hash = ? WHERE username = ?;';
+    let [rows, columns] = await con.execute(query, [create_hash(password), username]);
+    console.log(username, password, rows);
+    if(rows.affectedRows === 0) {
+      response.send({text: 'Coś poszło nie tak'});
+      return;
+    }
+    response.send({text: 'Pomyślnie zmieniono hasło', success: true});
+    response.end();
+
+  });
+
 
   app.get('/panel/zmien_haslo', function(request, response) {
     if(request.session.loggedin)
@@ -261,7 +346,7 @@ async function main() {
     let query = "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash = ?;";
     let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
 
-    if(res[0].changedRows === 0) {
+    if(res[0].affectedRows === 0) {
       response.json({message: 'Hasło niepoprawne'});
       return;
     }

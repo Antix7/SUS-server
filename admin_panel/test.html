@@ -1,51 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl-PL">
 <head>
-  <title>Send Data to Node.js Server</title>
+  <meta charset="UTF-8">
+  <title>Test</title>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+
+  <script>
+    $(document).ready(function(){
+
+      $("#sub").click(function() {
+        alert("test");
+      });
+
+    });
+  </script>
+
 </head>
 <body>
-<h1>Send Data to Node.js Server</h1>
-<form id="myForm">
-  <label for="name">Name:</label>
-  <input type="text" id="name" name="name" required><br><br>
-  <label for="email">Email:</label>
-  <input type="email" id="email" name="email" required><br><br>
-  <button type="submit" id="submitBtn">Submit</button>
+<form id="form">
+  <input required type="text" name="username" id="username" placeholder="field"><br>
+  <input type="submit" id="sub" value="button"><br>
 </form>
 
-<p id="response"></p>
+<p id="status"></p>
 
-<script>
-  const form1 = document.getElementById("myForm");
-  const submitBtn = document.getElementById("submitBtn");
-  const responseEl = document.getElementById("response");
 
-  form1.addEventListener("submit", (e) => {
-    e.preventDefault();
 
-    const formData = new FormData(form1);
-    for (let key of formData.keys()) {
-      console.log(key);
-    }
-    for (let key of formData.values()) {
-      console.log(key);
-    }
-
-    fetch("/submit-form", {
-      method: "POST",
-      body: new FormData(form1)
-      // headers: {
-      //   "Content-Type": "multipart/form-data"
-      // }
-    })
-            .then(response => response.json())
-            .then(data => {
-              responseEl.innerText = data.message;
-            })
-            .catch(error => {
-              responseEl.innerText = "An error occurred. Please try again later.";
-            })
-  });
-</script>
 </body>
 </html>
