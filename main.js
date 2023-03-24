@@ -331,7 +331,6 @@ async function main() {
     }
   });
 
-
   app.get('/baza', async function (request, response) {
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -393,6 +392,53 @@ async function main() {
         'WHERE sprzet.przedmiot_id >= ' + gdzie + ' AND sprzet.przedmiot_id < ' + (parseInt(gdzie) + 50).toString();
     let [rows, columns] = await con.execute(sql);
     response.json({more_rows: build_table_sprzet(rows)});
+    response.end();
+  });
+
+  app.post('/baza/dodaj', async function (request, response) {
+    if (!request.session.loggedin) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+
+    let [rows, columns] = await con.execute('SELECT * FROM lokalizacje;');
+    let lok = [];
+    for(let i in rows) {
+      lok.push(rows[i]['lokalizacja_nazwa']);
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM kategorie;');
+    let kat = [];
+    for(let i in rows) {
+      kat.push(rows[i]['kategoria_nazwa']);
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM podmioty;');
+    let pod = [];
+    for(let i in rows) {
+      pod.push(rows[i]['podmiot_nazwa']);
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM statusy;');
+    let sta = [];
+    for(let i in rows) {
+      sta.push(rows[i]['status_nazwa']);
+    }
+
+
+    response.json({podmioty: pod, statusy: sta, lokalizacje: lok, kategorie: kat});
+    response.end();
+  });
+
+  app.post('/baza/stany', async function (request, response) {
+    let kat = request.get("X-kategoria");
+    console.log(kat);
+    [rows, columns] = await con.execute('SELECT * FROM stany WHERE kategoria_id = ?;', [kat.toString()]);
+    let sta = [];
+    for (let i in rows) {
+      sta.push(rows[i]['stan_nazwa']);
+    }
+    response.json({stany: sta});
     response.end();
   });
 

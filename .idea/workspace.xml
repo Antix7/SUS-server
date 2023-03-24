@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="Key generation complete">
-      <change afterPath="$PROJECT_DIR$/user_panel/baza.html" afterDir="false" />
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="changed database name">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin_panel/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/admin_panel/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_panel/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_panel/baza.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/baza.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,7 +24,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="main-database2" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -139,7 +137,9 @@
       <workItem from="1679504936818" duration="210000" />
       <workItem from="1679505158453" duration="30000" />
       <workItem from="1679562961759" duration="1807000" />
-      <workItem from="1679564952500" duration="711000" />
+      <workItem from="1679564952500" duration="1129000" />
+      <workItem from="1679574029649" duration="83000" />
+      <workItem from="1679649081060" duration="9651000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -400,7 +400,21 @@
       <option name="project" value="LOCAL" />
       <updated>1679508520675</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="Added a website for accessing the main database. it loads the data in chunks of 50, a request for another chunk is sent as you scroll to the bottom of the page">
+      <created>1679566145006</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1679566145006</updated>
+    </task>
+    <task id="LOCAL-00039" summary="changed database name">
+      <created>1679566277977</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1679566277977</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -463,8 +477,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="When the admin creates a new account, it can have an expiry date" />
-    <MESSAGE value="Changed the address to the user/admin panel, so it's the same for both" />
     <MESSAGE value="Code refactoring" />
     <MESSAGE value="changed filenames and addresses so they make more sense" />
     <MESSAGE value="Admins can now access a list of users&#10;It also uses file templates which are really cool" />
@@ -488,6 +500,16 @@
     <MESSAGE value="Server-client communication tests successful" />
     <MESSAGE value="Key generation complete" />
     <MESSAGE value="Account activation complete" />
-    <option name="LAST_COMMIT_MESSAGE" value="Account activation complete" />
+    <MESSAGE value="Added a website for accessing the main database. it loads the data in chunks of 50, a request for another chunk is sent as you scroll to the bottom of the page" />
+    <MESSAGE value="changed database name" />
+    <option name="LAST_COMMIT_MESSAGE" value="changed database name" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="NodeJSConfigurationType">
+        <watch expression="request.[Symbol(kHeaders)]" language="JavaScript" />
+        <watch expression="request.[Symbol(kHeaders)]" language="JavaScript" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

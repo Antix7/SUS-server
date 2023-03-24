@@ -11,6 +11,34 @@
     </style>
 </head>
 <body>
+<form id="addRow">
+    <input type = "submit" value = "Dodaj wiersz">
+</form>
+<form id = "addInfo" style="display: none">
+    <label for="nazwa">Nazwa</label><input type="text" id="nazwa"><br>
+    <label for="ilosc">Ilość</label><input type="number" id="ilosc"><br>
+    <input type="image" id="zdjecie" alt="Zdjęcie"><br>
+    <label for="kategoria">Kategoria</label><select name="kategoria" id="kategoria">
+        <option value="" disabled selected>===</option>
+    </select><br>
+    <label for="lokalizacja">Lokalizacja</label><select name="lokalizacja" id="lokalizacja">
+        <option value="" disabled selected>===</option>
+    </select><br>
+    <label for="wlasciciel">Właściciel</label><select name="wlasciciel" id="wlasciciel">
+        <option value="" disabled selected>===</option>
+    </select><br>
+    <label for="uzytkownik">Użytkownik</label><select name="uzytkownik" id="uzytkownik">
+        <option value="" disabled selected>===</option>
+    </select><br>
+    <label for="status">Status</label><select name="status" id="status">
+        <option value="" disabled selected>===</option>
+    </select><br>
+    <label for="stan">Stan</label><select name="stan" id="stan" disabled>
+        <option value="" id="stan_primary" disabled selected>Najpierw wybierz kategorię</option>
+    </select><br>
+    <label for="opis">Dodatkowy opis</label><input type="text" id="opis"><br>
+    <input type = "submit" value="Wyślij"><br>
+</form>
 <table id = "tabelka">
     {{tablebody}}
 </table>
@@ -67,6 +95,89 @@
             await delay(1000);
         }
     };
+
+    const addRowForm = document.getElementById("addRow");
+    const addInfoForm = document.getElementById("addInfo");
+    const kategoriaSelect = document.getElementById("kategoria");
+    const lokalizacjaSelect = document.getElementById("lokalizacja");
+    const wlascicielSelect = document.getElementById("wlasciciel");
+    const uzytkownikSelect = document.getElementById("uzytkownik");
+    const statusSelect = document.getElementById("status");
+    const stanSelect = document.getElementById("stan");
+    const stanPrimary = document.getElementById("stan_primary");
+
+    function clearOptions(ob) {
+        for(let i = 1; i < ob.children.length; i++){
+            ob.children.item(1).remove();
+        }
+    }
+
+    addRowForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        fetch('/baza/dodaj', {
+            method: "POST"
+        })
+            .then(response => response.json())
+            .then(data => {
+                clearOptions(kategoriaSelect);
+                clearOptions(lokalizacjaSelect);
+                clearOptions(wlascicielSelect);
+                clearOptions(uzytkownikSelect);
+                clearOptions(statusSelect);
+                addInfoForm.style.display = "block";
+                data.kategorie.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    kategoriaSelect.appendChild(option);
+                });
+                data.lokalizacje.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    lokalizacjaSelect.appendChild(option);
+                });
+                data.podmioty.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    wlascicielSelect.appendChild(option);
+                    let option2 = document.createElement("option");
+                    option2.value = element;
+                    option2.innerText = element;
+                    uzytkownikSelect.appendChild(option2);
+                });
+                data.statusy.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    statusSelect.appendChild(option);
+                });
+            })
+    })
+    kategoriaSelect.addEventListener("change", (e) => {
+        e.preventDefault();
+        let kat = (kategoriaSelect.selectedOptions[0].index);
+        fetch('/baza/stany', {
+            method: "POST",
+            headers: {
+                "X-kategoria" : kat,
+            },
+            body: new FormData(addRowForm)
+        })
+            .then(response => response.json())
+            .then(data => {
+                stanSelect.disabled = false;
+                stanPrimary.innerText = "===";
+                clearOptions(stanSelect);
+                data.stany.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    stanSelect.appendChild(option);
+                });
+            });
+    })
 </script>
 </body>
 </html>
