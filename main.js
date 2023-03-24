@@ -201,7 +201,6 @@ async function main() {
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
   });
 
-
   app.post('/aktywuj_konto/auth', async function (request, response) {
 
     let key = request.body.key;
@@ -277,9 +276,27 @@ async function main() {
 
   app.get('/resetuj_haslo_form', function(request, response) {
     if(!request.session.username) {
-      response.sendFile(__dirname + 'login/oszust.html');
+      response.sendFile(__dirname + '/login/oszust.html');
     }
     response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo_form.html');
+  });
+
+  app.post('/resetuj_haslo_form/auth', async function(request, response) {
+    let username = request.session.username;
+    if(!username) {
+      response.send('Nie ma tak nigerze mały');
+    }
+    let password = request.body.password1;
+    let query = 'UPDATE users SET password_hash = ? WHERE username = ?;';
+    let [rows, columns] = await con.execute(query, [create_hash(password), username]);
+    console.log(username, password, rows);
+    if(rows.affectedRows === 0) {
+      response.send({text: 'Coś poszło nie tak'});
+      return;
+    }
+    response.send({text: 'Pomyślnie zmieniono hasło', success: true});
+    response.end();
+
   });
 
 
@@ -303,7 +320,7 @@ async function main() {
     let query = "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash = ?;";
     let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
 
-    if(res[0].changedRows === 0) {
+    if(res[0].affectedRows === 0) {
       response.json({message: 'Hasło niepoprawne'});
       return;
     }
