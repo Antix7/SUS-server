@@ -484,7 +484,6 @@ async function main() {
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
     let opis = body['opis'];
-    let zdj = './images/' + request.file.filename;
     if(!request.file) {
       let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
           '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
@@ -494,6 +493,7 @@ async function main() {
       con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis]);
     }
     else {
+      let zdj = './images/' + request.file.filename;
       let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id,\n' +
           '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
           'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
