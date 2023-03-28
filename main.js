@@ -6,7 +6,7 @@ const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
-
+const nodemailer = require('nodemailer');
 
 let con;
 const sus_email_address = 'noreply.sus@gmail.com';
