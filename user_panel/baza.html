@@ -200,8 +200,6 @@
     })
 
 
-    // addInfoForm.addEventListener("submit", (e) => {
-    //     e.preventDefault();
     $( "#addInfo" ).submit(function( event ) {
         event.preventDefault();
         let data = new FormData(addInfoForm);
@@ -210,13 +208,7 @@
             object[key] = value;
         });
         let json = JSON.stringify(object);
-        console.log(object);
 
-        // let xhr = new XMLHttpRequest();
-        // xhr.open('POST', '/baza/dodaj/auth', true);
-        // xhr.send(data);
-
-        //$.post('/baza/dodaj/auth', {'MyBody': json});
         $.ajax({
             url: '/baza/dodaj/auth',
             type: 'POST',
@@ -225,40 +217,12 @@
             processData: false,
             success: function (data) {
                 window.location.reload();
-                // if(data.redirect) {
-                //     window.location.href = data.redirect;
-                // }
             },
             error: function () {
                 document.write("coś poszło nie tak, przepraszamy");
             }
         });
 
-        // let kat = (kategoriaSelect.selectedOptions[0].index);
-        // let lok = lokalizacjaSelect.selectedOptions[0].index;
-        // let wla = wlascicielSelect.selectedOptions[0].index;
-        // let uzy = uzytkownikSelect.selectedOptions[0].index;
-        // let sts = statusSelect.selectedOptions[0].index;
-        // let stn = stanSelect.selectedOptions[0].index;
-        // fetch('/baza/dodaj/auth', {
-        //     method: "post",
-        //     // redirect: 'follow',
-        //     mode: 'cors',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //         // 'X-kategoria': kat,
-        //         // 'X-lokalizacja': lok,
-        //         // 'X-wlasciciel': wla,
-        //         // 'X-uzytkownik': uzy,
-        //         // 'X-status': sts,
-        //         // 'X-stan': stn,
-        //     },
-        //     body: JSON.stringify(data)
-        // })
-            // .catch((data) => {
-            //     if(data.redirected)
-            //         window.location.href = data.url;
-            // })
     })
 
 </script>

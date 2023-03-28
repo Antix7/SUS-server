@@ -7,8 +7,6 @@ const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
-const {query} = require("express");
-const bodyParser = require("body-parser");
 
 let con;
 
@@ -450,7 +448,6 @@ async function main() {
 
   app.post('/baza/stany', async function (request, response) {
     let kat = request.get("X-kategoria");
-    console.log(kat);
     [rows, columns] = await con.execute('SELECT * FROM stany WHERE kategoria_id = ?;', [kat.toString()]);
     let sta = [];
     for (let i in rows) {
@@ -461,8 +458,6 @@ async function main() {
   });
 
   app.post('/baza/dodaj/auth', upload.single('zdjecie'), function (request, response) {
-    //console.log(request.body);
-    //let body = JSON.parse(request.body['MyBody']);
     let body = request.body;
 
     let kat = body['kat_id'];
@@ -471,25 +466,14 @@ async function main() {
     let uzy = body['uzy_id'];
     let sts = body['sts_id'];
     let stn = body['stn_id'];
-    //console.log('jd');
-    // let kat = request.get('X-kategoria');
-    // console.log('jd');
-    // let lok = request.get('X-lokalizacja');
-    // let uzy = request.get('X-uzytkownik');
-    // console.log('jd');
-    // let wla = request.get('X-wlasciciel');
-    // let sts = request.get('X-status');
-    // let stn = request.get('X-stan');
-
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
     let opis = body['opis'];
+
     if(!request.file) {
       let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
           '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
           'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
-      console.log(sql);
-
       con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis]);
     }
     else {
@@ -497,8 +481,6 @@ async function main() {
       let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id,\n' +
           '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
           'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
-      console.log(sql);
-      [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis].forEach((i) => {console.log(i);});
       con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
     }
     response.redirect('/baza');
@@ -514,7 +496,3 @@ main();
 // create_user('admin', 'admin', 1);
 // create_user('twoj_stary', '2137', 0);
 // }, 1000);
-
-//console.log(build_table([{"username":"admin","password_hash":2023948189175633,"czy_admin":1,"data_wygasniecia":null},{"username":"twoj_stary","password_hash":488183148373,"czy_admin":0,"data_wygasniecia":null}]));
-
-//kms();
