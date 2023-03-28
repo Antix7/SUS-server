@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pl-PL">
+<head>
+    <meta charset="UTF-8">
+    <title>Sprzęt szczepu</title>
+    <style>
+        th, td {
+            border: 1px solid black;
+            padding: 3px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+<form enctype="multipart/form-data" id = "addInfo" action="/sprzet_panel/dodaj/auth" method="post">
+    <label for="nazwa">Nazwa</label><input type="text" id="nazwa" name="nazwa"><br>
+    <label for="ilosc">Ilość</label><input type="number" id="ilosc" name="ilosc"><br>
+    <label for="zdjecie">Zdjęcie</label><input type="file" id="zdjecie" name="zdjecie" accept="image/*"><br>
+    <label for="kategoria">Kategoria</label><select name="kategoria" id="kategoria">
+    <option value="" disabled selected>===</option>
+</select><input type="hidden" name="kat_id" id="kat_id" value="0"><br>
+    <label for="lokalizacja">Lokalizacja</label><select name="lokalizacja" id="lokalizacja">
+    <option value="" disabled selected>===</option>
+</select><input type="hidden" name="lok_id" id="lok_id" value="0"><br>
+    <label for="wlasciciel">Właściciel</label><select name="wlasciciel" id="wlasciciel">
+    <option value="" disabled selected>===</option>
+</select><input type="hidden" name="wla_id" id="wla_id" value="0"><br>
+    <label for="uzytkownik">Użytkownik</label><select name="uzytkownik" id="uzytkownik">
+    <option value="" disabled selected>===</option>
+</select><input type="hidden" name="uzy_id" id="uzy_id" value="0"><br>
+    <label for="status">Status</label><select name="status" id="status">
+    <option value="" disabled selected>===</option>
+</select><input type="hidden" name="sts_id" id="sts_id" value="0"><br>
+    <label for="stan">Stan</label><select name="stan" id="stan" disabled>
+    <option value="" id="stan_primary" disabled selected>Najpierw wybierz kategorię</option>
+</select><input type="hidden" name="stn_id" id="stn_id" value="0"><br>
+    <label for="opis">Dodatkowy opis</label><input type="text" id="opis" name="opis"><br>
+    <input type = "submit" value="Wyślij"><br>
+</form>
+<div id = "error"></div>
+<br>
+<form action = "/sprzet_panel" method = "get">
+    <input type = "submit" value = "Wróć"><br>
+</form>
+
+<script>
+    const addInfoForm = document.getElementById("addInfo");
+    const kategoriaSelect = document.getElementById("kategoria");
+    const lokalizacjaSelect = document.getElementById("lokalizacja");
+    const wlascicielSelect = document.getElementById("wlasciciel");
+    const uzytkownikSelect = document.getElementById("uzytkownik");
+    const statusSelect = document.getElementById("status");
+    const stanSelect = document.getElementById("stan");
+    const stanPrimary = document.getElementById("stan_primary");
+
+    function clearOptions(ob) {
+        while(ob.children.length > 1) {
+            ob.children.item(1).remove();
+        }
+    }
+
+
+    fetch('/sprzet_panel/dodaj/dropdowns', {
+        method: "POST"
+    })
+        .then(response => response.json())
+        .then(data => {
+            clearOptions(kategoriaSelect);
+            clearOptions(lokalizacjaSelect);
+            clearOptions(wlascicielSelect);
+            clearOptions(uzytkownikSelect);
+            clearOptions(statusSelect);
+            addInfoForm.style.display = "block";
+            data.kategorie.forEach(element => {
+                let option = document.createElement("option");
+                option.value = element;
+                option.innerText = element;
+                kategoriaSelect.appendChild(option);
+            });
+            data.lokalizacje.forEach(element => {
+                let option = document.createElement("option");
+                option.value = element;
+                option.innerText = element;
+                lokalizacjaSelect.appendChild(option);
+            });
+            data.podmioty.forEach(element => {
+                let option = document.createElement("option");
+                option.value = element;
+                option.innerText = element;
+                wlascicielSelect.appendChild(option);
+                let option2 = document.createElement("option");
+                option2.value = element;
+                option2.innerText = element;
+                uzytkownikSelect.appendChild(option2);
+            });
+            data.statusy.forEach(element => {
+                let option = document.createElement("option");
+                option.value = element;
+                option.innerText = element;
+                statusSelect.appendChild(option);
+            });
+        })
+
+
+    kategoriaSelect.addEventListener("change", (e) => {
+        e.preventDefault();
+        let kat = (kategoriaSelect.selectedOptions[0].index);
+        clearOptions(stanSelect);
+        fetch('/sprzet_panel/dodaj/stany', {
+            method: "POST",
+            headers: {
+                "X-kategoria" : kat,
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                stanSelect.disabled = false;
+                stanPrimary.innerText = "===";
+                data.stany.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    stanSelect.appendChild(option);
+                });
+            });
+    })
+
+    kategoriaSelect.addEventListener("change", (e) => {
+        document.getElementById("kat_id").value = kategoriaSelect.selectedIndex;
+    })
+    wlascicielSelect.addEventListener("change", (e) => {
+        document.getElementById("wla_id").value = wlascicielSelect.selectedIndex;
+    })
+    uzytkownikSelect.addEventListener("change", (e) => {
+        document.getElementById("uzy_id").value = uzytkownikSelect.selectedIndex;
+    })
+    lokalizacjaSelect.addEventListener("change", (e) => {
+        document.getElementById("lok_id").value = lokalizacjaSelect.selectedIndex;
+    })
+    statusSelect.addEventListener("change", (e) => {
+        document.getElementById("sts_id").value = statusSelect.selectedIndex;
+    })
+    stanSelect.addEventListener("change", (e) => {
+        document.getElementById("stn_id").value = stanSelect.selectedIndex;
+    })
+
+
+    $( "#addInfo" ).submit(function( event ) {
+        event.preventDefault();
+        let data = new FormData(addInfoForm);
+        let object = {};
+        data.forEach(function(value, key){
+            object[key] = value;
+        });
+        let json = JSON.stringify(object);
+
+        $.ajax({
+            url: '/sprzet_panel/dodaj/auth',
+            type: 'POST',
+            data: data,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                window.location.reload();
+            },
+            error: function () {
+                document.write("coś poszło nie tak, przepraszamy");
+            }
+        });
+
+    })
+
+</script>
+</body>
+</html>
