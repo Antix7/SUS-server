@@ -111,7 +111,10 @@ function build_table_sprzet(ob) {
     table += '<tr>';
     for(let j in ob[i]) {
       table += '<td>';
-      table += ob[i][j];
+      if(j == 'Zdjęcie')
+        table += '<img src = "' + ob[i][j] + '" alt="brak">';
+      else
+        table += ob[i][j];
       table += '</td>';
     }
     table += '</tr>';
@@ -352,7 +355,7 @@ async function main() {
     let sql = 'SELECT\n' +
         '    sprzet.nazwa as Nazwa,\n' +
         '    sprzet.ilosc as Ilość,\n' +
-        //'    sprzet.zdjecie as Zdjęcie,\n' +
+        '    sprzet.zdjecie_path as Zdjęcie,\n' +
         '    kat.kategoria_nazwa as Kategoria,\n' +
         '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
         '    wla.podmiot_nazwa as Właściciel,\n' +
@@ -455,9 +458,10 @@ async function main() {
     response.end();
   });
 
-  app.post('/baza/dodaj/auth', function (request, response) {
-
-    let body = JSON.parse(request.body['MyBody']);
+  app.post('/baza/dodaj/auth', upload.single('zdjecie'), function (request, response) {
+    //console.log(request.body);
+    //let body = JSON.parse(request.body['MyBody']);
+    let body = request.body;
 
     let kat = body['kat_id'];
     let lok = body['lok_id'];
@@ -465,7 +469,7 @@ async function main() {
     let uzy = body['uzy_id'];
     let sts = body['sts_id'];
     let stn = body['stn_id'];
-    console.log('jd');
+    //console.log('jd');
     // let kat = request.get('X-kategoria');
     // console.log('jd');
     // let lok = request.get('X-lokalizacja');
@@ -478,23 +482,23 @@ async function main() {
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
     let opis = body['opis'];
-    let zdj = './images/' + request.body['zdjecie'];
-    // if(zdj === '') {
+    let zdj = './images/' + request.file.filename;
+    if(!request.file) {
       let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
           '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
           'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
       console.log(sql);
 
       con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis]);
-    // }
-    // else {
-    //   let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie, wlasciciel_id,\n' +
-    //       '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
-    //       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
-    //   console.log(sql);
-    //   [naz, kat, ilo, lok, wla, uzy, sts, stn, opis].forEach((i) => {console.log(i);});
-    //   con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
-    // }
+    }
+    else {
+      let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id,\n' +
+          '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
+          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
+      console.log(sql);
+      [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis].forEach((i) => {console.log(i);});
+      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
+    }
     response.redirect('/baza');
   });
 

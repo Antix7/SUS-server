@@ -18,7 +18,7 @@
 <form enctype="multipart/form-data" id = "addInfo" style="display: none" action="/baza/dodaj/auth" method="post">
     <label for="nazwa">Nazwa</label><input type="text" id="nazwa" name="nazwa"><br>
     <label for="ilosc">Ilość</label><input type="number" id="ilosc" name="ilosc"><br>
-    <label for="zdjecie">Zdjęcie</label><input type="file" id="zdjecie" name="zdjecie"><br>
+    <label for="zdjecie">Zdjęcie</label><input type="file" id="zdjecie" name="zdjecie" accept="image/*"><br>
     <label for="kategoria">Kategoria</label><select name="kategoria" id="kategoria">
         <option value="" disabled selected>===</option>
     </select><input type="hidden" name="kat_id" id="kat_id" value="0"><br>
@@ -216,7 +216,21 @@
         // xhr.open('POST', '/baza/dodaj/auth', true);
         // xhr.send(data);
 
-        $.post('/baza/dodaj/auth', {'MyBody': json});
+        //$.post('/baza/dodaj/auth', {'MyBody': json});
+        $.ajax({
+            url: '/baza/dodaj/auth',
+            type: 'POST',
+            data: data,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                window.location.reload();
+
+            },
+            error: function () {
+                document.write("coś poszło nie tak, przepraszamy");
+            }
+        });
 
         // let kat = (kategoriaSelect.selectedOptions[0].index);
         // let lok = lokalizacjaSelect.selectedOptions[0].index;

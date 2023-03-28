@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="fixed the image input">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="the form for adding rows works, except for photos. the photos in general have been temporarily disabled">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/user_panel/baza.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/baza.html" afterDir="false" />
@@ -145,6 +145,8 @@
       <workItem from="1679918116543" duration="4633000" />
       <workItem from="1679956141762" duration="2422000" />
       <workItem from="1679984090625" duration="4459000" />
+      <workItem from="1679988831091" duration="215000" />
+      <workItem from="1680001242034" duration="2539000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -440,7 +442,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679660485019</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="the form for adding rows works, except for photos. the photos in general have been temporarily disabled">
+      <created>1679989042071</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1679989042071</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -503,7 +512,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="We're now preventing SQL injection. yay" />
     <MESSAGE value="Activated html5 and added newlines where necessary." />
     <MESSAGE value="Admins can now also delete accounts" />
     <MESSAGE value="Secutity stuff" />
@@ -528,7 +536,8 @@
     <MESSAGE value="Added a form for inserting rows into the sprzet table" />
     <MESSAGE value="fixed the request for more rows" />
     <MESSAGE value="fixed the image input" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed the image input" />
+    <MESSAGE value="the form for adding rows works, except for photos. the photos in general have been temporarily disabled" />
+    <option name="LAST_COMMIT_MESSAGE" value="the form for adding rows works, except for photos. the photos in general have been temporarily disabled" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
