@@ -9,34 +9,35 @@
             padding: 3px;
         }
     </style>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 </head>
 <body>
 <form id="addRow">
     <input type = "submit" value = "Dodaj wiersz">
 </form>
-<form id = "addInfo" style="display: none">
-    <label for="nazwa">Nazwa</label><input type="text" id="nazwa"><br>
-    <label for="ilosc">Ilość</label><input type="number" id="ilosc"><br>
-    <label for="zdjecie">Zdjęcie</label><input type="file" id="zdjecie"><br>
+<form enctype="multipart/form-data" id = "addInfo" style="display: none" action="/baza/dodaj/auth" method="post">
+    <label for="nazwa">Nazwa</label><input type="text" id="nazwa" name="nazwa"><br>
+    <label for="ilosc">Ilość</label><input type="number" id="ilosc" name="ilosc"><br>
+    <label for="zdjecie">Zdjęcie</label><input type="file" id="zdjecie" name="zdjecie"><br>
     <label for="kategoria">Kategoria</label><select name="kategoria" id="kategoria">
         <option value="" disabled selected>===</option>
-    </select><br>
+    </select><input type="hidden" name="kat_id" id="kat_id" value="0"><br>
     <label for="lokalizacja">Lokalizacja</label><select name="lokalizacja" id="lokalizacja">
         <option value="" disabled selected>===</option>
-    </select><br>
+    </select><input type="hidden" name="lok_id" id="lok_id" value="0"><br>
     <label for="wlasciciel">Właściciel</label><select name="wlasciciel" id="wlasciciel">
         <option value="" disabled selected>===</option>
-    </select><br>
+    </select><input type="hidden" name="wla_id" id="wla_id" value="0"><br>
     <label for="uzytkownik">Użytkownik</label><select name="uzytkownik" id="uzytkownik">
         <option value="" disabled selected>===</option>
-    </select><br>
+    </select><input type="hidden" name="uzy_id" id="uzy_id" value="0"><br>
     <label for="status">Status</label><select name="status" id="status">
         <option value="" disabled selected>===</option>
-    </select><br>
+    </select><input type="hidden" name="sts_id" id="sts_id" value="0"><br>
     <label for="stan">Stan</label><select name="stan" id="stan" disabled>
         <option value="" id="stan_primary" disabled selected>Najpierw wybierz kategorię</option>
-    </select><br>
-    <label for="opis">Dodatkowy opis</label><input type="text" id="opis"><br>
+    </select><input type="hidden" name="stn_id" id="stn_id" value="0"><br>
+    <label for="opis">Dodatkowy opis</label><input type="text" id="opis" name="opis"><br>
     <input type = "submit" value="Wyślij"><br>
 </form>
 <table id = "tabelka">
@@ -107,7 +108,7 @@
     const stanPrimary = document.getElementById("stan_primary");
 
     function clearOptions(ob) {
-        for(let i = 1; i < ob.children.length; i++){
+        while(ob.children.length > 1) {
             ob.children.item(1).remove();
         }
     }
@@ -158,6 +159,7 @@
     kategoriaSelect.addEventListener("change", (e) => {
         e.preventDefault();
         let kat = (kategoriaSelect.selectedOptions[0].index);
+        clearOptions(stanSelect);
         fetch('/baza/stany', {
             method: "POST",
             headers: {
@@ -169,7 +171,6 @@
             .then(data => {
                 stanSelect.disabled = false;
                 stanPrimary.innerText = "===";
-                clearOptions(stanSelect);
                 data.stany.forEach(element => {
                     let option = document.createElement("option");
                     option.value = element;
@@ -178,6 +179,72 @@
                 });
             });
     })
+
+    kategoriaSelect.addEventListener("change", (e) => {
+        document.getElementById("kat_id").value = kategoriaSelect.selectedIndex;
+    })
+    wlascicielSelect.addEventListener("change", (e) => {
+        document.getElementById("wla_id").value = wlascicielSelect.selectedIndex;
+    })
+    uzytkownikSelect.addEventListener("change", (e) => {
+        document.getElementById("uzy_id").value = uzytkownikSelect.selectedIndex;
+    })
+    lokalizacjaSelect.addEventListener("change", (e) => {
+        document.getElementById("lok_id").value = lokalizacjaSelect.selectedIndex;
+    })
+    statusSelect.addEventListener("change", (e) => {
+        document.getElementById("sts_id").value = statusSelect.selectedIndex;
+    })
+    stanSelect.addEventListener("change", (e) => {
+        document.getElementById("stn_id").value = stanSelect.selectedIndex;
+    })
+
+
+    // addInfoForm.addEventListener("submit", (e) => {
+    //     e.preventDefault();
+    $( "#addInfo" ).submit(function( event ) {
+        event.preventDefault();
+        let data = new FormData(addInfoForm);
+        let object = {};
+        data.forEach(function(value, key){
+            object[key] = value;
+        });
+        let json = JSON.stringify(object);
+        console.log(object);
+
+        // let xhr = new XMLHttpRequest();
+        // xhr.open('POST', '/baza/dodaj/auth', true);
+        // xhr.send(data);
+
+        $.post('/baza/dodaj/auth', {'MyBody': json});
+
+        // let kat = (kategoriaSelect.selectedOptions[0].index);
+        // let lok = lokalizacjaSelect.selectedOptions[0].index;
+        // let wla = wlascicielSelect.selectedOptions[0].index;
+        // let uzy = uzytkownikSelect.selectedOptions[0].index;
+        // let sts = statusSelect.selectedOptions[0].index;
+        // let stn = stanSelect.selectedOptions[0].index;
+        // fetch('/baza/dodaj/auth', {
+        //     method: "post",
+        //     // redirect: 'follow',
+        //     mode: 'cors',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //         // 'X-kategoria': kat,
+        //         // 'X-lokalizacja': lok,
+        //         // 'X-wlasciciel': wla,
+        //         // 'X-uzytkownik': uzy,
+        //         // 'X-status': sts,
+        //         // 'X-stan': stn,
+        //     },
+        //     body: JSON.stringify(data)
+        // })
+            // .catch((data) => {
+            //     if(data.redirected)
+            //         window.location.href = data.url;
+            // })
+    })
+
 </script>
 </body>
 </html>

@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="fixed the request for more rows">
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="fixed the image input">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/user_panel/baza.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/baza.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -61,6 +62,7 @@
     &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;discord-application&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\WebStorm 2022.3.1\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -138,7 +140,11 @@
       <workItem from="1679562961759" duration="1807000" />
       <workItem from="1679564952500" duration="1129000" />
       <workItem from="1679574029649" duration="83000" />
-      <workItem from="1679649081060" duration="10355000" />
+      <workItem from="1679649081060" duration="11194000" />
+      <workItem from="1679901823790" duration="5973000" />
+      <workItem from="1679918116543" duration="4633000" />
+      <workItem from="1679956141762" duration="2422000" />
+      <workItem from="1679984090625" duration="4459000" />
     </task>
     <task id="LOCAL-00001" summary="Categorising files">
       <created>1672097439555</created>
@@ -427,7 +433,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679659986711</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="fixed the image input">
+      <created>1679660485019</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1679660485019</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -490,7 +503,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Admins can now access a list of users&#10;It also uses file templates which are really cool" />
     <MESSAGE value="We're now preventing SQL injection. yay" />
     <MESSAGE value="Activated html5 and added newlines where necessary." />
     <MESSAGE value="Admins can now also delete accounts" />
@@ -515,7 +527,8 @@
     <MESSAGE value="changed database name" />
     <MESSAGE value="Added a form for inserting rows into the sprzet table" />
     <MESSAGE value="fixed the request for more rows" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed the request for more rows" />
+    <MESSAGE value="fixed the image input" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed the image input" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>

@@ -8,9 +8,22 @@ const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const {query} = require("express");
+const bodyParser = require("body-parser");
 
 let con;
 
+const storage = multer.diskStorage({
+  destination: (req, file, callBack) => {
+    callBack(null, './public/images/')     // './public/images/' directory name where save the file
+  },
+  filename: (req, file, callBack) => {
+    callBack(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({
+  storage: storage
+});
 
 function create_hash(password) {
 
@@ -125,8 +138,8 @@ async function main() {
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(express.static(path.join(__dirname, 'static')));
-  app.use(multer().none());
+  app.use(express.static(path.join(__dirname, 'public')));
+  //app.use(multer().none());
 
   app.get('/', function(request, response) {
     response.sendFile(path.join(__dirname + '/login/index.html'));
@@ -339,7 +352,7 @@ async function main() {
     let sql = 'SELECT\n' +
         '    sprzet.nazwa as Nazwa,\n' +
         '    sprzet.ilosc as Ilość,\n' +
-        '    sprzet.zdjecie as Zdjęcie,\n' +
+        //'    sprzet.zdjecie as Zdjęcie,\n' +
         '    kat.kategoria_nazwa as Kategoria,\n' +
         '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
         '    wla.podmiot_nazwa as Właściciel,\n' +
@@ -440,6 +453,49 @@ async function main() {
     }
     response.json({stany: sta});
     response.end();
+  });
+
+  app.post('/baza/dodaj/auth', function (request, response) {
+
+    let body = JSON.parse(request.body['MyBody']);
+
+    let kat = body['kat_id'];
+    let lok = body['lok_id'];
+    let wla = body['wla_id'];
+    let uzy = body['uzy_id'];
+    let sts = body['sts_id'];
+    let stn = body['stn_id'];
+    console.log('jd');
+    // let kat = request.get('X-kategoria');
+    // console.log('jd');
+    // let lok = request.get('X-lokalizacja');
+    // let uzy = request.get('X-uzytkownik');
+    // console.log('jd');
+    // let wla = request.get('X-wlasciciel');
+    // let sts = request.get('X-status');
+    // let stn = request.get('X-stan');
+
+    let naz = body['nazwa'];
+    let ilo = body['ilosc'];
+    let opis = body['opis'];
+    let zdj = './images/' + request.body['zdjecie'];
+    // if(zdj === '') {
+      let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
+          '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
+          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
+      console.log(sql);
+
+      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis]);
+    // }
+    // else {
+    //   let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie, wlasciciel_id,\n' +
+    //       '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
+    //       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
+    //   console.log(sql);
+    //   [naz, kat, ilo, lok, wla, uzy, sts, stn, opis].forEach((i) => {console.log(i);});
+    //   con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
+    // }
+    response.redirect('/baza');
   });
 
   app.listen(3000, '0.0.0.0');
