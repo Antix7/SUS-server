@@ -224,8 +224,10 @@
             contentType: false,
             processData: false,
             success: function (data) {
-                window.location.reload();
-
+                //window.location.reload();
+                if(data.redirect) {
+                    window.location.href = data.redirect;
+                }
             },
             error: function () {
                 document.write("coś poszło nie tak, przepraszamy");

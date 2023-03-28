@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="added the directory for photos">
-      <change afterPath="$PROJECT_DIR$/public/images/nothing" afterDir="false" />
+    <list default="true" id="4e9988a7-7331-4baa-82f6-1277f5d8baa6" name="Changes" comment="stopped the data from being pulled in chunks until we figure out a better solution">
+      <change beforePath="$PROJECT_DIR$/user_panel/baza.html" beforeDir="false" afterPath="$PROJECT_DIR$/user_panel/baza.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -461,7 +461,21 @@
       <option name="project" value="LOCAL" />
       <updated>1680018187024</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="added the directory for photos">
+      <created>1680018227228</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1680018227228</updated>
+    </task>
+    <task id="LOCAL-00047" summary="stopped the data from being pulled in chunks until we figure out a better solution">
+      <created>1680018562395</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1680018562395</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -524,7 +538,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Secutity stuff" />
     <MESSAGE value="admins can perform sql queries through the panel" />
     <MESSAGE value="de-nested all the sql queries using the mysql2 module" />
     <MESSAGE value="fixed the app crashing when sql syntax in admin's personal query was wrong" />
@@ -549,7 +562,8 @@
     <MESSAGE value="the form for adding rows works, except for photos. the photos in general have been temporarily disabled" />
     <MESSAGE value="Changed zdjecie to zdjecie_path in sql initialisation" />
     <MESSAGE value="added the directory for photos" />
-    <option name="LAST_COMMIT_MESSAGE" value="added the directory for photos" />
+    <MESSAGE value="stopped the data from being pulled in chunks until we figure out a better solution" />
+    <option name="LAST_COMMIT_MESSAGE" value="stopped the data from being pulled in chunks until we figure out a better solution" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
