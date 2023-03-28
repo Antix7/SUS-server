@@ -512,8 +512,10 @@ async function main() {
   // });
 
   app.get('/sprzet_panel/dodaj', function (request, response) {
-
-
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
     response.sendFile(__dirname + '/user_panel/sprzet_panel/dodaj_sprzet.html');
   });
 
@@ -553,6 +555,10 @@ async function main() {
   });
 
   app.post('/sprzet_panel/dodaj/stany', async function (request, response) {
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
     let kat = request.get("X-kategoria");
     [rows, columns] = await con.execute('SELECT * FROM stany WHERE kategoria_id = ?;', [kat.toString()]);
     let sta = [];
@@ -564,6 +570,10 @@ async function main() {
   });
 
   app.post('/sprzet_panel/dodaj/auth', upload.single('zdjecie'), function (request, response) {
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
     let body = request.body;
 
     let kat = body['kat_id'];
