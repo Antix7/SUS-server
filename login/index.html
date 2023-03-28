@@ -6,18 +6,26 @@
 </head>
 <body style="text-align: center">
 <form action = "/auth" method="post">
-    <input type="text" name="nick" id="nick" placeholder="Wpisz nazwę użytkownika">
+    <input type="text" name="nick" id="nick" placeholder="Nazwa użytkownika">
     <br><br>
-    <input type="password" name="pwd" id="pwd" placeholder="Wpisz hasło">
+    <input type="password" name="pwd" id="pwd" placeholder="Hasło">
     <br><br>
     <input type="submit" value="Zaloguj">
 </form>
-<br>
-<br>
-<br>
-Masz kod do utworzenia konta?
-<form action = "/aktywuj_konto" method="get">
-    <input type = "submit" value = "Kliknij tutaj">
+
+<br><br><br>
+
+<form action="/aktywuj_konto" method="get">
+    <label for="aktywuj_btn"> Masz kod do utworzenia konta? </label><br>
+    <input type="submit" id="aktywuj_btn" value="Kliknij tutaj">
 </form>
+
+<br><br>
+
+<form action="/resetuj_haslo" method="get">
+    <label for="resetuj_haslo_btn"> Zapomniałeś hasła? </label><br>
+    <input type="submit" id="resetuj_haslo_btn" value="Resetuj hasło">
+</form>
+
 </body>
 </html>

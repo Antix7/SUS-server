@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="pl-PL">
 <head>
+
     <meta charset="UTF-8">
     <title>Zakładanie konta</title>
 </head>
 <body>
-  <form id="form">
-    <input type="text" placeholder="Klucz dostępu" name="key"><br>
-    <input type="text" placeholder="Nowa nazwa użytkownika" name="username"><br>
-    <input type="password" placeholder="Nowe hasło" id="password1" name="password1"><br>
-    <input type="password" placeholder="Powtórz nowe hasło" id="password2" name="password2">
-      <span id="match"></span><br><br>
+<form id="form">
+    <input required type="text" placeholder="Klucz dostępu" name="key"><br>
+    <input required type="text" placeholder="Nowa nazwa użytkownika" name="username"><br>
+    <input required type="password" placeholder="Nowe hasło" id="password1" name="password1"><br>
+    <input required type="password" placeholder="Powtórz nowe hasło" id="password2" name="password2"><br>
+    <input type="email" placeholder="Adres e-mail" id="email_input" name="email">
+    <label for="email_input">Opcjonalny w celu odzyskiwania konta</label><br>
+    <span id="match"></span><br>
     <input type="submit" id="submit_btn" value="Utwórz konto"><br>
-  </form>
+</form>
 
-  <p id="status"></p>
+<p id="status"></p>
 
-  <form action="/" method="get">
-      <input type="submit" value="Wróć">
-  </form>
+<form action="/" method="get">
+    <input type="submit" value="Wróć">
+</form>
 
 <script>
 
