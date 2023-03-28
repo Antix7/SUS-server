@@ -44,7 +44,7 @@ CREATE TABLE sprzet
     kategoria_id   INT           NOT NULL,
     ilosc          INT           NOT NULL,
     lokalizacja_id INT           NOT NULL,
-    zdjecie        MEDIUMBLOB    NULL,
+    zdjecie_path   TEXT          NULL,
     wlasciciel_id  INT           NULL,
     uzytkownik_id  INT           NULL,
     status_id      INT           NOT NULL,

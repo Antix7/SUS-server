@@ -9,15 +9,44 @@
             padding: 3px;
         }
     </style>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 </head>
 <body>
+<form id="addRow">
+    <input type = "submit" value = "Dodaj wiersz">
+</form>
+<form enctype="multipart/form-data" id = "addInfo" style="display: none" action="/baza/dodaj/auth" method="post">
+    <label for="nazwa">Nazwa</label><input type="text" id="nazwa" name="nazwa"><br>
+    <label for="ilosc">Ilość</label><input type="number" id="ilosc" name="ilosc"><br>
+    <label for="zdjecie">Zdjęcie</label><input type="file" id="zdjecie" name="zdjecie" accept="image/*"><br>
+    <label for="kategoria">Kategoria</label><select name="kategoria" id="kategoria">
+        <option value="" disabled selected>===</option>
+    </select><input type="hidden" name="kat_id" id="kat_id" value="0"><br>
+    <label for="lokalizacja">Lokalizacja</label><select name="lokalizacja" id="lokalizacja">
+        <option value="" disabled selected>===</option>
+    </select><input type="hidden" name="lok_id" id="lok_id" value="0"><br>
+    <label for="wlasciciel">Właściciel</label><select name="wlasciciel" id="wlasciciel">
+        <option value="" disabled selected>===</option>
+    </select><input type="hidden" name="wla_id" id="wla_id" value="0"><br>
+    <label for="uzytkownik">Użytkownik</label><select name="uzytkownik" id="uzytkownik">
+        <option value="" disabled selected>===</option>
+    </select><input type="hidden" name="uzy_id" id="uzy_id" value="0"><br>
+    <label for="status">Status</label><select name="status" id="status">
+        <option value="" disabled selected>===</option>
+    </select><input type="hidden" name="sts_id" id="sts_id" value="0"><br>
+    <label for="stan">Stan</label><select name="stan" id="stan" disabled>
+        <option value="" id="stan_primary" disabled selected>Najpierw wybierz kategorię</option>
+    </select><input type="hidden" name="stn_id" id="stn_id" value="0"><br>
+    <label for="opis">Dodatkowy opis</label><input type="text" id="opis" name="opis"><br>
+    <input type = "submit" value="Wyślij"><br>
+</form>
 <table id = "tabelka">
     {{tablebody}}
 </table>
-<form id="myForm">
-    <input type="hidden" id="start" name="start" value="51">
-    <input type = "submit" value = "Załaduj dalej"></input>
-</form>
+<!--<form id="myForm">-->
+<!--    <input type="hidden" id="start" name="start" value="51">-->
+<!--    <input type = "submit" value = "Załaduj dalej"></input>-->
+<!--</form>-->
 <br>
 <div id = "error"></div>
 <br>
@@ -30,43 +59,172 @@
     const tabelka = document.getElementById("tabelka");
     const errorDiv = document.getElementById("error");
 
-    form1.addEventListener("submit", (e) => {
-        console.log("lool");
+    // form1.addEventListener("submit", (e) => {
+    //     console.log("lool");
+    //     e.preventDefault();
+    //
+    //     const formData = new FormData(form1);
+    //     for (let key of formData.keys()) {
+    //         console.log(key);
+    //     }
+    //     for (let key of formData.values()) {
+    //         console.log(key);
+    //     }
+    //
+    //     fetch("/wincyj", {
+    //         method: "POST",
+    //         headers: {
+    //             "X-zacznij_od" : tabelka.rows.length
+    //         },
+    //         body: new FormData(form1)
+    //     })
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             console.log(data.more_rows);
+    //             tabelka.innerHTML += data.more_rows;
+    //         })
+    //         .catch(error => {
+    //             errorDiv.innerText = "An error occurred. Please try again later.";
+    //         })
+    // });
+    // function delay(time) {
+    //     return new Promise(resolve => setTimeout(resolve, time));
+    // }
+    // window.onscroll = async function(ev) {
+    //     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+    //         form1.dispatchEvent(new Event("submit"));
+    //         await delay(1000);
+    //     }
+    // };
+
+    const addRowForm = document.getElementById("addRow");
+    const addInfoForm = document.getElementById("addInfo");
+    const kategoriaSelect = document.getElementById("kategoria");
+    const lokalizacjaSelect = document.getElementById("lokalizacja");
+    const wlascicielSelect = document.getElementById("wlasciciel");
+    const uzytkownikSelect = document.getElementById("uzytkownik");
+    const statusSelect = document.getElementById("status");
+    const stanSelect = document.getElementById("stan");
+    const stanPrimary = document.getElementById("stan_primary");
+
+    function clearOptions(ob) {
+        while(ob.children.length > 1) {
+            ob.children.item(1).remove();
+        }
+    }
+
+    addRowForm.addEventListener("submit", (e) => {
         e.preventDefault();
-
-        const formData = new FormData(form1);
-        for (let key of formData.keys()) {
-            console.log(key);
-        }
-        for (let key of formData.values()) {
-            console.log(key);
-        }
-
-        fetch("/wincyj", {
-            method: "POST",
-            headers: {
-                "zacznij_od" : tabelka.rows.length
-            },
-            body: new FormData(form1)
+        fetch('/baza/dodaj', {
+            method: "POST"
         })
             .then(response => response.json())
             .then(data => {
-                console.log(data.more_rows);
-                tabelka.innerHTML += data.more_rows;
+                clearOptions(kategoriaSelect);
+                clearOptions(lokalizacjaSelect);
+                clearOptions(wlascicielSelect);
+                clearOptions(uzytkownikSelect);
+                clearOptions(statusSelect);
+                addInfoForm.style.display = "block";
+                data.kategorie.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    kategoriaSelect.appendChild(option);
+                });
+                data.lokalizacje.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    lokalizacjaSelect.appendChild(option);
+                });
+                data.podmioty.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    wlascicielSelect.appendChild(option);
+                    let option2 = document.createElement("option");
+                    option2.value = element;
+                    option2.innerText = element;
+                    uzytkownikSelect.appendChild(option2);
+                });
+                data.statusy.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    statusSelect.appendChild(option);
+                });
             })
-            .catch(error => {
-                errorDiv.innerText = "An error occurred. Please try again later.";
-            })
-    });
-    function delay(time) {
-        return new Promise(resolve => setTimeout(resolve, time));
-    }
-    window.onscroll = async function(ev) {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-            form1.dispatchEvent(new Event("submit"));
-            await delay(1000);
-        }
-    };
+    })
+    kategoriaSelect.addEventListener("change", (e) => {
+        e.preventDefault();
+        let kat = (kategoriaSelect.selectedOptions[0].index);
+        clearOptions(stanSelect);
+        fetch('/baza/stany', {
+            method: "POST",
+            headers: {
+                "X-kategoria" : kat,
+            },
+            body: new FormData(addRowForm)
+        })
+            .then(response => response.json())
+            .then(data => {
+                stanSelect.disabled = false;
+                stanPrimary.innerText = "===";
+                data.stany.forEach(element => {
+                    let option = document.createElement("option");
+                    option.value = element;
+                    option.innerText = element;
+                    stanSelect.appendChild(option);
+                });
+            });
+    })
+
+    kategoriaSelect.addEventListener("change", (e) => {
+        document.getElementById("kat_id").value = kategoriaSelect.selectedIndex;
+    })
+    wlascicielSelect.addEventListener("change", (e) => {
+        document.getElementById("wla_id").value = wlascicielSelect.selectedIndex;
+    })
+    uzytkownikSelect.addEventListener("change", (e) => {
+        document.getElementById("uzy_id").value = uzytkownikSelect.selectedIndex;
+    })
+    lokalizacjaSelect.addEventListener("change", (e) => {
+        document.getElementById("lok_id").value = lokalizacjaSelect.selectedIndex;
+    })
+    statusSelect.addEventListener("change", (e) => {
+        document.getElementById("sts_id").value = statusSelect.selectedIndex;
+    })
+    stanSelect.addEventListener("change", (e) => {
+        document.getElementById("stn_id").value = stanSelect.selectedIndex;
+    })
+
+
+    $( "#addInfo" ).submit(function( event ) {
+        event.preventDefault();
+        let data = new FormData(addInfoForm);
+        let object = {};
+        data.forEach(function(value, key){
+            object[key] = value;
+        });
+        let json = JSON.stringify(object);
+
+        $.ajax({
+            url: '/baza/dodaj/auth',
+            type: 'POST',
+            data: data,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                window.location.reload();
+            },
+            error: function () {
+                document.write("coś poszło nie tak, przepraszamy");
+            }
+        });
+
+    })
+
 </script>
 </body>
 </html>

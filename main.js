@@ -6,8 +6,7 @@ const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
-const nodemailer = require('nodemailer');
-const {query} = require("express");
+
 
 let con;
 const sus_email_address = 'noreply.sus@gmail.com';
@@ -22,6 +21,18 @@ let mail_client = nodemailer.createTransport({
   }
 });
 
+const storage = multer.diskStorage({
+  destination: (req, file, callBack) => {
+    callBack(null, './public/images/')     // './public/images/' directory name where save the file
+  },
+  filename: (req, file, callBack) => {
+    callBack(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({
+  storage: storage
+});
 
 function create_hash(password) {
 
@@ -109,7 +120,10 @@ function build_table_sprzet(ob) {
     table += '<tr>';
     for(let j in ob[i]) {
       table += '<td>';
-      table += ob[i][j];
+      if(j == 'Zdjęcie')
+        table += '<img src = "' + ob[i][j] + '" alt="brak">';
+      else
+        table += ob[i][j];
       table += '</td>';
     }
     table += '</tr>';
@@ -136,8 +150,8 @@ async function main() {
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(express.static(path.join(__dirname, 'static')));
-  app.use(multer().none());
+  app.use(express.static(path.join(__dirname, 'public')));
+  //app.use(multer().none());
 
   app.get('/', function(request, response) {
     response.sendFile(path.join(__dirname + '/login/index.html'));
@@ -418,6 +432,8 @@ async function main() {
     }
   });
 
+
+
   app.get('/sprzet_panel', function (request, response) {
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -426,20 +442,154 @@ async function main() {
     response.sendFile(__dirname + '/user_panel/sprzet_panel/sprzet_panel.html');
   });
 
-  app.get('/sprzet_panel/wyswietl', function (request, response) {
+
+  app.get('/sprzet_panel/wyswietl', async function (request, response) {
+
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/wyswietl_sprzet.html');
+
+    let sql = 'SELECT\n' +
+        '    sprzet.nazwa as Nazwa,\n' +
+        '    sprzet.ilosc as Ilość,\n' +
+        '    sprzet.zdjecie_path as Zdjęcie,\n' +
+        '    kat.kategoria_nazwa as Kategoria,\n' +
+        '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
+        '    wla.podmiot_nazwa as Właściciel,\n' +
+        '    uzy.podmiot_nazwa as Użytkownik,\n' +
+        '    stat.status_nazwa as Status,\n' +
+        '    stan.stan_nazwa as Stan,\n' +
+        '    sprzet.opis as Opis\n' +
+        '\n' +
+        'FROM sprzet\n' +
+        'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
+        'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
+        'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
+        'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
+        'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
+        'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
+        // 'WHERE sprzet.przedmiot_id >= 1 AND sprzet.przedmiot_id < 51';
+        ';';
+    let [rows, columns] = await con.execute(sql);
+    const templateStr = fs.readFileSync(__dirname + '/user_panel/sprzet_panel/wyswietl_sprzet.html').toString('utf8');
+    const template = handlebars.compile(templateStr, {noEscape: true});
+    const contents = template({tablebody: (build_thead_sprzet(rows) + build_table_sprzet(rows))});
+    response.send(contents);
+    response.end();
   });
 
+  // app.post('/wincyj', async function(request, response) {
+  //   if (!request.session.loggedin) {
+  //     response.sendFile(__dirname + "/login/oszust.html");
+  //     return;
+  //   }
+  //   //let gdzie = request.find('X-zacznij_od');
+  //   let sql = 'SELECT\n' +
+  //       '    sprzet.nazwa as Nazwa,\n' +
+  //       '    sprzet.ilosc as Ilość,\n' +
+  //       '    sprzet.zdjecie as Zdjęcie,\n' +
+  //       '    kat.kategoria_nazwa as Kategoria,\n' +
+  //       '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
+  //       '    wla.podmiot_nazwa as Właściciel,\n' +
+  //       '    uzy.podmiot_nazwa as Użytkownik,\n' +
+  //       '    stat.status_nazwa as Status,\n' +
+  //       '    stan.stan_nazwa as Stan,\n' +
+  //       '    sprzet.opis as Opis\n' +
+  //       '\n' +
+  //       'FROM sprzet\n' +
+  //       'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
+  //       'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
+  //       'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
+  //       'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
+  //       'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
+  //       'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
+  //       // 'WHERE sprzet.przedmiot_id >= ' + gdzie + ' AND sprzet.przedmiot_id < ' + (parseInt(gdzie) + 50).toString();
+  //       ';';
+  //   let [rows, columns] = await con.execute(sql);
+  //   response.json({more_rows: build_table_sprzet(rows)});
+  //   response.end();
+  // });
+
   app.get('/sprzet_panel/dodaj', function (request, response) {
+
+
+    response.sendFile(__dirname + '/user_panel/sprzet_panel/dodaj_sprzet.html');
+  });
+
+  app.post('/sprzet_panel/dodaj/dropdowns', async function (request, response) {
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
       return;
     }
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/dodaj_sprzet.html');
+
+    let [rows, columns] = await con.execute('SELECT * FROM lokalizacje;');
+    let lok = [];
+    for(let i in rows) {
+      lok.push(rows[i]['lokalizacja_nazwa']);
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM kategorie;');
+    let kat = [];
+    for(let i in rows) {
+      kat.push(rows[i]['kategoria_nazwa']);
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM podmioty;');
+    let pod = [];
+    for(let i in rows) {
+      pod.push(rows[i]['podmiot_nazwa']);
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM statusy;');
+    let sta = [];
+    for(let i in rows) {
+      sta.push(rows[i]['status_nazwa']);
+    }
+
+
+    response.json({podmioty: pod, statusy: sta, lokalizacje: lok, kategorie: kat});
+    response.end();
+  });
+
+  app.post('/sprzet_panel/dodaj/stany', async function (request, response) {
+    let kat = request.get("X-kategoria");
+    [rows, columns] = await con.execute('SELECT * FROM stany WHERE kategoria_id = ?;', [kat.toString()]);
+    let sta = [];
+    for (let i in rows) {
+      sta.push(rows[i]['stan_nazwa']);
+    }
+    response.json({stany: sta});
+    response.end();
+  });
+
+  app.post('/sprzet_panel/dodaj/auth', upload.single('zdjecie'), function (request, response) {
+    let body = request.body;
+
+    let kat = body['kat_id'];
+    let lok = body['lok_id'];
+    let wla = body['wla_id'];
+    let uzy = body['uzy_id'];
+    let sts = body['sts_id'];
+    let stn = body['stn_id'];
+    let naz = body['nazwa'];
+    let ilo = body['ilosc'];
+    let opis = body['opis'];
+
+    if(!request.file) {
+      let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
+          '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
+          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
+      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis]);
+    }
+    else {
+      let zdj = '/images/' + request.file.filename;
+      let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id,\n' +
+          '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
+          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
+      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
+    }
+    response.redirect('/sprzet_panel');
   });
 
   app.get('/sprzet_panel/modyfikuj', function (request, response) {
@@ -460,7 +610,3 @@ main();
 // create_user('admin', 'admin', 1);
 // create_user('twoj_stary', '2137', 0);
 // }, 1000);
-
-//console.log(build_table([{"username":"admin","password_hash":2023948189175633,"czy_admin":1,"data_wygasniecia":null},{"username":"twoj_stary","password_hash":488183148373,"czy_admin":0,"data_wygasniecia":null}]));
-
-//kms();
