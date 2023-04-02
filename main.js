@@ -103,11 +103,21 @@ function build_table_users(ob) {
   return table;
 }
 
+function build_sprzet_select_form(rows, form_id) {
+  let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}">`;
+  for(let option of rows) {
+    values = Object.values(option);
+    form += `<input type="checkbox" id="${form_id}_${values[1]}">`;
+    form += `<label for="${form_id}_label_${values[1]}">${values[0]}</label><br>` //perhaps there is a cleaner way of doing it?
+  }
+  return form + '</form>';
+}
+
 function build_thead_sprzet(ob) {
 
   let table = '<thead>';
   for (let i in ob[0]) {
-    table += '<th>' + i.toString() + '</th>';
+    table += `<th>${i}</th>`;
   }
   table += '</thead>';
 
@@ -120,8 +130,8 @@ function build_table_sprzet(ob) {
     table += '<tr>';
     for(let j in ob[i]) {
       table += '<td>';
-      if(j == 'Zdjęcie')
-        table += '<img src = "' + ob[i][j] + '" alt="brak">';
+      if(j === 'Zdjęcie')
+        table += `<img src="${ob[i][j]}" alt="brak">`;
       else
         table += ob[i][j];
       table += '</td>';
@@ -341,7 +351,6 @@ async function main() {
 
   });
 
-
   app.get('/panel/zmien_haslo', function(request, response) {
     if(request.session.loggedin)
       response.sendFile(__dirname + '/login/zmien_haslo.html');
@@ -392,7 +401,7 @@ async function main() {
       return;
     }
     let username = request.body.username;
-    if (username == request.session.username) {
+    if (username === request.session.username) {
       response.send("lol nie możesz usunąć własnego konta");
       return;
     }
@@ -432,8 +441,6 @@ async function main() {
     }
   });
 
-
-
   app.get('/sprzet_panel', function (request, response) {
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -442,74 +449,54 @@ async function main() {
     response.sendFile(__dirname + '/user_panel/sprzet_panel/sprzet_panel.html');
   });
 
-
   app.get('/sprzet_panel/wyswietl', async function (request, response) {
 
     if (!request.session.loggedin) {
-      response.sendFile(__dirname + "/login/oszust.html");
+      response.sendFile(__dirname + '/login/oszust.html');
+      return;
+    }
+    response.sendFile(__dirname + '/user_panel/sprzet_panel/wyswietl_sprzet.html');
+
+  });
+
+  app.get('/sprzet_panel/wyswietl/filters', async function (request, response) {
+    if (!request.session.loggedin) {
+      response.sendFile(__dirname + '/login/oszust.html');
       return;
     }
 
-    let sql = 'SELECT\n' +
-        '    sprzet.nazwa as Nazwa,\n' +
-        '    sprzet.ilosc as Ilość,\n' +
-        '    sprzet.zdjecie_path as Zdjęcie,\n' +
-        '    kat.kategoria_nazwa as Kategoria,\n' +
-        '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
-        '    wla.podmiot_nazwa as Właściciel,\n' +
-        '    uzy.podmiot_nazwa as Użytkownik,\n' +
-        '    stat.status_nazwa as Status,\n' +
-        '    stan.stan_nazwa as Stan,\n' +
-        '    sprzet.opis as Opis\n' +
-        '\n' +
-        'FROM sprzet\n' +
-        'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
-        'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
-        'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
-        'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
-        'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
-        'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
-        // 'WHERE sprzet.przedmiot_id >= 1 AND sprzet.przedmiot_id < 51';
-        ';';
-    let [rows, columns] = await con.execute(sql);
-    const templateStr = fs.readFileSync(__dirname + '/user_panel/sprzet_panel/wyswietl_sprzet.html').toString('utf8');
-    const template = handlebars.compile(templateStr, {noEscape: true});
-    const contents = template({tablebody: (build_thead_sprzet(rows) + build_table_sprzet(rows))});
-    response.send(contents);
-    response.end();
+    let query, rows, columns, form_name, result = {};
+
+    form_name = 'kategoria';
+    query = 'SELECT kategoria_nazwa, kategoria_id FROM kategorie;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    // stan
+
+    form_name = 'lokalizacja';
+    query = 'SELECT lokalizacja_nazwa, lokalizacja_id FROM lokalizacje;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    form_name = 'status';
+    query = 'SELECT status_nazwa, status_id FROM statusy;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    form_name = 'wlasciciel';
+    query = 'SELECT podmiot_nazwa, podmiot_id FROM podmioty;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+    form_name = 'uzytkownik';
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    response.send(result);
   });
 
-  // app.post('/wincyj', async function(request, response) {
-  //   if (!request.session.loggedin) {
-  //     response.sendFile(__dirname + "/login/oszust.html");
-  //     return;
-  //   }
-  //   //let gdzie = request.find('X-zacznij_od');
-  //   let sql = 'SELECT\n' +
-  //       '    sprzet.nazwa as Nazwa,\n' +
-  //       '    sprzet.ilosc as Ilość,\n' +
-  //       '    sprzet.zdjecie as Zdjęcie,\n' +
-  //       '    kat.kategoria_nazwa as Kategoria,\n' +
-  //       '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
-  //       '    wla.podmiot_nazwa as Właściciel,\n' +
-  //       '    uzy.podmiot_nazwa as Użytkownik,\n' +
-  //       '    stat.status_nazwa as Status,\n' +
-  //       '    stan.stan_nazwa as Stan,\n' +
-  //       '    sprzet.opis as Opis\n' +
-  //       '\n' +
-  //       'FROM sprzet\n' +
-  //       'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
-  //       'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
-  //       'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
-  //       'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
-  //       'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
-  //       'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
-  //       // 'WHERE sprzet.przedmiot_id >= ' + gdzie + ' AND sprzet.przedmiot_id < ' + (parseInt(gdzie) + 50).toString();
-  //       ';';
-  //   let [rows, columns] = await con.execute(sql);
-  //   response.json({more_rows: build_table_sprzet(rows)});
-  //   response.end();
-  // });
+
+
+
 
   app.get('/sprzet_panel/dodaj', function (request, response) {
     if (!(request.session.loggedin)) {
@@ -620,3 +607,25 @@ main();
 // create_user('admin', 'admin', 1);
 // create_user('twoj_stary', '2137', 0);
 // }, 1000);
+
+// let sql = 'SELECT\n' +
+//     '    sprzet.nazwa as Nazwa,\n' +
+//     '    sprzet.ilosc as Ilość,\n' +
+//     '    sprzet.zdjecie_path as Zdjęcie,\n' +
+//     '    kat.kategoria_nazwa as Kategoria,\n' +
+//     '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
+//     '    wla.podmiot_nazwa as Właściciel,\n' +
+//     '    uzy.podmiot_nazwa as Użytkownik,\n' +
+//     '    stat.status_nazwa as Status,\n' +
+//     '    stan.stan_nazwa as Stan,\n' +
+//     '    sprzet.opis as Opis\n' +
+//     '\n' +
+//     'FROM sprzet\n' +
+//     'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
+//     'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
+//     'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
+//     'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
+//     'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
+//     'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
+//     // 'WHERE sprzet.przedmiot_id >= 1 AND sprzet.przedmiot_id < 51';
+//     ';';
