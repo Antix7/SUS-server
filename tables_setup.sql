@@ -1,8 +1,8 @@
 DELETE FROM lokalizacje;
 DELETE FROM statusy;
 DELETE FROM podmioty;
-DELETE FROM kategorie;
 DELETE FROM stany;
+DELETE FROM kategorie;
 
 INSERT INTO lokalizacje VALUES (1, 'Zielonka');
 INSERT INTO lokalizacje VALUES (2, '1 Sierpnia');
@@ -59,7 +59,7 @@ INSERT INTO kategorie VALUES (7, 'Dokumenty');
 INSERT INTO stany VALUES (7, 1, 'Dobry');
 INSERT INTO stany VALUES (7, 2, 'Zły');
 
-INSERT INTO kategorie VALUES (8, 'Ubrania');
+INSERT INTO kategorie VALUES (8, 'Tekstylia');
 INSERT INTO stany VALUES (8, 1, 'Nowy');
 INSERT INTO stany VALUES (8, 2, 'Używany');
 
