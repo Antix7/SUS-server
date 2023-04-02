@@ -9,6 +9,10 @@
             display: inline-block;
             border-right-style: solid;
         }
+        th, td {
+            border: 1px solid black;
+            padding: 3px;
+        }
     </style>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
@@ -36,6 +40,7 @@
                     wlasciciel: $("#wlasciciel_form").serializeArray(),
                     uzytkownik: $("#uzytkownik_form").serializeArray()
                 };
+                console.log(form_data);
                 $.post(
                     "/sprzet_panel/wyswietl/auth",
                     form_data,
@@ -65,7 +70,7 @@
     <div id="status"></div>
     <div id="nazwa">
         <form id="nazwa_form">
-            <input type="text" placeholder="Nazwa">
+            <input type="text" name="nazwa" placeholder="Nazwa">
         </form>
     </div>
     <div id="wlasciciel"></div>

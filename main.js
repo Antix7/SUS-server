@@ -107,8 +107,8 @@ function build_sprzet_select_form(rows, form_id) {
   let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}_form">`;
   for(let option of rows) {
     values = Object.values(option);
-    form += `<input type="checkbox" id="${form_id}_${values[1]}">`;
-    form += `<label for="${form_id}_label_${values[1]}">${values[0]}</label><br>` //perhaps there is a cleaner way of doing it?
+    form += `<input type="checkbox" name="${form_id}_${values[1]}">`;
+    form += `<label for="${form_id}_${values[1]}">${values[0]}</label><br>` //perhaps there is a cleaner way of doing it?
   }
   return form + '</form>';
 }
@@ -130,7 +130,7 @@ function build_table_sprzet(ob) {
     table += '<tr>';
     for(let j in ob[i]) {
       table += '<td>';
-      if(j === 'Zdjęcie')
+      if(j === 'zdjecie')
         table += `<img src="${ob[i][j]}" alt="brak">`;
       else
         table += ob[i][j];
@@ -495,7 +495,92 @@ async function main() {
   });
 
   app.post('/sprzet_panel/wyswietl/auth', async function (request, response){
+    if (!request.session.loggedin) {
+      response.sendFile(__dirname + '/login/oszust.html');
+      return;
+    }
 
+    let query = `SELECT
+    sprzet.nazwa AS nazwa,
+    sprzet.ilosc AS ilosc,
+    statusy.status_nazwa AS status,
+    kat.kategoria_nazwa AS kategoria,
+    stany.stan_nazwa AS stan,
+    lok.lokalizacja_nazwa AS lokalizacja,
+    wla.podmiot_nazwa AS wlasciciel,
+    uzy.podmiot_nazwa AS uzytkownik,
+    sprzet.opis AS opis,
+    sprzet.zdjecie_path AS zdjecie
+    FROM sprzet
+    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+    JOIN statusy ON sprzet.status_id = statusy.status_id
+    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+    AND sprzet.stan_id = stany.stan_id
+    `;
+
+    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
+    let clauses = []; // array to store joined conditions form before, later to be joined with AND
+
+    if(request.body.kategoria) {
+      for(let box of request.body.kategoria) {
+        conditions.push(`sprzet.kategoria_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    // stany
+
+    if(request.body.lokalizacja) {
+      for(let box of request.body.lokalizacja) {
+        conditions.push(`sprzet.lokalizacja_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body.status) {
+      for(let box of request.body.status) {
+        conditions.push(`sprzet.status_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    // nazwa
+    console.log(request.body.nazwa);
+
+    if(request.body.wlasciciel) {
+      for(let box of request.body.wlasciciel) {
+        conditions.push(`wla.podmiot_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body.uzytkownik) {
+      for(let box of request.body.uzytkownik) {
+        conditions.push(`uzy.podmiot_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    let clause = clauses.join(' AND ');
+    if(clause) {
+      query += 'WHERE' + clause;
+    }
+    query += ';';
+
+    console.log(clause);
+
+
+
+    let [rows, columns] = await con.execute(query);
+    response.send(build_thead_sprzet(rows)+build_table_sprzet(rows));
 
 
 
@@ -610,25 +695,3 @@ main();
 // create_user('admin', 'admin', 1);
 // create_user('twoj_stary', '2137', 0);
 // }, 1000);
-
-// let sql = 'SELECT\n' +
-//     '    sprzet.nazwa as Nazwa,\n' +
-//     '    sprzet.ilosc as Ilość,\n' +
-//     '    sprzet.zdjecie_path as Zdjęcie,\n' +
-//     '    kat.kategoria_nazwa as Kategoria,\n' +
-//     '    lok.lokalizacja_nazwa as Lokalizacja,\n' +
-//     '    wla.podmiot_nazwa as Właściciel,\n' +
-//     '    uzy.podmiot_nazwa as Użytkownik,\n' +
-//     '    stat.status_nazwa as Status,\n' +
-//     '    stan.stan_nazwa as Stan,\n' +
-//     '    sprzet.opis as Opis\n' +
-//     '\n' +
-//     'FROM sprzet\n' +
-//     'JOIN lokalizacje lok ON lok.lokalizacja_id = sprzet.lokalizacja_id\n' +
-//     'JOIN kategorie kat on kat.kategoria_id = sprzet.kategoria_id\n' +
-//     'JOIN podmioty wla on wla.podmiot_id = sprzet.wlasciciel_id\n' +
-//     'JOIN statusy stat on stat.status_id = sprzet.status_id\n' +
-//     'JOIN stany stan on stan.kategoria_id = sprzet.kategoria_id AND stan.stan_id = sprzet.stan_id\n' +
-//     'JOIN podmioty uzy on uzy.podmiot_id = sprzet.uzytkownik_id\n' +
-//     // 'WHERE sprzet.przedmiot_id >= 1 AND sprzet.przedmiot_id < 51';
-//     ';';
