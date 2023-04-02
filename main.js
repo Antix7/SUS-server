@@ -104,7 +104,7 @@ function build_table_users(ob) {
 }
 
 function build_sprzet_select_form(rows, form_id) {
-  let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}">`;
+  let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}_form">`;
   for(let option of rows) {
     values = Object.values(option);
     form += `<input type="checkbox" id="${form_id}_${values[1]}">`;
@@ -494,9 +494,12 @@ async function main() {
     response.send(result);
   });
 
+  app.post('/sprzet_panel/wyswietl/auth', async function (request, response){
 
 
 
+
+  });
 
   app.get('/sprzet_panel/dodaj', function (request, response) {
     if (!(request.session.loggedin)) {

@@ -26,6 +26,25 @@
                     $("#uzytkownik").html(data.uzytkownik);
                 });
 
+            $("#submit_btn").click(function() {
+                let form_data = {
+                    kategoria: $("#kategoria_form").serializeArray(),
+                    stan: $("#stan_form").serializeArray(),
+                    lokalizacja: $("#lokalizacja_form").serializeArray(),
+                    status: $("#status_form").serializeArray(),
+                    nazwa: $("#nazwa_form").serializeArray(),
+                    wlasciciel: $("#wlasciciel_form").serializeArray(),
+                    uzytkownik: $("#uzytkownik_form").serializeArray()
+                };
+                $.post(
+                    "/sprzet_panel/wyswietl/auth",
+                    form_data,
+                    function(data, status) {
+                        $("#sprzet_div").html(data);
+                    }
+                );
+            });
+
 
         });
     </script>
@@ -53,6 +72,10 @@
     <div id="uzytkownik"></div>
 
 </div>
+
+<button id="submit_btn">Wyświetl sprzęt</button>
+
+<div id="sprzet_div"></div>
 
 </body>
 </html>
