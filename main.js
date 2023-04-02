@@ -472,7 +472,7 @@ async function main() {
     [rows, columns] = await con.execute(query);
     result[form_name] = build_sprzet_select_form(rows, form_name);
 
-    // stan
+    // TODO wyswietlanie stanu
 
     form_name = 'lokalizacja';
     query = 'SELECT lokalizacja_nazwa, lokalizacja_id FROM lokalizacje;';
@@ -500,6 +500,7 @@ async function main() {
       return;
     }
 
+    // this is the basic query structure to which a clause will be added
     let query = `SELECT
     sprzet.nazwa AS nazwa,
     sprzet.ilosc AS ilosc,
@@ -524,6 +525,8 @@ async function main() {
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
     let clauses = []; // array to store joined conditions form before, later to be joined with AND
 
+    // we unfortunately need to process each column separately TODO find a better way of doing this
+
     if(request.body.kategoria) {
       for(let box of request.body.kategoria) {
         conditions.push(`sprzet.kategoria_id = ${box.name.split('_').at(-1)}`);
@@ -532,7 +535,7 @@ async function main() {
       conditions = [];
     }
 
-    // stany
+    // TODO filtrowanie stanu
 
     if(request.body.lokalizacja) {
       for(let box of request.body.lokalizacja) {
@@ -550,7 +553,7 @@ async function main() {
       conditions = [];
     }
 
-    // nazwa
+    // TODO filtrowanie nazwy
     console.log(request.body.nazwa);
 
     if(request.body.wlasciciel) {
@@ -577,12 +580,8 @@ async function main() {
 
     console.log(clause);
 
-
-
     let [rows, columns] = await con.execute(query);
     response.send(build_thead_sprzet(rows)+build_table_sprzet(rows));
-
-
 
   });
 
