@@ -9,6 +9,8 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 
 let con;
+
+ // configuration of nodemailer module used for sending emails
 const sus_email_address = 'noreply.sus@gmail.com';
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
@@ -21,6 +23,7 @@ let mail_client = nodemailer.createTransport({
   }
 });
 
+ // configuration of multer module used for saving images
 const storage = multer.diskStorage({
   destination: (req, file, callBack) => {
     callBack(null, './public/images/')     // './public/images/' directory name where save the file
@@ -28,39 +31,37 @@ const storage = multer.diskStorage({
   filename: (req, file, callBack) => {
     callBack(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
   }
-})
-
+});
 const upload = multer({
   storage: storage
 });
 
+ // this function returns a hex representation of a sha256 hash of the password parameter
 function create_hash(password) {
-
   return crypto.createHash('sha256').update(password).digest('hex');
-
 }
 
+ // this function adds a specified user to the database
+ // used solely for debugging
 async function create_user(username, password, czy_admin) {
-
   let password_hash = create_hash(password);
   console.log(password_hash);
   let query = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
   await con.execute(query, [username, password_hash, czy_admin]);
-
 }
 
+ // this function initialises the con variable for sql queries
 async function connect_to_database(host, user, password, database) {
-
   con = await mysql_promise.createConnection({
     host: host,
     user: user,
     password: password,
     database: database
   });
-
   return 0;
 }
 
+ // this function generates a random string for account activation
 function generate_random_string(length) {
   let name = '';
   for(let i = 0; i < length; i++) {
@@ -78,6 +79,10 @@ function generate_random_string(length) {
   return name;
 }
 
+ // the three functions below use the for ... in .. loops, which iterate through the properties of an object
+
+ // this function returns a string with an HTML table based on the object parameter
+ // used for user list in admin panel
 function build_table_users(ob) {
   let table = '<table><tr>';
   for(let i in ob[0]) {
@@ -103,6 +108,10 @@ function build_table_users(ob) {
   return table;
 }
 
+ // these two functions together return a string with an HTML table based on the object parameter
+ // the first one is for the headers, the second one for the body
+ // it's made this way so it's easier if we load the data in chunks, not all at once
+ // used for 'sprzet' table
 function build_thead_sprzet(ob) {
 
   let table = '<thead>';
@@ -138,10 +147,7 @@ async function main() {
     return -1;
   }
 
-  // create_user('admin', 'admin', 1);
-  // create_user('twoj_stary', '2137', 0);
-  // return 0;
-
+  // initialising the express app
   const app = express();
   app.use(session({
     secret: 'joe mama',
@@ -151,12 +157,13 @@ async function main() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
-  //app.use(multer().none());
 
+  // homepage
   app.get('/', function(request, response) {
     response.sendFile(path.join(__dirname + '/login/index.html'));
   });
 
+  // logging out
   app.get('/wyloguj', function(request, response) {
     request.session.loggedin = false;
     request.session.isadmin = false;
@@ -164,6 +171,7 @@ async function main() {
     response.redirect('/');
   })
 
+  // checking whether the login & password of the user are correct
   app.post('/auth', async function(request, response) {
 
     let username = request.body.nick;
@@ -192,12 +200,13 @@ async function main() {
 
     request.session.loggedin = true;
     request.session.username = username;
-    request.session.isadmin = !!rows[0].czy_admin;
+    request.session.isadmin = !!rows[0].czy_admin;  // !! to make sure it is a bool
     response.redirect('/panel');
     response.end();
 
   });
 
+  // main app panel
   app.get('/panel', function(request, response) {
     if(request.session.loggedin) {
       if(request.session.isadmin)
@@ -209,6 +218,8 @@ async function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   })
 
+  // page for generating keys for new users & adding them to the database
+  // only accessible for administrators
   app.get('/panel/generuj_klucz', function (request, response){
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + '/login/oszust.html');
@@ -217,6 +228,7 @@ async function main() {
     response.sendFile(__dirname + '/admin_panel/generuj_klucz.html');
   });
 
+  // sending the admin a randomly generated key for new user and adding the key to the database
   app.post('/panel/generuj_klucz/auth', async function (request, response) {
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + '/login/oszust.html');
@@ -237,10 +249,12 @@ async function main() {
 
   });
 
+  // page for account activation
   app.get('/aktywuj_konto', function (request, response){
     response.sendFile(__dirname + '/login/aktywuj_konto.html');
   });
 
+  // activating the account of a new user
   app.post('/aktywuj_konto/auth', async function (request, response) {
 
     let key = request.body.key;
@@ -267,10 +281,14 @@ async function main() {
 
   });
 
+  // page for initialising the resetting of one's password
   app.get('/resetuj_haslo', function (request, response){
     response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo.html');
   });
 
+  // sending the reset code via e-mail
+  // the reset code is password hash since it is already in the database and knowing it is not a security concern
+  // (as long as it is not a frequently used password :skull:)
   app.post('/resetuj_haslo/get_code', async function (request, response) {
     let username = request.body.username;
     let query = 'SELECT adres_email, password_hash FROM users WHERE username = ?;';
@@ -300,6 +318,7 @@ async function main() {
 
   });
 
+  // checking the code and redirecting to the reset form if correct
   app.post('/resetuj_haslo/submit_code', async function(request, response) {
     let username = request.body.username;
     let code = request.body.code;
@@ -314,6 +333,7 @@ async function main() {
 
   });
 
+  // actual page for resetting one's password
   app.get('/resetuj_haslo_form', function(request, response) {
     if(!request.session.username) {
       response.sendFile(__dirname + '/login/oszust.html');
@@ -322,6 +342,7 @@ async function main() {
     response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo_form.html');
   });
 
+  // changing one's password from the reset form
   app.post('/resetuj_haslo_form/auth', async function(request, response) {
     let username = request.session.username;
     if(!username) {
@@ -341,7 +362,7 @@ async function main() {
 
   });
 
-
+  // page for changing own password from the main panel
   app.get('/panel/zmien_haslo', function(request, response) {
     if(request.session.loggedin)
       response.sendFile(__dirname + '/login/zmien_haslo.html');
@@ -349,6 +370,7 @@ async function main() {
       response.sendFile(__dirname + '/login/oszust.html');
   });
 
+  // changing own password from the main panel
   app.post('/panel/zmien_haslo/auth', async function (request, response) {
     if (!(request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -371,6 +393,8 @@ async function main() {
 
   });
 
+  // page containing the list of all the users
+  // only accessible for administrators
   app.get('/panel/uzytkownicy', async function (request, response) {
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -386,6 +410,7 @@ async function main() {
     response.end();
   });
 
+  // deleting a user from the list
   app.post('/panel/uzytkownicy/usun', async function (request, response) {
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -401,6 +426,8 @@ async function main() {
     response.redirect('/panel/uzytkownicy');
   });
 
+  // page for performing special SQL queries
+  // only accessible for administrators
   app.get('/panel/query', function (request, response) {
     if(!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -409,6 +436,8 @@ async function main() {
     response.sendFile(__dirname + '/admin_panel/sql_query.html');
   });
 
+  // performing the special SQL query
+  // it's worth noting that it is forbidden to use the DROP or DELETE clauses
   app.post('/panel/query/perform', async function (request, response) {
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -432,8 +461,7 @@ async function main() {
     }
   });
 
-
-
+  // page with the panel for accessing the main database
   app.get('/sprzet_panel', function (request, response) {
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -442,7 +470,7 @@ async function main() {
     response.sendFile(__dirname + '/user_panel/sprzet_panel/sprzet_panel.html');
   });
 
-
+  // page for displaying the main database
   app.get('/sprzet_panel/wyswietl', async function (request, response) {
 
     if (!request.session.loggedin) {
@@ -479,6 +507,7 @@ async function main() {
     response.end();
   });
 
+  // TODO not loading the whole table at once
   // app.post('/wincyj', async function(request, response) {
   //   if (!request.session.loggedin) {
   //     response.sendFile(__dirname + "/login/oszust.html");
@@ -511,6 +540,7 @@ async function main() {
   //   response.end();
   // });
 
+  // page for adding new rows to the 'sprzet' table
   app.get('/sprzet_panel/dodaj', function (request, response) {
     if (!(request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -519,6 +549,7 @@ async function main() {
     response.sendFile(__dirname + '/user_panel/sprzet_panel/dodaj_sprzet.html');
   });
 
+  // sending the user data necessary for the form for adding new rows
   app.post('/sprzet_panel/dodaj/dropdowns', async function (request, response) {
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -549,11 +580,13 @@ async function main() {
       sta.push(rows[i]['status_nazwa']);
     }
 
-
     response.json({podmioty: pod, statusy: sta, lokalizacje: lok, kategorie: kat});
     response.end();
   });
 
+  // sending the user more necessary data for the form for adding new rows
+  // to be precise: it sends states that can be chosen for a new object;
+  //                it is separate because it depends on the chosen category
   app.post('/sprzet_panel/dodaj/stany', async function (request, response) {
     if (!(request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -569,6 +602,7 @@ async function main() {
     response.end();
   });
 
+  // adding the new row to the database
   app.post('/sprzet_panel/dodaj/auth', upload.single('zdjecie'), function (request, response) {
     if (!(request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -586,6 +620,11 @@ async function main() {
     let ilo = body['ilosc'];
     let opis = body['opis'];
 
+    if(kat == '0' || lok == '0' || wla == '0' || uzy == '0' || sts == '0' || stn == '0' || ilo == '' || naz == ''){
+      response.json({"msg": "Niepoprawne dane"});
+      return
+    }
+
     if(!request.file) {
       let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
           '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
@@ -599,9 +638,10 @@ async function main() {
           'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
       con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
     }
-    response.redirect('/sprzet_panel');
+    response.json({'redirect':'/sprzet_panel'});
   });
 
+  // TODO 'sprzet' table modification
   app.get('/sprzet_panel/modyfikuj', function (request, response) {
     if (!request.session.loggedin) {
       response.sendFile(__dirname + "/login/oszust.html");
@@ -615,6 +655,8 @@ async function main() {
 
 
 main();
+
+ // the code below is used to add debug users to the database
 // connect_to_database("localhost", "sqluser", "imposter", "sus_database");
 // setTimeout(function() {
 // create_user('admin', 'admin', 1);
