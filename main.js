@@ -79,6 +79,8 @@ function generate_random_string(length) {
   return name;
 }
 
+ // the three functions below use the for ... in .. loops, which iterate through the properties of an object
+
  // this function returns a string with an HTML table based on the object parameter
  // used for user list in admin panel
 function build_table_users(ob) {
@@ -106,8 +108,10 @@ function build_table_users(ob) {
   return table;
 }
 
-// these two functions together return a string with an HTML table based on the object parameter
-// used for 'sprzet' table
+ // these two functions together return a string with an HTML table based on the object parameter
+ // the first one is for the headers, the second one for the body
+ // it's made this way so it's easier if we load the data in chunks, not all at once
+ // used for 'sprzet' table
 function build_thead_sprzet(ob) {
 
   let table = '<thead>';
