@@ -3,7 +3,7 @@ Amogus ඞ
 
 ## About the project 
 This project is being created by Antoni Klejman and Patryk Grabowski. Its main purpose is to document
-and have easy access to information about the contents of <a href="http://www.burza.yum.pl">Szczep Burza</a>'s (<a href="https://www.facebook.com/szczep151">Facebook</a> warehouses  
+and have easy access to information about the contents of <a href="http://www.burza.yum.pl">Szczep Burza</a>'s (<a href="https://www.facebook.com/szczep151">Facebook</a> ) warehouses  
 Before continuing, please <a href="https://www.facebook.com/profile.php?id=100078831583129"> leave a like </a>
 
 ## Setup
