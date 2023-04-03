@@ -620,6 +620,11 @@ async function main() {
     let ilo = body['ilosc'];
     let opis = body['opis'];
 
+    if(kat == '0' || lok == '0' || wla == '0' || uzy == '0' || sts == '0' || stn == '0' || ilo == '' || naz == ''){
+      response.json({"msg": "Niepoprawne dane"});
+      return
+    }
+
     if(!request.file) {
       let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
           '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
@@ -633,7 +638,7 @@ async function main() {
           'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
       con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
     }
-    response.redirect('/sprzet_panel');
+    response.json({'redirect':'/sprzet_panel'});
   });
 
   // TODO 'sprzet' table modification

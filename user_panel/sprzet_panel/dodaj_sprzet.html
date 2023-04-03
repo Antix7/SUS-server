@@ -52,6 +52,7 @@
     const statusSelect = document.getElementById("status");
     const stanSelect = document.getElementById("stan");
     const stanPrimary = document.getElementById("stan_primary");
+    const errorDiv = document.getElementById("error");
 
     function clearOptions(ob) {
         while(ob.children.length > 1) {
@@ -161,7 +162,12 @@
             contentType: false,
             processData: false,
             success: function (data) {
-                window.location.reload();
+                if(data.redirect) {
+                    window.location.href = data.redirect;
+                }
+                else {
+                    errorDiv.innerText = data.msg;
+                }
             },
             error: function () {
                 document.write("coś poszło nie tak, przepraszamy");
