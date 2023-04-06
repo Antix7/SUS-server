@@ -147,7 +147,6 @@ async function main() {
     console.log("Problem z bazą danych");
     return -1;
   }
-
   // create_user('admin', 'admin', 1);
   // create_user('twoj_stary', '2137', 0);
   // return 0;
