@@ -118,8 +118,8 @@
                 stanPrimary.innerText = "===";
                 data.stany.forEach(element => {
                     let option = document.createElement("option");
-                    option.value = element;
-                    option.innerText = element;
+                    option.value = element[1];
+                    option.innerText = element[0];
                     stanSelect.appendChild(option);
                 });
             });
@@ -141,7 +141,7 @@
         document.getElementById("sts_id").value = statusSelect.selectedIndex;
     })
     stanSelect.addEventListener("change", (e) => {
-        document.getElementById("stn_id").value = stanSelect.selectedIndex;
+        document.getElementById("stn_id").value = stanSelect.selectedOptions[0].value;
     })
 
 

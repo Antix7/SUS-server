@@ -657,10 +657,10 @@ async function main() {
       return;
     }
     let kat = request.get("X-kategoria");
-    [rows, columns] = await con.execute('SELECT * FROM stany WHERE kategoria_id = ?;', [kat.toString()]);
+    let [rows, columns] = await con.execute('SELECT * FROM stany WHERE kategoria_id = ?;', [kat.toString()]);
     let sta = [];
     for (let i in rows) {
-      sta.push(rows[i]['stan_nazwa']);
+      sta.push([rows[i]['stan_nazwa'], rows[i]['stan_id']]);
     }
     response.json({stany: sta});
     response.end();
