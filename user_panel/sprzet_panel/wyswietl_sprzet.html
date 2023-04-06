@@ -28,7 +28,22 @@
                     $("#status").html(data.status);
                     $("#wlasciciel").html(data.wlasciciel);
                     $("#uzytkownik").html(data.uzytkownik);
+
+                    // this has to be executed after the get request is completed,
+                    // otherwise #kategoria_form does not exist yet
+                    $("#kategoria_form").change(function() { // async?
+                        $.post(
+                            "/sprzet_panel/wyswietl/filters/stany",
+                            {kategoria: $("#kategoria_form").serializeArray()},
+                            function (data, status) {
+                                $("#stan").html(data);
+                            }
+                        );
+                    });
                 });
+
+
+
 
             $("#submit_btn").click(function() {
                 let form_data = {
@@ -40,11 +55,10 @@
                     wlasciciel: $("#wlasciciel_form").serializeArray(),
                     uzytkownik: $("#uzytkownik_form").serializeArray()
                 };
-                console.log(form_data);
                 $.post(
                     "/sprzet_panel/wyswietl/auth",
                     form_data,
-                    function(data, status) {
+                    function (data, status) {
                         $("#sprzet_div").html(data);
                     }
                 );
@@ -65,7 +79,7 @@
 <div id="outer">
 
     <div id="kategoria"></div>
-    <div id="stan"></div>
+    <div id="stan">Wybierz kategorię</div>
     <div id="lokalizacja"></div>
     <div id="status"></div>
     <div id="nazwa">

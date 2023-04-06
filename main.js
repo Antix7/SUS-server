@@ -460,7 +460,6 @@ async function main() {
 
   app.get('/sprzet_panel/wyswietl/filters', async function (request, response) {
     if (!request.session.loggedin) {
-      response.sendFile(__dirname + '/login/oszust.html');
       return;
     }
 
@@ -470,8 +469,6 @@ async function main() {
     query = 'SELECT kategoria_nazwa, kategoria_id FROM kategorie;';
     [rows, columns] = await con.execute(query);
     result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    // TODO wyswietlanie stanu
 
     form_name = 'lokalizacja';
     query = 'SELECT lokalizacja_nazwa, lokalizacja_id FROM lokalizacje;';
@@ -491,6 +488,28 @@ async function main() {
     result[form_name] = build_sprzet_select_form(rows, form_name);
 
     response.send(result);
+
+  });
+
+  app.post('/sprzet_panel/wyswietl/filters/stany', async function(request, response) {
+    if (!request.session.loggedin) {
+      return;
+    }
+
+    if(!request.body.kategoria) return;
+
+    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
+
+    for(let box of request.body.kategoria) {
+      conditions.push(`kategoria_id = ${box.name.split('_').at(-1)}`);
+    }
+
+    let query = `SELECT stan_nazwa, stan_id FROM stany WHERE ${conditions.join(' OR ')} 
+    GROUP BY stan_id, stan_nazwa ORDER BY stan_id`;
+    let [rows, columns] = await con.execute(query);
+
+    response.send(build_sprzet_select_form(rows, 'stan'));
+
   });
 
   app.post('/sprzet_panel/wyswietl/auth', async function (request, response){
@@ -524,7 +543,7 @@ async function main() {
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
     let clauses = []; // array to store joined conditions form before, later to be joined with AND
 
-    // we unfortunately need to process each column separately TODO find a better way of doing this
+    // we unfortunately need to process each column separately, TODO find a better way of doing this
 
     if(request.body.kategoria) {
       for(let box of request.body.kategoria) {
@@ -573,7 +592,7 @@ async function main() {
 
     let clause = clauses.join(' AND ');
     if(clause) {
-      query += 'WHERE' + clause;
+      query += ' WHERE ' + clause;
     }
     query += ';';
 
