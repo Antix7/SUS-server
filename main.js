@@ -553,7 +553,13 @@ async function main() {
       conditions = [];
     }
 
-    // TODO filtrowanie stanu
+    if(request.body.stan) {
+      for(let box of request.body.stan) {
+        conditions.push(`stany.stan_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
 
     if(request.body.lokalizacja) {
       for(let box of request.body.lokalizacja) {
@@ -571,8 +577,9 @@ async function main() {
       conditions = [];
     }
 
-    // TODO filtrowanie nazwy
-    console.log(request.body.nazwa);
+    if(request.body.nazwa[0].value) {
+      clauses.push(`sprzet.nazwa LIKE '%${request.body.nazwa[0].value}%'`);
+    }
 
     if(request.body.wlasciciel) {
       for(let box of request.body.wlasciciel) {
@@ -595,8 +602,6 @@ async function main() {
       query += ' WHERE ' + clause;
     }
     query += ';';
-
-    console.log(clause);
 
     let [rows, columns] = await con.execute(query);
     response.send(build_thead_sprzet(rows)+build_table_sprzet(rows));
