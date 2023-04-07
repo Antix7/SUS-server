@@ -3,70 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <title>Wyświetlanie sprzętu</title>
+
     <style>
+        #outer > * {
+            display: inline-block;
+            border-right-style: solid;
+        }
         th, td {
             border: 1px solid black;
             padding: 3px;
         }
     </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+
+            $.get(
+                "/sprzet_panel/wyswietl/filters",
+                function(data, status) {
+                    $("#kategoria").html(data.kategoria);
+                    $("#stan").html(data.stan);
+                    $("#lokalizacja").html(data.lokalizacja);
+                    $("#status").html(data.status);
+                    $("#wlasciciel").html(data.wlasciciel);
+                    $("#uzytkownik").html(data.uzytkownik);
+
+                    // this has to be executed after the get request is completed,
+                    // otherwise #kategoria_form does not exist yet
+                    $("#kategoria_form").change(function() { // async?
+                        $.post(
+                            "/sprzet_panel/wyswietl/filters/stany",
+                            {kategoria: $("#kategoria_form").serializeArray()},
+                            function (data, status) {
+                                $("#stan").html(data);
+                            }
+                        );
+                    });
+                });
+
+
+
+
+            $("#submit_btn").click(function() {
+                let form_data = {
+                    kategoria: $("#kategoria_form").serializeArray(),
+                    stan: $("#stan_form").serializeArray(),
+                    lokalizacja: $("#lokalizacja_form").serializeArray(),
+                    status: $("#status_form").serializeArray(),
+                    nazwa: $("#nazwa_form").serializeArray(),
+                    wlasciciel: $("#wlasciciel_form").serializeArray(),
+                    uzytkownik: $("#uzytkownik_form").serializeArray()
+                };
+                $.post(
+                    "/sprzet_panel/wyswietl/auth",
+                    form_data,
+                    function (data, status) {
+                        $("#sprzet_div").html(data);
+                    }
+                );
+            });
+
+
+        });
+    </script>
+
 </head>
 <body>
-<table id = "tabelka">
-    {{tablebody}}
-</table>
-<!--<form id="myForm">-->
-<!--    <input type="hidden" id="start" name="start" value="51">-->
-<!--    <input type = "submit" value = "Załaduj dalej"></input>-->
-<!--</form>-->
-<br>
-<div id = "error"></div>
-<br>
-<form action = "/sprzet_panel" method = "get">
-    <input type = "submit" value = "Wróć"><br>
+
+<form action="/sprzet_panel" method="get">
+    <input type="submit" value="Wróć">
 </form>
 
-<script>
-    const form1 = document.getElementById("myForm");
-    const tabelka = document.getElementById("tabelka");
-    const errorDiv = document.getElementById("error");
 
-    // form1.addEventListener("submit", (e) => {
-    //     console.log("lool");
-    //     e.preventDefault();
-    //
-    //     const formData = new FormData(form1);
-    //     for (let key of formData.keys()) {
-    //         console.log(key);
-    //     }
-    //     for (let key of formData.values()) {
-    //         console.log(key);
-    //     }
-    //
-    //     fetch("/wincyj", {
-    //         method: "POST",
-    //         headers: {
-    //             "X-zacznij_od" : tabelka.rows.length
-    //         },
-    //         body: new FormData(form1)
-    //     })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             console.log(data.more_rows);
-    //             tabelka.innerHTML += data.more_rows;
-    //         })
-    //         .catch(error => {
-    //             errorDiv.innerText = "An error occurred. Please try again later.";
-    //         })
-    // });
-    // function delay(time) {
-    //     return new Promise(resolve => setTimeout(resolve, time));
-    // }
-    // window.onscroll = async function(ev) {
-    //     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-    //         form1.dispatchEvent(new Event("submit"));
-    //         await delay(1000);
-    //     }
-    // };
-</script>
+<div id="outer">
+
+    <div id="kategoria"></div>
+    <div id="stan">Wybierz kategorię</div>
+    <div id="lokalizacja"></div>
+    <div id="status"></div>
+    <div id="nazwa">
+        <form id="nazwa_form">
+            <input type="text" name="nazwa" placeholder="Nazwa">
+        </form>
+    </div>
+    <div id="wlasciciel"></div>
+    <div id="uzytkownik"></div>
+
+</div>
+
+<button id="submit_btn">Wyświetl sprzęt</button>
+
+<div id="sprzet_div"></div>
+
 </body>
 </html>
