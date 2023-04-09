@@ -13,6 +13,11 @@
             border: 1px solid black;
             padding: 3px;
         }
+        #delete {
+            position: fixed;
+            right: 0;
+            top:0;
+        }
     </style>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
@@ -64,12 +69,36 @@
                 );
             });
 
-
+            $('#delete').submit(function(e) {
+                e.preventDefault();
+                let toDelete = [];
+                $('.selectRow').each(function() {
+                    if(this.checked)
+                        toDelete.push($(this).val());
+                });
+                if(toDelete.length === 0)
+                    return 0;
+                $.post(
+                    "/sprzet_panel/wyswietl/usun",
+                    {'toDelete': toDelete},
+                    function(data, status) {
+                        $('.selectRow').each(function() {
+                            if(this.checked) {
+                                $(this).parent().parent().remove();
+                            }
+                        });
+                    }
+                )
+            });
         });
     </script>
 
 </head>
 <body>
+
+<form id="delete">
+    <input type="submit" value="usuń">
+</form>
 
 <form action="/sprzet_panel" method="get">
     <input type="submit" value="Wróć">
