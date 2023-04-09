@@ -151,6 +151,42 @@ function build_table_sprzet(ob) {
   return table;
 }
 
+
+function build_thead_sprzet_mod(ob) {
+
+  let table = '<thead>';
+  for (let i in ob[0]) {
+    if(i === "ID")
+      table += "<th>wybierz</th>";
+    else
+      table += `<th>${i}</th>`;
+  }
+  table += '</thead>';
+
+  return table;
+}
+function build_table_sprzet_mod(ob) {
+
+  let table = '';
+  for(let i in ob) {
+    table += '<tr>';
+    table += '<td><input type = "checkbox" class="selectRow" value = "' + ob[i]['ID'] + '"></td>';
+    for(let j in ob[i]) {
+      if(j === 'ID')
+        continue;
+      table += '<td>';
+      if(j === 'zdjecie')
+        table += `<img src="${ob[i][j]}" alt="brak">`;
+      else
+        table += ob[i][j];
+      table += '</td>';
+    }
+    table += '</tr>';
+  }
+
+  return table;
+}
+
 async function main() {
   if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
     console.log("Problem z bazą danych");
@@ -746,13 +782,176 @@ async function main() {
     response.json({'redirect':'/sprzet_panel'});
   });
 
-  // TODO 'sprzet' table modification
-  app.get('/sprzet_panel/modyfikuj', function (request, response) {
+  // page for modifying the main database
+  app.get('/sprzet_panel/modyfikuj', async function (request, response) {
+
     if (!request.session.loggedin) {
-      response.sendFile(__dirname + "/login/oszust.html");
+      response.sendFile(__dirname + '/login/oszust.html');
       return;
     }
     response.sendFile(__dirname + '/user_panel/sprzet_panel/modyfikuj_sprzet.html');
+
+  });
+
+  app.get('/sprzet_panel/modyfikuj/filters', async function (request, response) {
+    if (!request.session.loggedin) {
+      return;
+    }
+
+    let query, rows, columns, form_name, result = {};
+
+    form_name = 'kategoria';
+    query = 'SELECT kategoria_nazwa, kategoria_id FROM kategorie;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    form_name = 'lokalizacja';
+    query = 'SELECT lokalizacja_nazwa, lokalizacja_id FROM lokalizacje;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    form_name = 'status';
+    query = 'SELECT status_nazwa, status_id FROM statusy;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    form_name = 'wlasciciel';
+    query = 'SELECT podmiot_nazwa, podmiot_id FROM podmioty;';
+    [rows, columns] = await con.execute(query);
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+    form_name = 'uzytkownik';
+    result[form_name] = build_sprzet_select_form(rows, form_name);
+
+    response.send(result);
+
+  });
+
+  app.post('/sprzet_panel/modyfikuj/filters/stany', async function(request, response) {
+    if (!request.session.loggedin) {
+      return;
+    }
+
+    if(!request.body.kategoria) return;
+
+    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
+
+    for(let box of request.body.kategoria) {
+      conditions.push(`kategoria_id = ${box.name.split('_').at(-1)}`);
+    }
+
+    let query = `SELECT stan_nazwa, stan_id FROM stany WHERE ${conditions.join(' OR ')} 
+    GROUP BY stan_id, stan_nazwa ORDER BY stan_id`;
+    let [rows, columns] = await con.execute(query);
+
+    response.send(build_sprzet_select_form(rows, 'stan'));
+
+  });
+
+  app.post('/sprzet_panel/modyfikuj/auth', async function (request, response){
+    if (!request.session.loggedin) {
+      response.sendFile(__dirname + '/login/oszust.html');
+      return;
+    }
+
+    // this is the basic query structure to which a clause will be added
+    let query = `SELECT
+    sprzet.przedmiot_id AS ID,
+    sprzet.nazwa AS nazwa,
+    sprzet.ilosc AS ilosc,
+    statusy.status_nazwa AS status,
+    kat.kategoria_nazwa AS kategoria,
+    stany.stan_nazwa AS stan,
+    lok.lokalizacja_nazwa AS lokalizacja,
+    wla.podmiot_nazwa AS wlasciciel,
+    uzy.podmiot_nazwa AS uzytkownik,
+    sprzet.opis AS opis,
+    sprzet.zdjecie_path AS zdjecie
+    FROM sprzet
+    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+    JOIN statusy ON sprzet.status_id = statusy.status_id
+    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+    AND sprzet.stan_id = stany.stan_id
+    `;
+
+    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
+    let clauses = []; // array to store joined conditions form before, later to be joined with AND
+
+    // we unfortunately need to process each column separately, TODO find a better way of doing this
+
+    if(request.body.kategoria) {
+      for(let box of request.body.kategoria) {
+        conditions.push(`sprzet.kategoria_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body.stan) {
+      for(let box of request.body.stan) {
+        conditions.push(`stany.stan_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body.lokalizacja) {
+      for(let box of request.body.lokalizacja) {
+        conditions.push(`sprzet.lokalizacja_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body.status) {
+      for(let box of request.body.status) {
+        conditions.push(`sprzet.status_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body.nazwa[0].value) {
+      clauses.push(`sprzet.nazwa LIKE '%${request.body.nazwa[0].value}%'`);
+    }
+
+    if(request.body.wlasciciel) {
+      for(let box of request.body.wlasciciel) {
+        conditions.push(`wla.podmiot_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body.uzytkownik) {
+      for(let box of request.body.uzytkownik) {
+        conditions.push(`uzy.podmiot_id = ${box.name.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    let clause = clauses.join(' AND ');
+    if(clause) {
+      query += ' WHERE ' + clause;
+    }
+    query += ';';
+
+    let [rows, columns] = await con.execute(query);
+    response.send(build_thead_sprzet_mod(rows)+build_table_sprzet_mod(rows));
+
+  });
+  // TODO not loading the whole table at once
+
+  app.post('/sprzet_panel/modyfikuj/usun', function (request, response) {
+    let conditions = [];
+    request.body.toDelete.forEach((x) => {
+      conditions.push(`sprzet.przedmiot_id = ${x}`);
+    });
+    let query = `DELETE FROM sprzet WHERE ${conditions.join(' OR ')}`;
+    con.execute(query);
   });
 
   app.listen(3000, '0.0.0.0');
