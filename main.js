@@ -952,6 +952,7 @@ async function main() {
     });
     let query = `DELETE FROM sprzet WHERE ${conditions.join(' OR ')}`;
     con.execute(query);
+    response.end();
   });
 
   app.listen(3000, '0.0.0.0');

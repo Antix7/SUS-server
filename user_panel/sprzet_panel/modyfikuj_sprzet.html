@@ -73,16 +73,21 @@
                 e.preventDefault();
                 let toDelete = [];
                 $('.selectRow').each(function() {
-                    console.log($(this));
                     if(this.checked)
                         toDelete.push($(this).val());
                 });
-                console.log(toDelete);
                 if(toDelete.length === 0)
                     return 0;
                 $.post(
                     "/sprzet_panel/modyfikuj/usun",
-                    {'toDelete': toDelete}
+                    {'toDelete': toDelete},
+                    function(data, status) {
+                        $('.selectRow').each(function() {
+                            if(this.checked) {
+                                $(this).parent().parent().remove();
+                            }
+                        });
+                    }
                 )
             });
         });
