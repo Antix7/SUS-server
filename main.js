@@ -579,6 +579,7 @@ async function main() {
     JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
     JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
     AND sprzet.stan_id = stany.stan_id
+    WHERE sprzet.czy_usuniete = 0
     `;
 
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
@@ -655,7 +656,11 @@ async function main() {
     request.body.toDelete.forEach((x) => {
       conditions.push(`sprzet.przedmiot_id = ${x}`);
     });
-    let query = `DELETE FROM sprzet WHERE ${conditions.join(' OR ')}`;
+    let query = `UPDATE 
+    sus_database.sprzet
+    SET sprzet.czy_usuniete = 1 
+    WHERE ${conditions.join(' OR ')}
+    `;
     con.execute(query);
     response.end();
   });
