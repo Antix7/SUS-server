@@ -74,30 +74,30 @@
             addInfoForm.style.display = "block";
             data.kategorie.forEach(element => {
                 let option = document.createElement("option");
-                option.value = element;
-                option.innerText = element;
+                option.value = element[1];
+                option.innerText = element[0];
                 kategoriaSelect.appendChild(option);
             });
             data.lokalizacje.forEach(element => {
                 let option = document.createElement("option");
-                option.value = element;
-                option.innerText = element;
+                option.value = element[1];
+                option.innerText = element[0];
                 lokalizacjaSelect.appendChild(option);
             });
             data.podmioty.forEach(element => {
                 let option = document.createElement("option");
-                option.value = element;
-                option.innerText = element;
+                option.value = element[1];
+                option.innerText = element[0];
                 wlascicielSelect.appendChild(option);
                 let option2 = document.createElement("option");
-                option2.value = element;
-                option2.innerText = element;
+                option2.value = element[1];
+                option2.innerText = element[0];
                 uzytkownikSelect.appendChild(option2);
             });
             data.statusy.forEach(element => {
                 let option = document.createElement("option");
-                option.value = element;
-                option.innerText = element;
+                option.value = element[1];
+                option.innerText = element[0];
                 statusSelect.appendChild(option);
             });
         })
@@ -127,22 +127,22 @@
     })
 
     kategoriaSelect.addEventListener("change", (e) => {
-        document.getElementById("kat_id").value = kategoriaSelect.selectedIndex;
+        document.getElementById("kat_id").value = kategoriaSelect.value;
     })
     wlascicielSelect.addEventListener("change", (e) => {
-        document.getElementById("wla_id").value = wlascicielSelect.selectedIndex;
+        document.getElementById("wla_id").value = wlascicielSelect.value;
     })
     uzytkownikSelect.addEventListener("change", (e) => {
-        document.getElementById("uzy_id").value = uzytkownikSelect.selectedIndex;
+        document.getElementById("uzy_id").value = uzytkownikSelect.value;
     })
     lokalizacjaSelect.addEventListener("change", (e) => {
-        document.getElementById("lok_id").value = lokalizacjaSelect.selectedIndex;
+        document.getElementById("lok_id").value = lokalizacjaSelect.value;
     })
     statusSelect.addEventListener("change", (e) => {
-        document.getElementById("sts_id").value = statusSelect.selectedIndex;
+        document.getElementById("sts_id").value = statusSelect.value;
     })
     stanSelect.addEventListener("change", (e) => {
-        document.getElementById("stn_id").value = stanSelect.selectedOptions[0].value;
+        document.getElementById("stn_id").value = stanSelect.value;
     })
 
 
