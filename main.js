@@ -131,6 +131,7 @@ function build_thead_sprzet(ob) {
     else
       table += `<th>${i}</th>`;
   }
+  table += "<th>edytuj</th>";
   table += '</thead>';
 
   return table;
@@ -150,6 +151,7 @@ function build_table_sprzet(ob) {
         table += ob[i][j];
       table += '</td>';
     }
+    table += `<td> <form class="edytuj" id="edytuj-${ob[i]['ID']}"> <input type="submit" value="💀"> </form> </td>`;
     table += '</tr>';
   }
   return table;
@@ -764,6 +766,67 @@ async function main() {
       con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
     }
     response.json({'redirect':'/sprzet_panel'});
+  });
+
+  app.get('/sprzet_panel/edytuj', function(request, response) {
+    if(!request.query.id) {
+      response.redirect('/sprzet_panel/wyswietl');
+      return;
+    }
+    request.session.editid = request.query.id;
+    response.sendFile(__dirname + '/user_panel/sprzet_panel/edytuj_sprzet.html');
+  });
+
+  app.post('/sprzet_panel/edytuj/info', async function (request, response) {
+    let [rows, columns] = await con.execute(`SELECT *
+                                             FROM sus_database.sprzet
+                                             WHERE przedmiot_id = ${request.session.editid}`);
+    response.json({
+      kat: rows[0]['kategoria_id'],
+      lok: rows[0]['lokalizacja_id'],
+      wla: rows[0]['wlasciciel_id'],
+      uzy: rows[0]['uzytkownik_id'],
+      stn: rows[0]['stan_id'],
+      sts: rows[0]['status_id'],
+      nazwa: rows[0]['nazwa'],
+      ilosc: rows[0]['ilosc'],
+      opis: rows[0]['opis']});
+    response.end();
+  });
+
+  app.post('/sprzet_panel/edytuj/auth', upload.single('zdjecie'), function (request, response) {
+    let body = request.body;
+
+    let kat = body['kat_id'];
+    let lok = body['lok_id'];
+    let wla = body['wla_id'];
+    let uzy = body['uzy_id'];
+    let sts = body['sts_id'];
+    let stn = body['stn_id'];
+    let naz = body['nazwa'];
+    let ilo = body['ilosc'];
+    let opis = body['opis'];
+
+    if (kat == '0' || lok == '0' || wla == '0' || uzy == '0' || sts == '0' || stn == '0' || ilo == '' || naz == '') {
+      response.json({"msg": "Niepoprawne dane"});
+      return
+    }
+
+    if (!request.file) {
+      let sql = 'UPDATE sus_database.sprzet t\n' +
+          'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.wlasciciel_id = ?,\n' +
+          't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
+          'WHERE t.przedmiot_id = ?';
+      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, request.session.editid]);
+    } else {
+      let zdj = '/images/' + request.file.filename;
+      let sql = 'UPDATE sus_database.sprzet t\n' +
+          'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
+          't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
+          'WHERE t.przedmiot_id = ?';
+      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, request.session.editid]);
+    }
+    response.json({'redirect': '/sprzet_panel/wyswietl'});
   });
 
   app.listen(3000, '0.0.0.0');

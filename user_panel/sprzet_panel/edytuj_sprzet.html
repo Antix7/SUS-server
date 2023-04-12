@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pl-PL">
+<head>
+  <meta charset="UTF-8">
+  <title>Edytowanie sprzętu</title>
+  <style>
+    th, td {
+      border: 1px solid black;
+      padding: 3px;
+    }
+    #zdjecie {
+      display: none;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+<form enctype="multipart/form-data" id = "editInfo" action="/sprzet_panel/edytuj/auth" method="post">
+  <label for="nazwa">Nazwa</label><input type="text" id="nazwa" name="nazwa"><br>
+  <label for="ilosc">Ilość</label><input type="number" id="ilosc" name="ilosc"><br>
+  <label for="zdjecie">Zdjęcie</label><input type="file" id="zdjecie" name="zdjecie" accept="image/*">
+  <input type="button" id="zdjecieButton" value="Wybierz plik"><span id="zdjecieSpan"> [bez zmian] </span><br>
+  <label for="kategoria">Kategoria</label><select name="kategoria" id="kategoria">
+  <option value="-1" disabled selected>===</option>
+</select><input type="hidden" name="kat_id" id="kat_id" value="0"><br>
+  <label for="lokalizacja">Lokalizacja</label><select name="lokalizacja" id="lokalizacja">
+  <option value="-1" disabled selected>===</option>
+</select><input type="hidden" name="lok_id" id="lok_id" value="0"><br>
+  <label for="wlasciciel">Właściciel</label><select name="wlasciciel" id="wlasciciel">
+  <option value="-1" disabled selected>===</option>
+</select><input type="hidden" name="wla_id" id="wla_id" value="0"><br>
+  <label for="uzytkownik">Użytkownik</label><select name="uzytkownik" id="uzytkownik">
+  <option value="-1" disabled selected>===</option>
+</select><input type="hidden" name="uzy_id" id="uzy_id" value="0"><br>
+  <label for="status">Status</label><select name="status" id="status">
+  <option value="-1" disabled selected>===</option>
+</select><input type="hidden" name="sts_id" id="sts_id" value="0"><br>
+  <label for="stan">Stan</label><select name="stan" id="stan" disabled>
+  <option value="-1" id="stan_primary" disabled selected>Najpierw wybierz kategorię</option>
+</select><input type="hidden" name="stn_id" id="stn_id" value="0"><br>
+  <label for="opis">Dodatkowy opis</label><input type="text" id="opis" name="opis"><br>
+  <input type = "button" id="submit_btn" value="Wyślij"><br>
+</form>
+<div id = "error"></div>
+<br>
+<form action = "/sprzet_panel/wyswietl" method = "get">
+  <input type = "submit" value = "Wróć"><br>
+</form>
+
+<script>
+  $(document).ready(function() {
+    $('#zdjecieButton').click(function() {
+      $('#zdjecie').click();
+    });
+    $("#zdjecie").change(function() {
+      let filename = this.files[0].name;
+      console.log(filename);
+      $('#zdjecieSpan').text(filename);
+    });
+
+    const editInfoForm = document.getElementById("editInfo");
+    const kategoriaSelect = document.getElementById("kategoria");
+    const lokalizacjaSelect = document.getElementById("lokalizacja");
+    const wlascicielSelect = document.getElementById("wlasciciel");
+    const uzytkownikSelect = document.getElementById("uzytkownik");
+    const statusSelect = document.getElementById("status");
+    const stanSelect = document.getElementById("stan");
+    const stanPrimary = document.getElementById("stan_primary");
+    const errorDiv = document.getElementById("error");
+
+    function clearOptions(ob) {
+      while (ob.children.length > 1) {
+        ob.children.item(1).remove();
+      }
+    }
+
+
+    fetch('/sprzet_panel/dodaj/dropdowns', {
+      method: "POST"
+    })
+        .then(response => response.json())
+        .then(data => {
+          console.log(1);
+          clearOptions(kategoriaSelect);
+          clearOptions(lokalizacjaSelect);
+          clearOptions(wlascicielSelect);
+          clearOptions(uzytkownikSelect);
+          clearOptions(statusSelect);
+          editInfoForm.style.display = "block";
+          data.kategorie.forEach(element => {
+            let option = document.createElement("option");
+            option.value = element[1];
+            option.innerText = element[0];
+            kategoriaSelect.appendChild(option);
+          });
+          data.lokalizacje.forEach(element => {
+            let option = document.createElement("option");
+            option.value = element[1];
+            option.innerText = element[0];
+            lokalizacjaSelect.appendChild(option);
+          });
+          data.podmioty.forEach(element => {
+            let option = document.createElement("option");
+            option.value = element[1];
+            option.innerText = element[0];
+            wlascicielSelect.appendChild(option);
+            let option2 = document.createElement("option");
+            option2.value = element[1];
+            option2.innerText = element[0];
+            uzytkownikSelect.appendChild(option2);
+          });
+          data.statusy.forEach(element => {
+            let option = document.createElement("option");
+            option.value = element[1];
+            option.innerText = element[0];
+            statusSelect.appendChild(option);
+          });
+
+
+          $.post(
+              "/sprzet_panel/edytuj/info",
+              function (data, status) {
+                $('#kategoria').val(data['kat']).change();
+                $('#lokalizacja').val(data['lok']).change();
+                $('#uzytkownik').val(data['uzy']).change();
+                $('#wlasciciel').val(data['wla']).change();
+                $('#status').val(data['sts']).change();
+                $('#nazwa').val(data['nazwa']).change();
+                $('#ilosc').val(data['ilosc']).change();
+                $('#opis').val(data['opis']).change();
+
+                fetch('/sprzet_panel/dodaj/stany', {
+                  method: "POST",
+                  headers: {
+                    "X-kategoria": data['kat'],
+                  }
+                })
+                    .then(response => response.json())
+                    .then(data2 => {
+                      stanSelect.disabled = false;
+                      stanPrimary.innerText = "===";
+                      data2.stany.forEach(element => {
+                        let option = document.createElement("option");
+                        option.value = element[1];
+                        option.innerText = element[0];
+                        stanSelect.appendChild(option);
+                      });
+                      $('#stan').val(data['stn']).change();
+                    });
+
+              }
+          );
+        })
+
+
+    kategoriaSelect.addEventListener("change", (e) => {
+      e.preventDefault();
+      let kat = (kategoriaSelect.value);
+      clearOptions(stanSelect);
+      fetch('/sprzet_panel/dodaj/stany', {
+        method: "POST",
+        headers: {
+          "X-kategoria": kat,
+        }
+      })
+              .then(response => response.json())
+              .then(data => {
+                stanSelect.disabled = false;
+                stanPrimary.innerText = "===";
+                data.stany.forEach(element => {
+                  let option = document.createElement("option");
+                  option.value = element[1];
+                  option.innerText = element[0];
+                  stanSelect.appendChild(option);
+                });
+              });
+    })
+
+
+    $('#submit_btn').click(function() {
+      document.getElementById("kat_id").value = kategoriaSelect.value;
+      document.getElementById("wla_id").value = wlascicielSelect.value;
+      document.getElementById("uzy_id").value = uzytkownikSelect.value;
+      document.getElementById("lok_id").value = lokalizacjaSelect.value;
+      document.getElementById("sts_id").value = statusSelect.value;
+      document.getElementById("stn_id").value = stanSelect.value;
+
+      $('#editInfo').submit();
+    });
+
+    $( "#editInfo" ).submit(function( event ) {
+      event.preventDefault();
+      let data = new FormData(editInfoForm);
+      let object = {};
+      data.forEach(function(value, key){
+        object[key] = value;
+      });
+      let json = JSON.stringify(object);
+
+      $.ajax({
+        url: '/sprzet_panel/edytuj/auth',
+        type: 'POST',
+        data: data,
+        contentType: false,
+        processData: false,
+        success: function (data) {
+          if(data.redirect) {
+            window.location.href = data.redirect;
+          }
+          else {
+            errorDiv.innerText = data.msg;
+          }
+        },
+        error: function () {
+          document.write("coś poszło nie tak, przepraszamy");
+        }
+      });
+
+    })
+
+  });
+</script>
+</body>
+</html>

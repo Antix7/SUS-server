@@ -65,6 +65,13 @@
                     form_data,
                     function (data, status) {
                         $("#sprzet_div").html(data);
+
+                        $('.edytuj').submit(function(e) {
+                            e.preventDefault();
+                            let myID = $(this).attr("id");
+                            myID = myID.substring(myID.indexOf('-') + 1);
+                            location.href = `/sprzet_panel/edytuj?id=${myID}`;
+                        });
                     }
                 );
             });
@@ -91,6 +98,8 @@
                 )
             });
         });
+
+
     </script>
 
 </head>
