@@ -40,7 +40,7 @@
                         $.post(
                             "/sprzet_panel/wyswietl/filters/stany",
                             {kategoria: $("#kategoria_form").serializeArray()},
-                            function (data, status) {
+                            function (data) {
                                 $("#stan").html(data);
                             }
                         );
@@ -68,9 +68,48 @@
 
                         $('.edytuj').submit(function(e) {
                             e.preventDefault();
-                            let myID = $(this).parent().parent().attr("id");
-                            myID = myID.substring(myID.indexOf('-') + 1);
+                            let myID = $(this).parent().parent().attr("data-row-id");
                             location.href = `/sprzet_panel/edytuj?id=${myID}`;
+                        });
+
+                        $('.zabierz').click(function(e) {
+                            e.preventDefault();
+                            let num = prompt("ile chcesz zabrać?");
+                            let myID = $(this).parent().parent().attr("data-row-id");
+                            let ilosc = $(this).parent().parent().find('.ilosc');
+                            let form_data = {
+                                id: myID,
+                                amount: num
+                            };
+                            $.post(
+                                "/sprzet_panel/zabierz",
+                                form_data,
+                                function(data) {
+                                    $("#sprzet_div tbody").append(data['newRow']);
+                                    ilosc.text(ilosc.text() - num);
+                                }
+                            )
+                        });
+
+                        $('.zabierz').each(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid === "null")
+                                return;
+                            $(this).prop('disabled', true);
+                        });
+
+                        $('.odloz').each(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid !== "null")
+                                return;
+                            $(this).prop('disabled', true);
+                        });
+
+                        $('.forger').each(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid !== "null")
+                                return;
+                            $(this).prop('disabled', true);
                         });
                     }
                 );
@@ -81,8 +120,7 @@
                 let toDelete = [];
                 $('.selectRow').each(function() {
                     if(this.checked) {
-                        let myID = $(this).parent().parent().attr("id");
-                        myID = myID.substring(myID.indexOf('-') + 1);
+                        let myID = $(this).parent().parent().attr("data-row-id");
                         toDelete.push(myID);
                     }
                 });
