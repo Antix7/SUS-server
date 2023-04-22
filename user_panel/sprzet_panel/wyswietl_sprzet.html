@@ -72,25 +72,6 @@
                             location.href = `/sprzet_panel/edytuj?id=${myID}`;
                         });
 
-                        $('.zabierz').click(function(e) {
-                            e.preventDefault();
-                            let num = prompt("ile chcesz zabrać?");
-                            let myID = $(this).parent().parent().attr("data-row-id");
-                            let ilosc = $(this).parent().parent().find('.ilosc');
-                            let form_data = {
-                                id: myID,
-                                amount: num
-                            };
-                            $.post(
-                                "/sprzet_panel/zabierz",
-                                form_data,
-                                function(data) {
-                                    $("#sprzet_div tbody").append(data['newRow']);
-                                    ilosc.text(ilosc.text() - num);
-                                }
-                            )
-                        });
-
                         $('.zabierz').each(function() {
                             let ogid = $(this).parent().parent().attr("data-row-ogid");
                             if(ogid === "null")
@@ -110,6 +91,58 @@
                             if(ogid !== "null")
                                 return;
                             $(this).prop('disabled', true);
+                        });
+
+                        $('.zabierz').click(function(e) {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid !== "null") {
+                                $(this).prop('disabled', true);
+                                return;
+                            }
+                            e.preventDefault();
+                            let num = prompt("ile chcesz zabrać?");
+                            let myID = $(this).parent().parent().attr("data-row-id");
+                            let ilosc = $(this).parent().parent().find('.ilosc');
+                            let form_data = {
+                                id: myID,
+                                amount: num
+                            };
+                            $.post(
+                                "/sprzet_panel/zabierz",
+                                form_data,
+                                function(data) {
+                                    $("#sprzet_div tbody").append(data['newRow']);
+                                    ilosc.text(ilosc.text() - num);
+                                }
+                            )
+                        });
+
+                        $('.odloz').click(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid === "null") {
+                                $(this).prop('disabled', true);
+                                return;
+                            }
+                            let myRow = $(this).parent().parent();
+                            let myID = myRow.attr("data-row-id");
+                            let ogID = myRow.attr("data-row-ogid");
+                            let ilosc = myRow.find('.ilosc');
+                            let ogRow = $(`tr[data-row-id=${ogID}]`);
+                            let ogRow_ilosc = ogRow.find('.ilosc')
+                            let form_data = {
+                                id: myID,
+                                amount: ilosc.text(),
+                                ogid: ogID
+                            };
+                            console.log('dupa');
+                            $.post(
+                                "/sprzet_panel/odloz",
+                                form_data,
+                                function(data) {
+                                    myRow.remove();
+                                    ogRow_ilosc.text(parseInt(ogRow_ilosc.text()) + parseInt(ilosc.text()));
+                                }
+                            )
                         });
                     }
                 );

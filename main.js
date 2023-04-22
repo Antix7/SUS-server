@@ -878,6 +878,18 @@ async function main() {
     response.end();
   });
 
+  app.post('/sprzet_panel/odloz', function(request, response) {
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let query = `UPDATE sus_database.sprzet SET czy_usuniete = 1 WHERE przedmiot_id=?;`;
+    con.execute(query, [request.body['id']]);
+    query = "UPDATE sus_database.sprzet SET ilosc = ilosc + ? where przedmiot_id = ?";
+    con.execute(query, [request.body['amount'], request.body['ogid']]);
+    response.end();
+  });
+
   app.listen(3000, '0.0.0.0');
 }
 
