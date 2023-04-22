@@ -68,7 +68,7 @@
 
                         $('.edytuj').submit(function(e) {
                             e.preventDefault();
-                            let myID = $(this).attr("id");
+                            let myID = $(this).parent().parent().attr("id");
                             myID = myID.substring(myID.indexOf('-') + 1);
                             location.href = `/sprzet_panel/edytuj?id=${myID}`;
                         });
@@ -80,8 +80,11 @@
                 e.preventDefault();
                 let toDelete = [];
                 $('.selectRow').each(function() {
-                    if(this.checked)
-                        toDelete.push($(this).val());
+                    if(this.checked) {
+                        let myID = $(this).parent().parent().attr("id");
+                        myID = myID.substring(myID.indexOf('-') + 1);
+                        toDelete.push(myID);
+                    }
                 });
                 if(toDelete.length === 0)
                     return 0;

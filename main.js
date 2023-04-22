@@ -139,8 +139,8 @@ function build_thead_sprzet(ob) {
 function build_table_sprzet(ob) {
   let table = '';
   for(let i in ob) {
-    table += '<tr>';
-    table += '<td><input type = "checkbox" class="selectRow" value = "' + ob[i]['ID'] + '"></td>';
+    table += `<tr id="row-${ob[i]['ID']}">`;
+    table += '<td><input type = "checkbox" class="selectRow"></td>';
     for(let j in ob[i]) {
       if(j === 'ID')
         continue;
@@ -151,7 +151,7 @@ function build_table_sprzet(ob) {
         table += ob[i][j];
       table += '</td>';
     }
-    table += `<td> <form class="edytuj" id="edytuj-${ob[i]['ID']}"> <input type="submit" value="💀"> </form> </td>`;
+    table += `<td> <form class="edytuj" > <input type="submit" value="💀"> </form> </td>`;
     table += '</tr>';
   }
   return table;
