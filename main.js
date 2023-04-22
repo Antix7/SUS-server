@@ -890,6 +890,16 @@ async function main() {
     response.end();
   });
 
+  app.post('/sprzet_panel/zapomnij', function(request, response) {
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
+    con.execute(query, [request.body['id']]);
+    response.end();
+  });
+
   app.listen(3000, '0.0.0.0');
 }
 

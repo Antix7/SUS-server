@@ -134,13 +134,35 @@
                                 amount: ilosc.text(),
                                 ogid: ogID
                             };
-                            console.log('dupa');
                             $.post(
                                 "/sprzet_panel/odloz",
                                 form_data,
                                 function(data) {
                                     myRow.remove();
                                     ogRow_ilosc.text(parseInt(ogRow_ilosc.text()) + parseInt(ilosc.text()));
+                                }
+                            )
+                        });
+
+                        $('.forger').click(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid === "null") {
+                                $(this).prop('disabled', true);
+                                return;
+                            }
+                            let myRow = $(this).parent().parent();
+                            let myID = myRow.attr("data-row-id");
+                            let form_data = {
+                                id: myID
+                            };
+                            $.post(
+                                "/sprzet_panel/zapomnij",
+                                form_data,
+                                function(data) {
+                                    myRow.attr("data-row-ogid", "null");
+                                    myRow.find('.zabierz').prop('disabled', false);
+                                    myRow.find('.odloz').prop('disabled', true);
+                                    myRow.find('.forger').prop('disabled', true);
                                 }
                             )
                         });
