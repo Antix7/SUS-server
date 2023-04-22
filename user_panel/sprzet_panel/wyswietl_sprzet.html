@@ -22,6 +22,106 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script>
+
+        function zabierz_function(my_this) {
+            console.log(my_this);
+            let ogid = $(my_this).parent().parent().attr("data-row-ogid");
+            if(ogid !== "null") {
+                $(my_this).prop('disabled', true);
+                return;
+            }
+            let num = prompt("ile chcesz zabrać?");
+            let myID = $(my_this).parent().parent().attr("data-row-id");
+            let ilosc = $(my_this).parent().parent().find('.ilosc');
+            let form_data = {
+                id: myID,
+                amount: num
+            };
+            $.post(
+                "/sprzet_panel/zabierz",
+                form_data,
+                function(data) {
+                    $("#sprzet_div tbody").append(data['newRow']);
+                    ilosc.text(ilosc.text() - num);
+                    let added = $("#sprzet_div tr").last();
+
+                    added.find('.edytuj', function() {
+                        e.preventDefault();
+                        let myID = $(this).parent().parent().attr("data-row-id");
+                        location.href = `/sprzet_panel/edytuj?id=${myID}`;
+                    });
+
+                    let ogid = added.attr("data-row-ogid");
+                    if(ogid === "null") {
+                        added.find('.forger').prop('disabled', true);
+                        added.find('.odloz').prop('disabled', true);
+                    }
+                    else
+                        added.find('.zabierz').prop('disabled', true);
+
+                    added.find('.forger').click(function() {
+                        forger_function($(this));
+                    });
+                    added.find('.odloz').click(function() {
+                        odloz_function($(this));
+                    });
+                    added.find('.zabierz').click(function() {
+                        zabierz_function($(this));
+                    });
+                }
+            )
+        }
+
+        function odloz_function(my_this)  {
+            let ogid = $(my_this).parent().parent().attr("data-row-ogid");
+            if(ogid === "null") {
+                $(my_this).prop('disabled', true);
+                return;
+            }
+            let myRow = $(my_this).parent().parent();
+            let myID = myRow.attr("data-row-id");
+            let ogID = myRow.attr("data-row-ogid");
+            let ilosc = myRow.find('.ilosc');
+            let ogRow = $(`tr[data-row-id=${ogID}]`);
+            let ogRow_ilosc = ogRow.find('.ilosc')
+            let form_data = {
+                id: myID,
+                amount: ilosc.text(),
+                ogid: ogID
+            };
+            $.post(
+                "/sprzet_panel/odloz",
+                form_data,
+                function(data) {
+                    myRow.remove();
+                    ogRow_ilosc.text(parseInt(ogRow_ilosc.text()) + parseInt(ilosc.text()));
+                }
+            )
+        }
+
+        function forger_function(my_this) {
+            let ogid = $(my_this).parent().parent().attr("data-row-ogid");
+            if(ogid === "null") {
+                $(my_this).prop('disabled', true);
+                return;
+            }
+            let myRow = $(my_this).parent().parent();
+            let myID = myRow.attr("data-row-id");
+            let form_data = {
+                id: myID
+            };
+            $.post(
+                "/sprzet_panel/zapomnij",
+                form_data,
+                function(data) {
+                    myRow.attr("data-row-ogid", "null");
+                    myRow.find('.zabierz').prop('disabled', false);
+                    myRow.find('.odloz').prop('disabled', true);
+                    myRow.find('.forger').prop('disabled', true);
+                }
+            )
+        }
+
         $(document).ready(function(){
 
             $.get(
@@ -40,7 +140,7 @@
                         $.post(
                             "/sprzet_panel/wyswietl/filters/stany",
                             {kategoria: $("#kategoria_form").serializeArray()},
-                            function (data, status) {
+                            function (data) {
                                 $("#stan").html(data);
                             }
                         );
@@ -68,9 +168,41 @@
 
                         $('.edytuj').submit(function(e) {
                             e.preventDefault();
-                            let myID = $(this).attr("id");
-                            myID = myID.substring(myID.indexOf('-') + 1);
+                            let myID = $(this).parent().parent().attr("data-row-id");
                             location.href = `/sprzet_panel/edytuj?id=${myID}`;
+                        });
+
+                        $('.zabierz').each(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid === "null")
+                                return;
+                            $(this).prop('disabled', true);
+                        });
+
+                        $('.odloz').each(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid !== "null")
+                                return;
+                            $(this).prop('disabled', true);
+                        });
+
+                        $('.forger').each(function() {
+                            let ogid = $(this).parent().parent().attr("data-row-ogid");
+                            if(ogid !== "null")
+                                return;
+                            $(this).prop('disabled', true);
+                        });
+
+                        $('.zabierz').click(function() {
+                            zabierz_function($(this))
+                        });
+
+                        $('.odloz').click(function() {
+                            odloz_function($(this))
+                        });
+
+                        $('.forger').click(function() {
+                            forger_function($(this))
                         });
                     }
                 );
@@ -80,8 +212,10 @@
                 e.preventDefault();
                 let toDelete = [];
                 $('.selectRow').each(function() {
-                    if(this.checked)
-                        toDelete.push($(this).val());
+                    if(this.checked) {
+                        let myID = $(this).parent().parent().attr("data-row-id");
+                        toDelete.push(myID);
+                    }
                 });
                 if(toDelete.length === 0)
                     return 0;

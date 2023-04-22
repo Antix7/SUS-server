@@ -126,12 +126,15 @@ function build_thead_sprzet(ob) {
 
   let table = '<thead>';
   for (let i in ob[0]) {
+    if(i === "og_id")
+      continue;
     if(i === "ID")
       table += "<th>wybierz</th>";
     else
       table += `<th>${i}</th>`;
   }
   table += "<th>edytuj</th>";
+  table += "<th>og_id</th>"
   table += '</thead>';
 
   return table;
@@ -139,19 +142,25 @@ function build_thead_sprzet(ob) {
 function build_table_sprzet(ob) {
   let table = '';
   for(let i in ob) {
-    table += '<tr>';
-    table += '<td><input type = "checkbox" class="selectRow" value = "' + ob[i]['ID'] + '"></td>';
+    table += `<tr data-row-id="${ob[i]['ID']}" data-row-ogid="${ob[i]['og_id']}">`;
+    table += '<td><input type = "checkbox" class="selectRow"></td>';
     for(let j in ob[i]) {
-      if(j === 'ID')
+      if(j === 'ID' || j === 'og_id')
         continue;
-      table += '<td>';
+      if(j === 'ilosc')
+        table += '<td class="ilosc">';
+      else
+        table += '<td>';
       if(j === 'zdjecie')
         table += `<img src="${ob[i][j]}" alt="brak">`;
       else
         table += ob[i][j];
       table += '</td>';
     }
-    table += `<td> <form class="edytuj" id="edytuj-${ob[i]['ID']}"> <input type="submit" value="💀"> </form> </td>`;
+    table += `<td> <form class="edytuj" > <input type="submit" value="💀"> </form> </td>`;
+    table += '<td> <button class="zabierz">zabierz</button> ' +
+        '<button class="odloz">odłóż</button>' +
+        '<button class="forger">forger</button></td>';
     table += '</tr>';
   }
   return table;
@@ -572,7 +581,8 @@ async function main() {
     wla.podmiot_nazwa AS wlasciciel,
     uzy.podmiot_nazwa AS uzytkownik,
     sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie
+    sprzet.zdjecie_path AS zdjecie,
+    sprzet.og_id AS og_id
     FROM sprzet
     JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
     JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
@@ -827,6 +837,67 @@ async function main() {
       con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, request.session.editid]);
     }
     response.json({'redirect': '/sprzet_panel/wyswietl'});
+  });
+
+  app.post('/sprzet_panel/zabierz', async function(request, response) {
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
+    let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
+    newID = newID[0].insertId;
+    query = "UPDATE sus_database.sprzet SET ilosc = ilosc - ? where przedmiot_id = ?";
+    await con.execute(query, [request.body['amount'], request.body['id']]);
+
+    query = `SELECT
+    sprzet.przedmiot_id AS ID,
+    sprzet.nazwa AS nazwa,
+    sprzet.ilosc AS ilosc,
+    statusy.status_nazwa AS status,
+    kat.kategoria_nazwa AS kategoria,
+    stany.stan_nazwa AS stan,
+    lok.lokalizacja_nazwa AS lokalizacja,
+    wla.podmiot_nazwa AS wlasciciel,
+    uzy.podmiot_nazwa AS uzytkownik,
+    sprzet.opis AS opis,
+    sprzet.zdjecie_path AS zdjecie,
+    sprzet.og_id AS og_id
+    FROM sprzet
+    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+    JOIN statusy ON sprzet.status_id = statusy.status_id
+    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+    AND sprzet.stan_id = stany.stan_id
+    WHERE sprzet.przedmiot_id = ?
+    `;
+    let [rows, columns] = await con.execute(query, [newID]);
+    response.json({'newRow': build_table_sprzet(rows)});
+    response.end();
+  });
+
+  app.post('/sprzet_panel/odloz', function(request, response) {
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let query = `UPDATE sus_database.sprzet SET czy_usuniete = 1 WHERE przedmiot_id=?;`;
+    con.execute(query, [request.body['id']]);
+    query = "UPDATE sus_database.sprzet SET ilosc = ilosc + ? where przedmiot_id = ?";
+    con.execute(query, [request.body['amount'], request.body['ogid']]);
+    response.end();
+  });
+
+  app.post('/sprzet_panel/zapomnij', function(request, response) {
+    if (!(request.session.loggedin)) {
+      response.sendFile(__dirname + "/login/oszust.html");
+      return;
+    }
+    let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
+    con.execute(query, [request.body['id']]);
+    response.end();
   });
 
   app.listen(3000, '0.0.0.0');
