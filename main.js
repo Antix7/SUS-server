@@ -120,7 +120,7 @@ function build_sprzet_select_form(rows, form_id) {
 
  // these two functions together return a string with an HTML table based on the object parameter
  // the first one is for the headers, the second one for the body
- // it's made this way so it's easier if we load the data in chunks, not all at once
+ // it's made this way, so it's easier if we load the data in chunks, not all at once
  // used for 'sprzet' table
 function build_thead_sprzet(ob) {
 
@@ -186,26 +186,33 @@ async function main() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // homepage
-  app.get('/', function(request, response) {
-    response.sendFile(path.join(__dirname + '/login/index.html'));
-  });
+  // fix for testing on the same machine
+  const cors=require("cors");
+  const corsOptions ={
+    origin:'*',
+    credentials:true,            //access-control-allow-credentials:true
+    optionSuccessStatus:200,
+  }
+  app.use(cors(corsOptions))
+
 
   // logging out
   app.get('/wyloguj', function(request, response) {
     request.session.loggedin = false;
     request.session.isadmin = false;
     request.session.username = null;
-    response.redirect('/');
   })
 
   // checking whether the login & password of the user are correct
-  app.post('/auth', async function(request, response) {
+  app.post('/auth', upload.none(), async function(request, response) {
 
     let username = request.body.nick;
     let password = request.body.pwd;
     if(!(username && password)) {
-      response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
+      response.json({
+        success: false,
+        message: "Niepoprawna nazwa użytkownika i/lub hasło"
+      });
       return;
     }
 
@@ -213,7 +220,10 @@ async function main() {
     let [rows, columns] = await con.execute(query, [username, create_hash(password)]);
 
     if(rows.length === 0) {
-      response.sendFile(path.join(__dirname + '/login/zle_dane.html'));
+      response.json({
+        success: false,
+        message: "Niepoprawna nazwa użytkownika i/lub hasło"
+      });
       return;
     }
 
@@ -221,7 +231,10 @@ async function main() {
       let expiration_date = new Date(rows[0].data_wygasniecia);
       let current_date = new Date();
       if (current_date > expiration_date) {
-        response.sendFile(__dirname + '/login/wygaslo.html');
+        response.json({
+          success: false,
+          message: "Konto wygasło"
+        });
         return;
       }
     }
@@ -229,7 +242,10 @@ async function main() {
     request.session.loggedin = true;
     request.session.username = username;
     request.session.isadmin = !!rows[0].czy_admin;  // !! to make sure it is a bool
-    response.redirect('/panel');
+    response.json({
+      success: true,
+      message: null
+    });
     response.end();
 
   });
@@ -900,7 +916,7 @@ async function main() {
     response.end();
   });
 
-  app.listen(3000, '0.0.0.0');
+  app.listen(3001, '0.0.0.0');
 }
 
 
