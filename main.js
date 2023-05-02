@@ -10,6 +10,8 @@ const nodemailer = require('nodemailer');
 
 let con;
 
+const oszust = 'Nie ma tak nigerze mały!';
+
  // configuration of nodemailer module used for sending emails
 const sus_email_address = 'noreply.sus@gmail.com';
 let mail_client = nodemailer.createTransport({
@@ -179,8 +181,11 @@ async function main() {
   const app = express();
   app.use(session({
     secret: 'joe mama',
-    resave: true,
-    saveUninitialized: true
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      httpOnly: true
+    }
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -189,7 +194,7 @@ async function main() {
   // fix for testing on the same machine
   const cors=require("cors");
   const corsOptions ={
-    origin:'*',
+    origin:'http://localhost:3000',
     credentials:true,            //access-control-allow-credentials:true
     optionSuccessStatus:200,
   }
@@ -198,12 +203,13 @@ async function main() {
 
   // logging out
   app.get('/wyloguj', function(request, response) {
+    console.log(request.session.id);
     request.session.loggedin = false;
     request.session.isadmin = false;
     request.session.username = null;
   })
 
-  // checking whether the login & password of the user are correct
+  // user authentication
   app.post('/auth', upload.none(), async function(request, response) {
 
     let username = request.body.nick;
@@ -243,37 +249,15 @@ async function main() {
     request.session.username = username;
     request.session.isadmin = !!rows[0].czy_admin;  // !! to make sure it is a bool
     response.json({
-      success: true,
-      message: null
+      success: true
     });
+    console.log(request.session.id);
     response.end();
 
   });
 
-  // main app panel
-  app.get('/panel', function(request, response) {
-    if(request.session.loggedin) {
-      if(request.session.isadmin)
-        response.sendFile(__dirname + '/admin_panel/index.html');
-      else
-        response.sendFile(__dirname + '/user_panel/index.html');
-    }
-    else
-      response.sendFile(__dirname + '/login/oszust.html');
-  })
-
-  // page for generating keys for new users & adding them to the database
-  // only accessible for administrators
-  app.get('/panel/generuj_klucz', function (request, response){
-    if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return;
-    }
-    response.sendFile(__dirname + '/admin_panel/generuj_klucz.html');
-  });
-
   // sending the admin a randomly generated key for new user and adding the key to the database
-  app.post('/panel/generuj_klucz/auth', async function (request, response) {
+  app.post('/panel/generuj_klucz', async function (request, response) {
     if (!(request.session.isadmin && request.session.loggedin)) {
       response.sendFile(__dirname + '/login/oszust.html');
       return;
@@ -293,13 +277,9 @@ async function main() {
 
   });
 
-  // page for account activation
-  app.get('/aktywuj_konto', function (request, response){
-    response.sendFile(__dirname + '/login/aktywuj_konto.html');
-  });
 
   // activating the account of a new user
-  app.post('/aktywuj_konto/auth', async function (request, response) {
+  app.post('/aktywuj_konto', async function (request, response) {
 
     let key = request.body.key;
     let username = request.body.username;
@@ -406,20 +386,17 @@ async function main() {
 
   });
 
-  // page for changing own password from the main panel
-  app.get('/panel/zmien_haslo', function(request, response) {
-    if(request.session.loggedin)
-      response.sendFile(__dirname + '/login/zmien_haslo.html');
-    else
-      response.sendFile(__dirname + '/login/oszust.html');
-  });
+  // changing password
+  app.post('/zmien_haslo', upload.none(), async function (request, response) {
+    // if (!request.session.loggedin) {
+    //   response.json({
+    //     success: false,
+    //     message: oszust
+    //   });
+    //   return;
+    // }
 
-  // changing own password from the main panel
-  app.post('/panel/zmien_haslo/auth', async function (request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
+
 
     let username = request.session.username;
     let password_old = request.body.password_old;
@@ -429,10 +406,15 @@ async function main() {
     let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
 
     if(res[0].affectedRows === 0) {
-      response.json({message: 'Hasło niepoprawne'});
+      response.json({
+        success: false,
+        message: 'Niepoprawne hasło'
+      });
       return;
     }
-    response.json({message: 'Pomyślnie zmieniono hasło'});
+    response.json({
+      success: true
+    });
     response.end();
 
   });
