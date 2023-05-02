@@ -1,12 +1,13 @@
 const mysql_promise = require('mysql2/promise');
 const express = require('express');
-const session = require('express-session');
 const path = require('path');
 const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
+const dotenv = require("dotenv");
+const jwt = require('jsonwebtoken');
 
 let con;
 
@@ -168,6 +169,27 @@ function build_table_sprzet(ob) {
   return table;
 }
 
+
+function verifyToken(token, shouldBeAdmin) {
+  if(!token) return false;
+  return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+    if(err) return false;
+    const tokenAge = new Date() - new Date(decoded.time);
+    if(tokenAge > process.env.JWT_LIFETIME) return false;
+    if(shouldBeAdmin && (!decoded.isAdmin)) return false;
+  });
+  return true;
+}
+function getTokenData(token) {
+  if(!token) return {};
+  return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+    if(err) return {};
+    console.log(decoded, typeof decoded);
+    return decoded;
+  });
+}
+
+
 async function main() {
   if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
     console.log("Problem z bazą danych");
@@ -177,16 +199,11 @@ async function main() {
   // create_user('twoj_stary', '2137', 0);
   // return 0;
 
+  // configuring environment variables
+  dotenv.config();
+
   // initialising the express app
   const app = express();
-  app.use(session({
-    secret: 'joe mama',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      httpOnly: true
-    }
-  }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
@@ -194,19 +211,17 @@ async function main() {
   // fix for testing on the same machine
   const cors=require("cors");
   const corsOptions ={
-    origin:'http://localhost:3000',
-    credentials:true,            //access-control-allow-credentials:true
+    origin:'*',
+    credentials:false, //access-control-allow-credentials:true
     optionSuccessStatus:200,
   }
   app.use(cors(corsOptions))
 
 
+
   // logging out
   app.get('/wyloguj', function(request, response) {
-    console.log(request.session.id);
-    request.session.loggedin = false;
-    request.session.isadmin = false;
-    request.session.username = null;
+    // handling logging out does not require anything to be done by the server
   })
 
   // user authentication
@@ -245,15 +260,19 @@ async function main() {
       }
     }
 
-    request.session.loggedin = true;
-    request.session.username = username;
-    request.session.isadmin = !!rows[0].czy_admin;  // !! to make sure it is a bool
-    response.json({
-      success: true
-    });
-    console.log(request.session.id);
-    response.end();
+    let tokenData = {
+      time: new Date(),
+      username: username,
+      isAdmin: !!rows[0].czy_admin // !! to make sure it is a bool
+    }
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
 
+    response.json({
+      success: true,
+      token: token
+    });
+
+    response.end();
   });
 
   // sending the admin a randomly generated key for new user and adding the key to the database
@@ -388,17 +407,13 @@ async function main() {
 
   // changing password
   app.post('/zmien_haslo', upload.none(), async function (request, response) {
-    // if (!request.session.loggedin) {
-    //   response.json({
-    //     success: false,
-    //     message: oszust
-    //   });
-    //   return;
-    // }
 
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
 
-
-    let username = request.session.username;
+    let tokenData = getTokenData(token);
+    console.log(tokenData);
+    let username = tokenData.username;
     let password_old = request.body.password_old;
     let password_new = request.body.password_new1;
 
