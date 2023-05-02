@@ -1,13 +1,13 @@
 const mysql_promise = require('mysql2/promise');
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const dotenv = require("dotenv");
 const path = require('path');
 const handlebars = require('handlebars');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
-const dotenv = require("dotenv");
-const jwt = require('jsonwebtoken');
 
 let con;
 
@@ -177,14 +177,13 @@ function verifyToken(token, shouldBeAdmin) {
     const tokenAge = new Date() - new Date(decoded.time);
     if(tokenAge > process.env.JWT_LIFETIME) return false;
     if(shouldBeAdmin && (!decoded.isAdmin)) return false;
+    return true;
   });
-  return true;
 }
 function getTokenData(token) {
   if(!token) return {};
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
     if(err) return {};
-    console.log(decoded, typeof decoded);
     return decoded;
   });
 }
@@ -208,7 +207,7 @@ async function main() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // fix for testing on the same machine
+  // CORS is required when Node.js acts as an external server
   const cors=require("cors");
   const corsOptions ={
     origin:'*',
@@ -218,17 +217,11 @@ async function main() {
   app.use(cors(corsOptions))
 
 
-
-  // logging out
-  app.get('/wyloguj', function(request, response) {
-    // handling logging out does not require anything to be done by the server
-  })
-
-  // user authentication
+  // user authentication - sending a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
 
-    let username = request.body.nick;
-    let password = request.body.pwd;
+    let username = request.body.username;
+    let password = request.body.password;
     if(!(username && password)) {
       response.json({
         success: false,
@@ -412,7 +405,6 @@ async function main() {
     if(!verifyToken(token, false)) return;
 
     let tokenData = getTokenData(token);
-    console.log(tokenData);
     let username = tokenData.username;
     let password_old = request.body.password_old;
     let password_new = request.body.password_new1;
