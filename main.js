@@ -656,19 +656,17 @@ async function main() {
       query += ' WHERE ' + clause;
     }
 
-    let orders = [];
+    orders = [];
     if(request.body.sortData)
       for(let order of request.body.sortData) {
-        console.log(order);
-        if(order[2] === 'true') orders.push(`${order[0]} DESC`);
-        else orders.push(`${order[0]}`);
+        if(order[2] === 'true') orders.push(`sprzet.${order[0]} DESC`);
+        else orders.push(`sprzet.${order[0]}`);
       }
-    let order = orders.join(', ');
+    order = orders.join(', ');
     if(order) {
       query += ' ORDER BY ' + order;
     }
 
-    console.log(query);
     query += ';';
 
     let [rows, columns] = await con.execute(query);
