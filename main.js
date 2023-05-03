@@ -659,8 +659,7 @@ async function main() {
     orders = [];
     if(request.body.sortData)
       for(let order of request.body.sortData) {
-        if(order[2] === 'true') orders.push(`sprzet.${order[0]} DESC`);
-        else orders.push(`sprzet.${order[0]}`);
+        orders.push(`${order[0].includes('_id') ? 'sprzet.' : ''}${order[0]} ${order[2] === 'true' ? 'DESC' : ''}`);
       }
     order = orders.join(', ');
     if(order) {
