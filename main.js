@@ -906,6 +906,7 @@ async function main() {
   });
 
   app.listen(3001, '0.0.0.0');
+  console.log("Server listening at localhost:3001")
 }
 
 
