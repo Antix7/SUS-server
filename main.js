@@ -289,7 +289,6 @@ async function main() {
     response.end();
   });
 
-
   // activating the account of a new user
   app.post('/aktywuj_konto', async function (request, response) {
 
@@ -459,38 +458,37 @@ async function main() {
     response.redirect('/panel/uzytkownicy');
   });
 
-  // page for performing special SQL queries
-  // only accessible for administrators
-  app.get('/panel/query', function (request, response) {
-    if(!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
-    response.sendFile(__dirname + '/admin_panel/sql_query.html');
-  });
-
   // performing the special SQL query
   // it's worth noting that it is forbidden to use the DROP or DELETE clauses
-  app.post('/panel/query/perform', async function (request, response) {
-    if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
+  app.post('/query', upload.none(), async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, true)) return;
+
     let query = request.body.query;
     if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
-      response.send('nie ma usuwania');
+      response.json({
+        success: false,
+        message: "Query zawiera niedozwolone komendy"
+      });
       response.end();
       return;
     }
     try {
       let [rows, columns] = await con.execute(query);
-      response.send(rows);
+      response.json({
+        success: true,
+        result: rows
+      });
       response.end();
     }
     catch(err) {
-      response.send("Coś poszło nie tak, sprawdź swój syntax");
-      response.end();
+      response.json({
+        success: false,
+        message: "Nastąpił błąd podczas wykonywania query"
+      });
       console.log(err);
+      response.end();
     }
   });
 
