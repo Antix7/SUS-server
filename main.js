@@ -10,7 +10,7 @@ const nodemailer = require('nodemailer');
 
 let con;
 
- // configuration of nodemailer module used for sending emails
+// configuration of nodemailer module used for sending emails
 const sus_email_address = 'noreply.sus@gmail.com';
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
@@ -23,7 +23,7 @@ let mail_client = nodemailer.createTransport({
   }
 });
 
- // configuration of multer module used for saving images
+// configuration of multer module used for saving images
 const storage = multer.diskStorage({
   destination: (req, file, callBack) => {
     callBack(null, './public/images/')     // './public/images/' directory name where save the file
@@ -36,13 +36,13 @@ const upload = multer({
   storage: storage
 });
 
- // this function returns a hex representation of a sha256 hash of the password parameter
+// this function returns a hex representation of a sha256 hash of the password parameter
 function create_hash(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
- // this function adds a specified user to the database
- // used solely for debugging
+// this function adds a specified user to the database
+// used solely for debugging
 async function create_user(username, password, czy_admin) {
   let password_hash = create_hash(password);
   console.log(password_hash);
@@ -50,7 +50,7 @@ async function create_user(username, password, czy_admin) {
   await con.execute(query, [username, password_hash, czy_admin]);
 }
 
- // this function initialises the con variable for sql queries
+// this function initialises the con variable for sql queries
 async function connect_to_database(host, user, password, database) {
   con = await mysql_promise.createConnection({
     host: host,
@@ -61,7 +61,7 @@ async function connect_to_database(host, user, password, database) {
   return 0;
 }
 
- // this function generates a random string for account activation
+// this function generates a random string for account activation
 function generate_random_string(length) {
   let name = '';
   for(let i = 0; i < length; i++) {
@@ -79,10 +79,10 @@ function generate_random_string(length) {
   return name;
 }
 
- // the three functions below use the for ... in .. loops, which iterate through the properties of an object
+// the three functions below use the for ... in .. loops, which iterate through the properties of an object
 
- // this function returns a string with an HTML table based on the object parameter
- // used for user list in admin panel
+// this function returns a string with an HTML table based on the object parameter
+// used for user list in admin panel
 function build_table_users(ob) {
   let table = '<table><tr>';
   for(let i in ob[0]) {
@@ -118,10 +118,10 @@ function build_sprzet_select_form(rows, form_id) {
   return form + '</form>';
 }
 
- // these two functions together return a string with an HTML table based on the object parameter
- // the first one is for the headers, the second one for the body
- // it's made this way so it's easier if we load the data in chunks, not all at once
- // used for 'sprzet' table
+// these two functions together return a string with an HTML table based on the object parameter
+// the first one is for the headers, the second one for the body
+// it's made this way so it's easier if we load the data in chunks, not all at once
+// used for 'sprzet' table
 function build_thead_sprzet(ob) {
 
   let table = '<thead>';
@@ -555,8 +555,8 @@ async function main() {
       conditions.push(`kategoria_id = ${box.name.split('_').at(-1)}`);
     }
 
-    let query = `SELECT stan_nazwa, stan_id FROM stany WHERE ${conditions.join(' OR ')} 
-    GROUP BY stan_id, stan_nazwa ORDER BY stan_id`;
+    let query = `SELECT stan_nazwa, stan_id FROM stany WHERE ${conditions.join(' OR ')}
+                 GROUP BY stan_id, stan_nazwa ORDER BY stan_id`;
     let [rows, columns] = await con.execute(query);
 
     response.send(build_sprzet_select_form(rows, 'stan'));
@@ -571,27 +571,27 @@ async function main() {
 
     // this is the basic query structure to which a clause will be added
     let query = `SELECT
-    sprzet.przedmiot_id AS ID,
-    sprzet.nazwa AS nazwa,
-    sprzet.ilosc AS ilosc,
-    statusy.status_nazwa AS status,
-    kat.kategoria_nazwa AS kategoria,
-    stany.stan_nazwa AS stan,
-    lok.lokalizacja_nazwa AS lokalizacja,
-    wla.podmiot_nazwa AS wlasciciel,
-    uzy.podmiot_nazwa AS uzytkownik,
-    sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie,
-    sprzet.og_id AS og_id
-    FROM sprzet
-    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
-    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
-    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
-    JOIN statusy ON sprzet.status_id = statusy.status_id
-    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
-    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
-    AND sprzet.stan_id = stany.stan_id
-    WHERE sprzet.czy_usuniete = 0
+                   sprzet.przedmiot_id AS ID,
+                   sprzet.nazwa AS nazwa,
+                   sprzet.ilosc AS ilosc,
+                   statusy.status_nazwa AS status,
+                   kat.kategoria_nazwa AS kategoria,
+                   stany.stan_nazwa AS stan,
+                   lok.lokalizacja_nazwa AS lokalizacja,
+                   wla.podmiot_nazwa AS wlasciciel,
+                   uzy.podmiot_nazwa AS uzytkownik,
+                   sprzet.opis AS opis,
+                   sprzet.zdjecie_path AS zdjecie,
+                   sprzet.og_id AS og_id
+                 FROM sprzet
+                        JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+                        JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+                        JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+                        JOIN statusy ON sprzet.status_id = statusy.status_id
+                        JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+                        JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+                   AND sprzet.stan_id = stany.stan_id
+                 WHERE sprzet.czy_usuniete = 0
     `;
 
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
@@ -655,6 +655,17 @@ async function main() {
     if(clause) {
       query += ' WHERE ' + clause;
     }
+
+    orders = [];
+    if(request.body.sortData)
+      for(let order of request.body.sortData) {
+        orders.push(`${order[0].includes('_id') ? 'sprzet.' : ''}${order[0]} ${order[2] === 'true' ? 'DESC' : ''}`);
+      }
+    order = orders.join(', ');
+    if(order) {
+      query += ' ORDER BY ' + order;
+    }
+
     query += ';';
 
     let [rows, columns] = await con.execute(query);
@@ -906,7 +917,7 @@ async function main() {
 
 main();
 
- // the code below is used to add debug users to the database
+// the code below is used to add debug users to the database
 // connect_to_database("localhost", "sqluser", "imposter", "sus_database");
 // setTimeout(function() {
 // create_user('admin', 'admin', 1);

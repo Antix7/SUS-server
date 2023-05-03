@@ -1,8 +1,8 @@
 DELETE FROM lokalizacje;
 DELETE FROM statusy;
 DELETE FROM podmioty;
-DELETE FROM stany;
 DELETE FROM kategorie;
+DELETE FROM stany;
 
 INSERT INTO lokalizacje VALUES (1, 'Zielonka');
 INSERT INTO lokalizacje VALUES (2, '1 Sierpnia');
@@ -25,48 +25,48 @@ INSERT INTO podmioty VALUES (6, 'Szczep Burza');
 
 INSERT INTO kategorie VALUES (1, 'Narzędzia');
 INSERT INTO stany VALUES (1, 1, 'Dobry');
-INSERT INTO stany VALUES (1, 2, 'Krzywy');
-INSERT INTO stany VALUES (1, 3, 'Tępy');
+INSERT INTO stany VALUES (1, 2, 'Tępy');
+INSERT INTO stany VALUES (1, 3, 'Krzywy');
 INSERT INTO stany VALUES (1, 4, 'Zardzewiały');
-INSERT INTO stany VALUES (1, 9, 'Zły');
+INSERT INTO stany VALUES (1, 5, 'Zły');
 
 INSERT INTO kategorie VALUES (2, 'Namioty');
-INSERT INTO stany VALUES (2, 1, 'Dobry');
-INSERT INTO stany VALUES (2, 5, 'Łatany');
-INSERT INTO stany VALUES (2, 6, 'Dziurawy');
-INSERT INTO stany VALUES (2, 7, 'Zapleśniały');
-INSERT INTO stany VALUES (2, 9, 'Zły');
+INSERT INTO stany VALUES (2, 2, 'Dobry');
+INSERT INTO stany VALUES (2, 6, 'Łatany');
+INSERT INTO stany VALUES (2, 7, 'Dziurawy');
+INSERT INTO stany VALUES (2, 8, 'Zapleśniały');
+INSERT INTO stany VALUES (2, 10, 'Zły');
 
 INSERT INTO kategorie VALUES (3, 'Stelaże');
-INSERT INTO stany VALUES (3, 1, 'Dobry');
-INSERT INTO stany VALUES (3, 2, 'Krzywy');
-INSERT INTO stany VALUES (3, 8, 'Szyszka?');
-INSERT INTO stany VALUES (3, 9, 'Zły');
+INSERT INTO stany VALUES (3, 2, 'Dobry');
+INSERT INTO stany VALUES (3, 3, 'Krzywy');
+INSERT INTO stany VALUES (3, 9, 'Szyszka?');
+INSERT INTO stany VALUES (3, 10, 'Zły');
 
 INSERT INTO kategorie VALUES (4, 'Program');
-INSERT INTO stany VALUES (4, 10, 'Nowy');
+INSERT INTO stany VALUES (4, 1, 'Nowy');
 INSERT INTO stany VALUES (4, 11, 'Używany');
 
 INSERT INTO kategorie VALUES (5, 'Obrzędowość');
-INSERT INTO stany VALUES (5, 10, 'Nowy');
+INSERT INTO stany VALUES (5, 1, 'Nowy');
 INSERT INTO stany VALUES (5, 11, 'Używany');
 
 INSERT INTO kategorie VALUES (6, 'Meble');
-INSERT INTO stany VALUES (6, 1, 'Dobry');
-INSERT INTO stany VALUES (6, 9, 'Zły');
+INSERT INTO stany VALUES (6, 2, 'Dobry');
+INSERT INTO stany VALUES (6, 10, 'Zły');
 
 INSERT INTO kategorie VALUES (7, 'Dokumenty');
-INSERT INTO stany VALUES (7, 1, 'Dobry');
-INSERT INTO stany VALUES (7, 9, 'Zły');
+INSERT INTO stany VALUES (7, 2, 'Dobry');
+INSERT INTO stany VALUES (7, 10, 'Zły');
 
-INSERT INTO kategorie VALUES (8, 'Tekstylia');
-INSERT INTO stany VALUES (8, 10, 'Nowy');
+INSERT INTO kategorie VALUES (8, 'Ubrania');
+INSERT INTO stany VALUES (8, 1, 'Nowy');
 INSERT INTO stany VALUES (8, 11, 'Używany');
 
 INSERT INTO kategorie VALUES (9, 'Gastronomia');
-INSERT INTO stany VALUES (9, 10, 'Nowy');
+INSERT INTO stany VALUES (9, 1, 'Nowy');
 INSERT INTO stany VALUES (9, 11, 'Używany');
 
 INSERT INTO kategorie VALUES (10, 'Inne');
-INSERT INTO stany VALUES (10, 1, 'Dobry');
-INSERT INTO stany VALUES (10, 9, 'Zły');
+INSERT INTO stany VALUES (10, 2, 'Dobry');
+INSERT INTO stany VALUES (10, 10, 'Zły');
