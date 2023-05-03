@@ -264,16 +264,14 @@ async function main() {
       success: true,
       token: token
     });
-
     response.end();
   });
 
   // sending the admin a randomly generated key for new user and adding the key to the database
-  app.post('/panel/generuj_klucz', async function (request, response) {
-    if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return;
-    }
+  app.post('/generuj_klucz', upload.none(), async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, true)) return;
 
     let czy_admin = request.body.czy_admin ? 1 : 0;
     let data = request.body.data ? request.body.data : null;
@@ -284,9 +282,11 @@ async function main() {
     let query = 'INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES (?, ?, ?, ?);';
     await con.execute(query, [username, -1, czy_admin, data]);
 
-    response.json({message: username});
+    response.json({
+      success: true,
+      klucz: username
+    });
     response.end();
-
   });
 
 
