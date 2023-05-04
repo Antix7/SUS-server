@@ -438,49 +438,20 @@ async function main() {
 
   });
 
-  // page containing the list of all the users
-  // only accessible for administrators
-  app.get('/panel/uzytkownicy', async function (request, response) {
-    if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
-    let query = 'SELECT * FROM users';
-    let [rows, columns] = await con.execute(query);
 
-    const templateStr = fs.readFileSync(__dirname + '/admin_panel/uzytkownicy.html').toString('utf8');
-    const template = handlebars.compile(templateStr, {noEscape: true});
-    const contents = template({tablebody: build_table_users(rows)});
-    response.send(contents);
-    response.end();
-  });
+  app.get('/uzytkownicy', upload.none(), async function (request, response) {
 
-  app.post('/lista_uzytkownikow', upload.none(), async function (request, response) {
-
-    // console.log("dupa")
     let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
+    if(!verifyToken(token, true)) return;
 
-    let query = "SELECT * FROM users";
+    let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
     let [rows, columns] = await con.execute(query);
-    let table = usersTableInfo(rows);
-    console.log(table);
 
     response.json({
       success: true,
-      info: table
+      data: rows
     });
     response.end();
-
   });
 
   // deleting a user from the list
