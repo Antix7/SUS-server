@@ -111,6 +111,19 @@ function build_table_users(ob) {
   return table;
 }
 
+function usersTableInfo(rows) {
+  let head = [], body = [], curRow = [];
+  for(let i in rows[0])
+    head.push(i.toString());
+  for(let i in rows) {
+    curRow = [];
+    for (let j in rows[i])
+      curRow.push(rows[i][j]);
+    body.push(curRow);
+  }
+  return [head, body];
+}
+
 function build_sprzet_select_form(rows, form_id) {
   let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}_form">`;
   for(let option of rows) {
@@ -440,6 +453,34 @@ async function main() {
     const contents = template({tablebody: build_table_users(rows)});
     response.send(contents);
     response.end();
+  });
+
+  app.post('/lista_uzytkownikow', upload.none(), async function (request, response) {
+
+    // console.log("dupa")
+    let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) && !verifyToken(token, true)) {
+      response.json({
+        success: false,
+        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
+      });
+      response.end();
+      return;
+    }
+    if(!verifyToken(token, true))
+      return;
+
+    let query = "SELECT * FROM users";
+    let [rows, columns] = await con.execute(query);
+    let table = usersTableInfo(rows);
+    console.log(table);
+
+    response.json({
+      success: true,
+      info: table
+    });
+    response.end();
+
   });
 
   // deleting a user from the list
