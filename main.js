@@ -284,7 +284,16 @@ async function main() {
   app.post('/generuj_klucz', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(!verifyToken(token, true)) return;
+    if(verifyToken(token, false) && !verifyToken(token, true)) {
+      response.json({
+        success: false,
+        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
+      });
+      response.end();
+      return;
+    }
+    if(!verifyToken(token, true))
+      return;
 
     let czy_admin = request.body.czy_admin ? 1 : 0;
     let data = request.body.data ? request.body.data : null;
@@ -484,7 +493,16 @@ async function main() {
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(!verifyToken(token, true)) return;
+    if(verifyToken(token, false) && !verifyToken(token, true)) {
+      response.json({
+        success: false,
+        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
+      });
+      response.end();
+      return;
+    }
+    if(!verifyToken(token, true))
+      return;
 
     let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
     let [rows, columns] = await con.execute(query);
@@ -517,7 +535,16 @@ async function main() {
   app.post('/query', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(!verifyToken(token, true)) return;
+    if(verifyToken(token, false) && !verifyToken(token, true)) {
+      response.json({
+        success: false,
+        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
+      });
+      response.end();
+      return;
+    }
+    if(!verifyToken(token, true))
+      return;
 
     let query = request.body.query;
     if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
