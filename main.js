@@ -329,6 +329,48 @@ async function main() {
 
   });
 
+  app.post('/aktywuj', upload.none(), async function(request, response) {
+    let key = request.body.key;
+    let username = request.body.username;
+    let password = request.body.password1;
+    let email = request.body.email;
+    if(!(key && username && password)) {
+      response.json({
+        success: false,
+        message: "Brakuje danych"
+      });
+      return;
+    }
+
+    let query = "SELECT * FROM users WHERE username = ? AND password_hash = -1;";
+    let [rows, columns] = await con.execute(query, [key]);
+    if (rows.length === 0) {
+      response.json({
+        success: false,
+        message: 'Niewłaściwy klucz'
+      });
+      return;
+    }
+
+    query = 'SELECT * FROM users WHERE username = ?';
+    [rows, columns] = await con.execute(query, [username]);
+    if (rows.length > 0) {
+      response.json({
+        success: false,
+        message: 'Użytkownik o takiej nazwie już istnieje'
+      });
+      return;
+    }
+
+    query = "UPDATE users SET username = ?, password_hash = ?, adres_email = ? WHERE username = ?;";
+    await con.execute(query, [username, create_hash(password), email, key]);
+    response.json({
+      success: true,
+      message: 'Użytkownik został pomyślnie stworzony'
+    });
+    response.end();
+  });
+
   // page for initialising the resetting of one's password
   app.get('/resetuj_haslo', function (request, response){
     response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo.html');
