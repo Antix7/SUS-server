@@ -233,6 +233,14 @@ async function main() {
   // user authentication - sending a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
 
+    let token = request.headers["x-access-token"];
+    if(verifyToken(token, false)) {
+      response.json({
+        success: true
+      });
+      return;
+    }
+
     let username = request.body.username;
     let password = request.body.password;
     if(!(username && password)) {
@@ -271,11 +279,11 @@ async function main() {
       username: username,
       isAdmin: !!rows[0].czy_admin // !! to make sure it is a bool
     }
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+    const newToken = jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
 
     response.json({
       success: true,
-      token: token
+      token: newToken
     });
     response.end();
   });
