@@ -779,37 +779,39 @@ async function main() {
   });
 
   // sending the user data necessary for the form for adding new rows
-  app.post('/sprzet_panel/dodaj/dropdowns', async function (request, response) {
-    if (!request.session.loggedin) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
+  app.get('/dodaj/dropdowns', async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
 
     let [rows, columns] = await con.execute('SELECT * FROM lokalizacje;');
-    let lok = [];
+    let lok = {};
     for(let i in rows) {
-      lok.push([rows[i]['lokalizacja_nazwa'], rows[i]['lokalizacja_id']]);
+      lok[rows[i]['lokalizacja_id']] = rows[i]['lokalizacja_nazwa'];
     }
 
     [rows, columns] = await con.execute('SELECT * FROM kategorie;');
-    let kat = [];
+    let kat = {};
     for(let i in rows) {
-      kat.push([rows[i]['kategoria_nazwa'], rows[i]['kategoria_id']]);
+      kat[rows[i]['kategoria_id']] = rows[i]['kategoria_nazwa'];
     }
 
     [rows, columns] = await con.execute('SELECT * FROM podmioty;');
-    let pod = [];
+    let pod = {};
     for(let i in rows) {
-      pod.push([rows[i]['podmiot_nazwa'], rows[i]['podmiot_id']]);
+      pod[rows[i]['podmiot_id']] = rows[i]['podmiot_nazwa'];
     }
 
     [rows, columns] = await con.execute('SELECT * FROM statusy;');
-    let sta = [];
+    let sta = {};
     for(let i in rows) {
-      sta.push([rows[i]['status_nazwa'], rows[i]['status_id']]);
+      sta[rows[i]['status_id']] = rows[i]['status_nazwa'];
     }
 
-    response.json({podmioty: pod, statusy: sta, lokalizacje: lok, kategorie: kat});
+    response.json({
+      success: true,
+      data: {podmioty: pod, statusy: sta, lokalizacje: lok, kategorie: kat}
+    });
     response.end();
   });
 
