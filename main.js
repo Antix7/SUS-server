@@ -581,25 +581,7 @@ async function main() {
     }
   });
 
-  // page with the panel for accessing the main database
-  app.get('/sprzet_panel', function (request, response) {
-    if (!request.session.loggedin) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/sprzet_panel.html');
-  });
 
-  // page for displaying the main database
-  app.get('/sprzet_panel/wyswietl', async function (request, response) {
-
-    if (!request.session.loggedin) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return;
-    }
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/wyswietl_sprzet.html');
-
-  });
 
   app.get('/sprzet_panel/wyswietl/filters', async function (request, response) {
     if (!request.session.loggedin) {
@@ -769,15 +751,6 @@ async function main() {
     response.end();
   });
 
-  // page for adding new rows to the 'sprzet' table
-  app.get('/sprzet_panel/dodaj', function (request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/dodaj_sprzet.html');
-  });
-
   // sending the user data necessary for the form for adding new rows
   app.get('/dodaj/dropdowns', async function (request, response) {
 
@@ -815,9 +788,7 @@ async function main() {
     response.end();
   });
 
-  // sending the user more necessary data for the form for adding new rows
-  // to be precise: it sends states that can be chosen for a new object;
-  //                it is separate because it depends on the chosen category
+  //
   app.post('/sprzet_panel/dodaj/stany', async function (request, response) {
     if (!(request.session.loggedin)) {
       response.sendFile(__dirname + "/login/oszust.html");
