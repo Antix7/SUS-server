@@ -776,14 +776,23 @@ async function main() {
     }
 
     [rows, columns] = await con.execute('SELECT * FROM statusy;');
-    let sta = {};
+    let statusy = {};
     for(let i in rows) {
-      sta[rows[i]['status_id']] = rows[i]['status_nazwa'];
+      statusy[rows[i]['status_id']] = rows[i]['status_nazwa'];
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM stany ORDER BY kategoria_id, stan_id');
+    let stany = {};
+    for(let i in rows) {
+      if(!stany.hasOwnProperty(rows[i]["kategoria_id"])) {
+        stany[rows[i]["kategoria_id"]] = {};
+      }
+      stany[rows[i]["kategoria_id"]][rows[i]["stan_id"]] = rows[i]["stan_nazwa"];
     }
 
     response.json({
       success: true,
-      data: {podmioty: pod, statusy: sta, lokalizacje: lok, kategorie: kat}
+      data: {podmioty: pod, statusy: statusy, lokalizacje: lok, kategorie: kat, stany: stany}
     });
     response.end();
   });
@@ -795,7 +804,7 @@ async function main() {
       return;
     }
     let kat = request.get("X-kategoria");
-    let [rows, columns] = await con.execute('SELECT * FROM stany WHERE kategoria_id = ?;', [kat.toString()]);
+
     let sta = [];
     for (let i in rows) {
       sta.push([rows[i]['stan_nazwa'], rows[i]['stan_id']]);
