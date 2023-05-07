@@ -203,6 +203,7 @@ function getTokenData(token) {
 
 
 async function main() {
+
   if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
     console.log("Problem z bazą danych");
     return -1;
@@ -230,7 +231,7 @@ async function main() {
   app.use(cors(corsOptions))
 
 
-  // user authentication - sending a JSON Web Token
+  // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
 
     let token = request.headers["x-access-token"];
@@ -288,69 +289,14 @@ async function main() {
     response.end();
   });
 
-  // sending the admin a randomly generated key for new user and adding the key to the database
-  app.post('/generuj_klucz', upload.none(), async function (request, response) {
-
-    let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
-
-    let czy_admin = request.body.czy_admin ? 1 : 0;
-    let data = request.body.data ? request.body.data : null;
-
-    let username = czy_admin ? 'a_' : '';
-    username += generate_random_string(10);
-
-    let query = 'INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES (?, ?, ?, ?);';
-    await con.execute(query, [username, -1, czy_admin, data]);
-
-    response.json({
-      success: true,
-      klucz: username
-    });
-    response.end();
-  });
-
-  // activating the account of a new user
-  app.post('/aktywuj_konto', async function (request, response) {
-
-    let key = request.body.key;
-    let username = request.body.username;
-    let password = request.body.password1;
-    let email = request.body.email;
-
-    let query = "SELECT * FROM users WHERE username = ? AND password_hash = -1;";
-    let [rows, columns] = await con.execute(query, [key]);
-    if (rows.length === 0) {
-      response.json({message: 'Niewłaściwy klucz'});
-      return;
-    }
-    query = 'SELECT * FROM users WHERE username = ?';
-    [rows, columns] = await con.execute(query, [username]);
-    if (rows.length > 0) {
-      response.json({message: 'Użytkownik o takiej nazwie już istnieje'});
-      return;
-    }
-    query = "UPDATE users SET username = ?, password_hash = ?, adres_email = ? WHERE username = ?;";
-    await con.execute(query, [username, create_hash(password), email, key]);
-    response.json({message: 'Użytkownik został pomyślnie stworzony'});
-    response.end();
-
-  });
-
+  // activating an account
   app.post('/aktywuj', upload.none(), async function(request, response) {
+
     let key = request.body.key;
     let username = request.body.username;
     let password = request.body.password1;
     let email = request.body.email;
+
     if(!(key && username && password)) {
       response.json({
         success: false,
@@ -388,10 +334,237 @@ async function main() {
     response.end();
   });
 
-  // page for initialising the resetting of one's password
-  app.get('/resetuj_haslo', function (request, response){
-    response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo.html');
+  app.post('/zmien_haslo', upload.none(), async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
+    let tokenData = getTokenData(token);
+    let username = tokenData.username;
+    let password_old = request.body.password_old;
+    let password_new = request.body.password_new1;
+
+    let query = "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash = ?;";
+    let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
+
+    if(res[0].affectedRows === 0) {
+      response.json({
+        success: false,
+        message: 'Niepoprawne hasło'
+      });
+      return;
+    }
+    response.json({
+      success: true
+    });
+    response.end();
+
   });
+
+  // sending the user data necessary for the form for adding new rows
+  app.get('/dodaj/dropdowns', async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
+    let [rows, columns] = await con.execute('SELECT * FROM lokalizacje;');
+    let lok = {};
+    for(let i in rows) {
+      lok[rows[i]['lokalizacja_id']] = rows[i]['lokalizacja_nazwa'];
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM kategorie;');
+    let kat = {};
+    for(let i in rows) {
+      kat[rows[i]['kategoria_id']] = rows[i]['kategoria_nazwa'];
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM podmioty;');
+    let pod = {};
+    for(let i in rows) {
+      pod[rows[i]['podmiot_id']] = rows[i]['podmiot_nazwa'];
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM statusy;');
+    let statusy = {};
+    for(let i in rows) {
+      statusy[rows[i]['status_id']] = rows[i]['status_nazwa'];
+    }
+
+    [rows, columns] = await con.execute('SELECT * FROM stany ORDER BY kategoria_id, stan_id');
+    let stany = {};
+    for(let i in rows) {
+      if(!stany.hasOwnProperty(rows[i]["kategoria_id"])) {
+        stany[rows[i]["kategoria_id"]] = {};
+      }
+      stany[rows[i]["kategoria_id"]][rows[i]["stan_id"]] = rows[i]["stan_nazwa"];
+    }
+
+    response.json({
+      success: true,
+      data: {podmioty: pod, statusy: statusy, lokalizacje: lok, kategorie: kat, stany: stany}
+    });
+    response.end();
+  });
+
+  // adding the new row to the database
+  app.post('/dodaj', upload.single('zdjecie'), function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
+    let body = request.body;
+
+    let nazwa = body["nazwa"];
+    let ilosc = body["ilosc"];
+    let status = body["status"];
+    let kategoria = body["kategoria"];
+    let stan = body["stan"];
+    let lokalizacja = body["lokalizacja"];
+    let wlasciciel = body["wlasciciel"];
+    let uzytkownik = body["uzytkownik"];
+    let opis = body["opis"];
+
+    console.log(nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis);
+
+    if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
+      response.json({
+        success: false,
+        message: "Niepoprawne dane"
+      });
+      return;
+    }
+
+    if(!request.file) {
+      const query = `INSERT INTO sprzet 
+      (nazwa, ilosc, status_id, 
+      kategoria_id, stan_id, lokalizacja_id, 
+      wlasciciel_id, uzytkownik_id, opis) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis]);
+    }
+    else {
+      let zdjecie_path = '/images/' + request.file.filename;
+
+      const query = `INSERT INTO sprzet 
+      (nazwa, ilosc, status_id, 
+      kategoria_id, stan_id, lokalizacja_id, 
+      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis, zdjecie_path]);
+    }
+
+    response.json({
+      success: true
+    });
+  });
+
+  // generating an account activation key
+  app.post('/generuj_klucz', upload.none(), async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) && !verifyToken(token, true)) {
+      response.json({
+        success: false,
+        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
+      });
+      response.end();
+      return;
+    }
+    if(!verifyToken(token, true))
+      return;
+
+    let czy_admin = request.body.czy_admin ? 1 : 0;
+    let data = request.body.data ? request.body.data : null;
+
+    let username = czy_admin ? 'a_' : '';
+    username += generate_random_string(10);
+
+    let query = 'INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES (?, ?, ?, ?);';
+    await con.execute(query, [username, -1, czy_admin, data]);
+
+    response.json({
+      success: true,
+      klucz: username
+    });
+    response.end();
+  });
+
+  app.get('/uzytkownicy', upload.none(), async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) && !verifyToken(token, true)) {
+      response.json({
+        success: false,
+        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
+      });
+      response.end();
+      return;
+    }
+    if(!verifyToken(token, true))
+      return;
+
+    let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
+    let [rows, columns] = await con.execute(query);
+
+    response.json({
+      success: true,
+      data: rows
+    });
+    response.end();
+  });
+
+  // performing a custom query to the database
+  // DROP and DELETE keywords are forbidden
+  app.post('/query', upload.none(), async function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) && !verifyToken(token, true)) {
+      response.json({
+        success: false,
+        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
+      });
+      response.end();
+      return;
+    }
+    if(!verifyToken(token, true))
+      return;
+
+    let query = request.body.query;
+    if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
+      response.json({
+        success: false,
+        message: "Query zawiera niedozwolone komendy"
+      });
+      response.end();
+      return;
+    }
+    try {
+      let [rows, columns] = await con.execute(query);
+      response.json({
+        success: true,
+        result: rows
+      });
+      response.end();
+    }
+    catch(err) {
+      response.json({
+        success: false,
+        message: "Nastąpił błąd podczas wykonywania query"
+      });
+      console.log(err);
+      response.end();
+    }
+  });
+
+
+
+
+
+  // Not implemented with React yet
+
 
   // sending the reset code via e-mail
   // the reset code is password hash since it is already in the database and knowing it is not a security concern
@@ -440,15 +613,6 @@ async function main() {
 
   });
 
-  // actual page for resetting one's password
-  app.get('/resetuj_haslo_form', function(request, response) {
-    if(!request.session.username) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return;
-    }
-    response.sendFile(__dirname + '/login/resetuj_haslo/resetuj_haslo_form.html');
-  });
-
   // changing one's password from the reset form
   app.post('/resetuj_haslo_form/auth', async function(request, response) {
     let username = request.session.username;
@@ -469,58 +633,7 @@ async function main() {
 
   });
 
-  // changing password
-  app.post('/zmien_haslo', upload.none(), async function (request, response) {
 
-    let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false)) return;
-
-    let tokenData = getTokenData(token);
-    let username = tokenData.username;
-    let password_old = request.body.password_old;
-    let password_new = request.body.password_new1;
-
-    let query = "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash = ?;";
-    let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
-
-    if(res[0].affectedRows === 0) {
-      response.json({
-        success: false,
-        message: 'Niepoprawne hasło'
-      });
-      return;
-    }
-    response.json({
-      success: true
-    });
-    response.end();
-
-  });
-
-
-  app.get('/uzytkownicy', upload.none(), async function (request, response) {
-
-    let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
-
-    let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
-    let [rows, columns] = await con.execute(query);
-
-    response.json({
-      success: true,
-      data: rows
-    });
-    response.end();
-  });
 
   // deleting a user from the list
   app.post('/panel/uzytkownicy/usun', async function (request, response) {
@@ -538,48 +651,6 @@ async function main() {
     response.redirect('/panel/uzytkownicy');
   });
 
-  // performing the special SQL query
-  // it's worth noting that it is forbidden to use the DROP or DELETE clauses
-  app.post('/query', upload.none(), async function (request, response) {
-
-    let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
-
-    let query = request.body.query;
-    if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
-      response.json({
-        success: false,
-        message: "Query zawiera niedozwolone komendy"
-      });
-      response.end();
-      return;
-    }
-    try {
-      let [rows, columns] = await con.execute(query);
-      response.json({
-        success: true,
-        result: rows
-      });
-      response.end();
-    }
-    catch(err) {
-      response.json({
-        success: false,
-        message: "Nastąpił błąd podczas wykonywania query"
-      });
-      console.log(err);
-      response.end();
-    }
-  });
 
 
 
@@ -752,108 +823,6 @@ async function main() {
   });
 
 
-
-
-  // sending the user data necessary for the form for adding new rows
-  app.get('/dodaj/dropdowns', async function (request, response) {
-
-    let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false)) return;
-
-    let [rows, columns] = await con.execute('SELECT * FROM lokalizacje;');
-    let lok = {};
-    for(let i in rows) {
-      lok[rows[i]['lokalizacja_id']] = rows[i]['lokalizacja_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM kategorie;');
-    let kat = {};
-    for(let i in rows) {
-      kat[rows[i]['kategoria_id']] = rows[i]['kategoria_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM podmioty;');
-    let pod = {};
-    for(let i in rows) {
-      pod[rows[i]['podmiot_id']] = rows[i]['podmiot_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM statusy;');
-    let statusy = {};
-    for(let i in rows) {
-      statusy[rows[i]['status_id']] = rows[i]['status_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM stany ORDER BY kategoria_id, stan_id');
-    let stany = {};
-    for(let i in rows) {
-      if(!stany.hasOwnProperty(rows[i]["kategoria_id"])) {
-        stany[rows[i]["kategoria_id"]] = {};
-      }
-      stany[rows[i]["kategoria_id"]][rows[i]["stan_id"]] = rows[i]["stan_nazwa"];
-    }
-
-    response.json({
-      success: true,
-      data: {podmioty: pod, statusy: statusy, lokalizacje: lok, kategorie: kat, stany: stany}
-    });
-    response.end();
-  });
-
-
-  // adding the new row to the database
-  app.post('/dodaj', upload.single('zdjecie'), function (request, response) {
-
-    let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false)) return;
-
-    let body = request.body;
-
-    let nazwa = body["nazwa"];
-    let ilosc = body["ilosc"];
-    let status = body["status"];
-    let kategoria = body["kategoria"];
-    let stan = body["stan"];
-    let lokalizacja = body["lokalizacja"];
-    let wlasciciel = body["wlasciciel"];
-    let uzytkownik = body["uzytkownik"];
-    let opis = body["opis"];
-
-    console.log(nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis);
-
-    if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
-      response.json({
-        success: false,
-        message: "Niepoprawne dane"
-      });
-      return;
-    }
-
-    if(!request.file) {
-      const query = `INSERT INTO sprzet 
-      (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, 
-      wlasciciel_id, uzytkownik_id, opis) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis]);
-    }
-    else {
-      let zdjecie_path = '/images/' + request.file.filename;
-
-      const query = `INSERT INTO sprzet 
-      (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, 
-      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis, zdjecie_path]);
-    }
-
-    response.json({
-      success: true
-    });
-  });
 
 
   app.get('/sprzet_panel/edytuj', function(request, response) {
