@@ -802,43 +802,59 @@ async function main() {
 
 
   // adding the new row to the database
-  app.post('/sprzet_panel/dodaj/auth', upload.single('zdjecie'), function (request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
+  app.post('/dodaj', upload.single('zdjecie'), function (request, response) {
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
     let body = request.body;
 
-    let kat = body['kat_id'];
-    let lok = body['lok_id'];
-    let wla = body['wla_id'];
-    let uzy = body['uzy_id'];
-    let sts = body['sts_id'];
-    let stn = body['stn_id'];
-    let naz = body['nazwa'];
-    let ilo = body['ilosc'];
-    let opis = body['opis'];
+    let nazwa = body["nazwa"];
+    let ilosc = body["ilosc"];
+    let status = body["status"];
+    let kategoria = body["kategoria"];
+    let stan = body["stan"];
+    let lokalizacja = body["lokalizacja"];
+    let wlasciciel = body["wlasciciel"];
+    let uzytkownik = body["uzytkownik"];
+    let opis = body["opis"];
 
-    if(kat == '0' || lok == '0' || wla == '0' || uzy == '0' || sts == '0' || stn == '0' || ilo == '' || naz == ''){
-      response.json({"msg": "Niepoprawne dane"});
-      return
+    console.log(nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis);
+
+    if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
+      response.json({
+        success: false,
+        message: "Niepoprawne dane"
+      });
+      return;
     }
 
     if(!request.file) {
-      let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, wlasciciel_id,\n' +
-          '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
-          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
-      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis]);
+      const query = `INSERT INTO sprzet 
+      (nazwa, ilosc, status_id, 
+      kategoria_id, stan_id, lokalizacja_id, 
+      wlasciciel_id, uzytkownik_id, opis) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis]);
     }
     else {
-      let zdj = '/images/' + request.file.filename;
-      let sql = 'INSERT INTO sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id,\n' +
-          '                                 uzytkownik_id, status_id, stan_id, opis)\n' +
-          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n';
-      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis]);
+      let zdjecie_path = '/images/' + request.file.filename;
+
+      const query = `INSERT INTO sprzet 
+      (nazwa, ilosc, status_id, 
+      kategoria_id, stan_id, lokalizacja_id, 
+      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis, zdjecie_path]);
     }
-    response.json({'redirect':'/sprzet_panel'});
+
+    response.json({
+      success: true
+    });
   });
+
 
   app.get('/sprzet_panel/edytuj', function(request, response) {
     if(!request.query.id) {
