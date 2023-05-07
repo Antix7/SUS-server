@@ -751,6 +751,9 @@ async function main() {
     response.end();
   });
 
+
+
+
   // sending the user data necessary for the form for adding new rows
   app.get('/dodaj/dropdowns', async function (request, response) {
 
@@ -797,21 +800,6 @@ async function main() {
     response.end();
   });
 
-  //
-  app.post('/sprzet_panel/dodaj/stany', async function (request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
-    let kat = request.get("X-kategoria");
-
-    let sta = [];
-    for (let i in rows) {
-      sta.push([rows[i]['stan_nazwa'], rows[i]['stan_id']]);
-    }
-    response.json({stany: sta});
-    response.end();
-  });
 
   // adding the new row to the database
   app.post('/sprzet_panel/dodaj/auth', upload.single('zdjecie'), function (request, response) {
