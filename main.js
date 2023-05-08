@@ -708,11 +708,10 @@ async function main() {
 
   });
 
-  app.post('/sprzet_panel/wyswietl/auth', async function (request, response){
-    if (!request.session.loggedin) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return;
-    }
+  app.post('/wyswietl', async function (request, response){
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
 
     // this is the basic query structure to which a clause will be added
     let query = `SELECT
