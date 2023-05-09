@@ -183,13 +183,14 @@ function build_table_sprzet(ob) {
 }
 
 
-function verifyToken(token, shouldBeAdmin) {
+function verifyToken(token, shouldBeAdmin, resetOnly = false) {
   if(!token) return false;
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
     if(err) return false;
     const tokenAge = new Date() - new Date(decoded.time);
     if(tokenAge > process.env.JWT_LIFETIME) return false;
     if(shouldBeAdmin && (!decoded.isAdmin)) return false;
+    if((!resetOnly) && decoded.resetOnly) return false;
     return true;
   });
 }
@@ -559,6 +560,106 @@ async function main() {
     }
   });
 
+  // sending the password reset code via e-mail
+  // the reset code is password hash since it is already in the database and knowing it is not a security concern
+  // (as long as it is not a frequently used password :skull:)
+  app.post('/send_reset_code', upload.none(), async function(request, response) {
+    let username = request.body.username;
+    let query = "SELECT adres_email, password_hash FROM sus_database.users WHERE users.username=?";
+
+    let [rows, columns] = await con.execute(query, [username]);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        message: "Nie ma takiego użytkownika"
+      });
+      return;
+    }
+
+    let user_email = rows[0].adres_email;
+    if(user_email === null) {
+      response.json({
+        success: false,
+        message: 'Konto nie ma przypisanego adresu e-mail'
+      });
+      return;
+    }
+    let mail = {
+      from: sus_email_address,
+      to: user_email,
+      subject: 'Reset hasła do SUS',
+      text: `Kod do resetu hasła dla użytkownika ${username}: ${rows[0].password_hash}`
+    };
+    await mail_client.sendMail(mail)
+        .then(() => {
+          response.json({
+            success: true,
+            message: 'Pomyślnie wysłano e-mail'
+          });
+        })
+        .catch(error => {
+          response.json({
+            success: false,
+            message: 'Wystąpił błąd, spróbuj ponownie później'
+          });
+        });
+  });
+
+  // checking the reset code and sending the temporary token
+  app.post('/check_reset_code', upload.none(), async function(request, response) {
+    let username = request.body.username;
+    let code = request.body.code;
+    let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
+    let [rows, columns] = await con.execute(query, [username, code]);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        text: 'Klucz i/lub nazwa użytkownika nieprawidłowa'
+      });
+      return;
+    }
+
+    let tokenData = {
+      time: new Date(),
+      username: username,
+      isAdmin: !!rows[0].czy_admin, // !! to make sure it is a bool
+      resetOnly: true
+    }
+    const newToken = jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+    response.json({
+      success: true,
+      token: newToken
+    });
+
+  });
+
+  // changing one's password from the reset form
+  app.post('/resetuj_haslo', upload.none(), async function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false, true))
+      return;
+
+    let username = getTokenData(token)['username'];
+    if(!username)
+      return;
+    let password = request.body.password1;
+    let query = 'UPDATE users SET password_hash = ? WHERE username = ?;';
+    let [rows, columns] = await con.execute(query, [create_hash(password), username]);
+    // console.log(username, password, rows);
+    if(rows.affectedRows === 0) {
+      response.json({
+        success: false,
+        message: 'Coś poszło nie tak'
+      });
+      return;
+    }
+    response.json({
+      success: true,
+      message: 'Pomyślnie zmieniono hasło'
+    });
+    response.end();
+
+  });
 
 
 
