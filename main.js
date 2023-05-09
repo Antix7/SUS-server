@@ -614,7 +614,7 @@ async function main() {
     if(rows.length === 0) {
       response.json({
         success: false,
-        text: 'Klucz i/lub nazwa użytkownika nieprawidłowa'
+        message: 'Klucz i/lub nazwa użytkownika nieprawidłowa'
       });
       return;
     }
