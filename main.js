@@ -183,13 +183,14 @@ function build_table_sprzet(ob) {
 }
 
 
-function verifyToken(token, shouldBeAdmin) {
+function verifyToken(token, shouldBeAdmin, resetOnly = false) {
   if(!token) return false;
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
     if(err) return false;
     const tokenAge = new Date() - new Date(decoded.time);
     if(tokenAge > process.env.JWT_LIFETIME) return false;
     if(shouldBeAdmin && (!decoded.isAdmin)) return false;
+    if((!resetOnly) && decoded.resetOnly) return false;
     return true;
   });
 }
@@ -559,27 +560,28 @@ async function main() {
     }
   });
 
-
-
-
-
-  // Not implemented with React yet
-
-
-  // sending the reset code via e-mail
+  // sending the password reset code via e-mail
   // the reset code is password hash since it is already in the database and knowing it is not a security concern
   // (as long as it is not a frequently used password :skull:)
-  app.post('/resetuj_haslo/get_code', async function (request, response) {
+  app.post('/send_reset_code', upload.none(), async function(request, response) {
     let username = request.body.username;
-    let query = 'SELECT adres_email, password_hash FROM users WHERE username = ?;';
+    let query = "SELECT adres_email, password_hash FROM sus_database.users WHERE users.username=?";
+
     let [rows, columns] = await con.execute(query, [username]);
     if(rows.length === 0) {
-      response.send('Taki użytkownik nie istnieje')
+      response.json({
+        success: false,
+        message: "Nie ma takiego użytkownika"
+      });
       return;
     }
+
     let user_email = rows[0].adres_email;
     if(user_email === null) {
-      response.send('Konto nie ma przypisanego adresu e-mail')
+      response.json({
+        success: false,
+        message: 'Konto nie ma przypisanego adresu e-mail'
+      });
       return;
     }
     let mail = {
@@ -590,49 +592,79 @@ async function main() {
     };
     await mail_client.sendMail(mail)
         .then(() => {
-          response.send('Pomyślnie wysłano e-mail')
+          response.json({
+            success: true,
+            message: 'Pomyślnie wysłano e-mail'
+          });
         })
         .catch(error => {
-          response.send('Wystąpił błąd, spróbuj ponownie później');
+          response.json({
+            success: false,
+            message: 'Wystąpił błąd, spróbuj ponownie później'
+          });
         });
-
   });
 
-  // checking the code and redirecting to the reset form if correct
-  app.post('/resetuj_haslo/submit_code', async function(request, response) {
+  // checking the reset code and sending the temporary token
+  app.post('/check_reset_code', upload.none(), async function(request, response) {
     let username = request.body.username;
     let code = request.body.code;
     let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
     let [rows, columns] = await con.execute(query, [username, code]);
     if(rows.length === 0) {
-      response.send({text: 'Klucz i/lub nazwa użytkownika nieprawidłowa'});
+      response.json({
+        success: false,
+        message: 'Klucz i/lub nazwa użytkownika nieprawidłowa'
+      });
       return;
     }
-    request.session.username = username;
-    response.send({redirect: '/resetuj_haslo_form'});
+
+    let tokenData = {
+      time: new Date(),
+      username: username,
+      isAdmin: !!rows[0].czy_admin, // !! to make sure it is a bool
+      resetOnly: true
+    }
+    const newToken = jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+    response.json({
+      success: true,
+      token: newToken
+    });
 
   });
 
   // changing one's password from the reset form
-  app.post('/resetuj_haslo_form/auth', async function(request, response) {
-    let username = request.session.username;
-    if(!username) {
-      response.send('Nie ma tak nigerze mały');
-    }
+  app.post('/resetuj_haslo', upload.none(), async function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false, true))
+      return;
+
+    let username = getTokenData(token)['username'];
+    if(!username)
+      return;
     let password = request.body.password1;
     let query = 'UPDATE users SET password_hash = ? WHERE username = ?;';
     let [rows, columns] = await con.execute(query, [create_hash(password), username]);
-    console.log(username, password, rows);
+    // console.log(username, password, rows);
     if(rows.affectedRows === 0) {
-      response.send({text: 'Coś poszło nie tak'});
+      response.json({
+        success: false,
+        message: 'Coś poszło nie tak'
+      });
       return;
     }
-    request.session.username = null;
-    response.send({text: 'Pomyślnie zmieniono hasło', success: true});
+    response.json({
+      success: true,
+      message: 'Pomyślnie zmieniono hasło'
+    });
     response.end();
 
   });
 
+
+
+
+  // Not implemented with React yet
 
 
   // deleting a user from the list
