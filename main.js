@@ -45,7 +45,7 @@ function create_hash(password) {
 }
 
  // this function adds a specified user to the database
- // used solely for debugging
+ // used for debugging
 async function create_user(username, password, czy_admin) {
   let password_hash = create_hash(password);
   console.log(password_hash);
@@ -82,48 +82,6 @@ function generate_random_string(length) {
   return name;
 }
 
- // the three functions below use the for ... in .. loops, which iterate through the properties of an object
-
- // this function returns a string with an HTML table based on the object parameter
- // used for user list in admin panel
-function build_table_users(ob) {
-  let table = '<table><tr>';
-  for(let i in ob[0]) {
-    table += '<th>' + i.toString() + '</th>';
-  }
-  table += '<th> guziczki </th>';
-  table += '</tr>';
-  for(let i in ob) {
-    table += '<tr>';
-    for(let j in ob[i]) {
-      table += '<td>';
-      table += ob[i][j];
-      table += '</td>';
-    }
-    table += '<td> ' +
-        '<form action="/panel/uzytkownicy/usun" method="post"> ' +
-        '<input type="submit" value="usuń"> ' +
-        '<input type="hidden" name="username" value="' + ob[i].username + '"> ' +
-        '</form> </td>';
-    table += '</tr>';
-  }
-  table += '</table>';
-  return table;
-}
-
-function usersTableInfo(rows) {
-  let head = [], body = [], curRow = [];
-  for(let i in rows[0])
-    head.push(i.toString());
-  for(let i in rows) {
-    curRow = [];
-    for (let j in rows[i])
-      curRow.push(rows[i][j]);
-    body.push(curRow);
-  }
-  return [head, body];
-}
-
 function build_sprzet_select_form(rows, form_id) {
   let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}_form">`;
   for(let option of rows) {
@@ -133,55 +91,6 @@ function build_sprzet_select_form(rows, form_id) {
   }
   return form + '</form>';
 }
-
- // these two functions together return a string with an HTML table based on the object parameter
- // the first one is for the headers, the second one for the body
- // it's made this way, so it's easier if we load the data in chunks, not all at once
- // used for 'sprzet' table
-function build_thead_sprzet(ob) {
-
-  let table = '<thead>';
-  for (let i in ob[0]) {
-    if(i === "og_id")
-      continue;
-    if(i === "ID")
-      table += "<th>wybierz</th>";
-    else
-      table += `<th>${i}</th>`;
-  }
-  table += "<th>edytuj</th>";
-  table += "<th>og_id</th>"
-  table += '</thead>';
-
-  return table;
-}
-function build_table_sprzet(ob) {
-  let table = '';
-  for(let i in ob) {
-    table += `<tr data-row-id="${ob[i]['ID']}" data-row-ogid="${ob[i]['og_id']}">`;
-    table += '<td><input type = "checkbox" class="selectRow"></td>';
-    for(let j in ob[i]) {
-      if(j === 'ID' || j === 'og_id')
-        continue;
-      if(j === 'ilosc')
-        table += '<td class="ilosc">';
-      else
-        table += '<td>';
-      if(j === 'zdjecie')
-        table += `<img src="${ob[i][j]}" alt="brak">`;
-      else
-        table += ob[i][j];
-      table += '</td>';
-    }
-    table += `<td> <form class="edytuj" > <input type="submit" value="💀"> </form> </td>`;
-    table += '<td> <button class="zabierz">zabierz</button> ' +
-        '<button class="odloz">odłóż</button>' +
-        '<button class="forger">forger</button></td>';
-    table += '</tr>';
-  }
-  return table;
-}
-
 
 function verifyToken(token, shouldBeAdmin) {
   if(!token) return false;
@@ -743,66 +652,69 @@ async function main() {
 
     // we unfortunately need to process each column separately, TODO find a better way of doing this
 
-    if(request.body.kategoria) {
-      for(let box of request.body.kategoria) {
-        conditions.push(`sprzet.kategoria_id = ${box.name.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(request.body.stan) {
-      for(let box of request.body.stan) {
-        conditions.push(`stany.stan_id = ${box.name.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(request.body.lokalizacja) {
-      for(let box of request.body.lokalizacja) {
-        conditions.push(`sprzet.lokalizacja_id = ${box.name.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(request.body.status) {
-      for(let box of request.body.status) {
-        conditions.push(`sprzet.status_id = ${box.name.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(request.body.nazwa[0].value) {
-      clauses.push(`sprzet.nazwa LIKE '%${request.body.nazwa[0].value}%'`);
-    }
-
-    if(request.body.wlasciciel) {
-      for(let box of request.body.wlasciciel) {
-        conditions.push(`wla.podmiot_id = ${box.name.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(request.body.uzytkownik) {
-      for(let box of request.body.uzytkownik) {
-        conditions.push(`uzy.podmiot_id = ${box.name.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    let clause = clauses.join(' AND ');
-    if(clause) {
-      query += ' WHERE ' + clause;
-    }
+    // if(request.body.kategoria) {
+    //   for(let box of request.body.kategoria) {
+    //     conditions.push(`sprzet.kategoria_id = ${box.name.split('_').at(-1)}`);
+    //   }
+    //   clauses.push(`(${conditions.join(' OR ')})`);
+    //   conditions = [];
+    // }
+    //
+    // if(request.body.stan) {
+    //   for(let box of request.body.stan) {
+    //     conditions.push(`stany.stan_id = ${box.name.split('_').at(-1)}`);
+    //   }
+    //   clauses.push(`(${conditions.join(' OR ')})`);
+    //   conditions = [];
+    // }
+    //
+    // if(request.body.lokalizacja) {
+    //   for(let box of request.body.lokalizacja) {
+    //     conditions.push(`sprzet.lokalizacja_id = ${box.name.split('_').at(-1)}`);
+    //   }
+    //   clauses.push(`(${conditions.join(' OR ')})`);
+    //   conditions = [];
+    // }
+    //
+    // if(request.body.status) {
+    //   for(let box of request.body.status) {
+    //     conditions.push(`sprzet.status_id = ${box.name.split('_').at(-1)}`);
+    //   }
+    //   clauses.push(`(${conditions.join(' OR ')})`);
+    //   conditions = [];
+    // }
+    //
+    // if(request.body.nazwa[0].value) {
+    //   clauses.push(`sprzet.nazwa LIKE '%${request.body.nazwa[0].value}%'`);
+    // }
+    //
+    // if(request.body.wlasciciel) {
+    //   for(let box of request.body.wlasciciel) {
+    //     conditions.push(`wla.podmiot_id = ${box.name.split('_').at(-1)}`);
+    //   }
+    //   clauses.push(`(${conditions.join(' OR ')})`);
+    //   conditions = [];
+    // }
+    //
+    // if(request.body.uzytkownik) {
+    //   for(let box of request.body.uzytkownik) {
+    //     conditions.push(`uzy.podmiot_id = ${box.name.split('_').at(-1)}`);
+    //   }
+    //   clauses.push(`(${conditions.join(' OR ')})`);
+    //   conditions = [];
+    // }
+    //
+    // let clause = clauses.join(' AND ');
+    // if(clause) {
+    //   query += ' WHERE ' + clause;
+    // }
     query += ';';
 
     let [rows, columns] = await con.execute(query);
-    response.send(build_thead_sprzet(rows)+build_table_sprzet(rows));
+    response.json({
+      success: true,
+      data: rows
+    });
 
   });
   // TODO not loading the whole table at once
