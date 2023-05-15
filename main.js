@@ -309,9 +309,15 @@ async function main() {
       stany[rows[i]["kategoria_id"]][rows[i]["stan_id"]] = rows[i]["stan_nazwa"];
     }
 
+    [rows, columns] = await con.execute('SELECT stan_id, stan_nazwa FROM stany GROUP BY stan_id, stan_nazwa ORDER BY stan_id');
+    let stanyAll = {};
+    for(let i in rows) {
+      stanyAll[rows[i]['stan_id']] = rows[i]['stan_nazwa'];
+    }
+
     response.json({
       success: true,
-      data: {podmioty: pod, statusy: statusy, lokalizacje: lok, kategorie: kat, stany: stany}
+      data: {podmioty: pod, statusy: statusy, lokalizacje: lok, kategorie: kat, stany: stany, stanyAll: stanyAll}
     });
     response.end();
   });
@@ -561,27 +567,6 @@ async function main() {
   });
 
 
-
-  app.post('/sprzet_panel/wyswietl/filters/stany', async function(request, response) {
-    if (!request.session.loggedin) {
-      return;
-    }
-
-    if(!request.body.kategoria) return;
-
-    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
-
-    for(let box of request.body.kategoria) {
-      conditions.push(`kategoria_id = ${box.name.split('_').at(-1)}`);
-    }
-
-    let query = `SELECT stan_nazwa, stan_id FROM stany WHERE ${conditions.join(' OR ')} 
-    GROUP BY stan_id, stan_nazwa ORDER BY stan_id`;
-    let [rows, columns] = await con.execute(query);
-
-    response.send(build_sprzet_select_form(rows, 'stan'));
-
-  });
 
   app.post('/wyswietl', async function (request, response){
 
