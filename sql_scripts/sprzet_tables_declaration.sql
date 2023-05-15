@@ -1,41 +1,3 @@
-CREATE TABLE sus_database.kategorie
-(
-    kategoria_id    INT AUTO_INCREMENT
-        PRIMARY KEY,
-    kategoria_nazwa VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE sus_database.lokalizacje
-(
-    lokalizacja_id    INT AUTO_INCREMENT
-        PRIMARY KEY,
-    lokalizacja_nazwa VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE sus_database.podmioty
-(
-    podmiot_id    INT AUTO_INCREMENT
-        PRIMARY KEY,
-    podmiot_nazwa VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE sus_database.stany
-(
-    kategoria_id INT          NOT NULL,
-    stan_id      INT          NOT NULL,
-    stan_nazwa   VARCHAR(255) NOT NULL,
-    PRIMARY KEY (kategoria_id, stan_id),
-    CONSTRAINT stany_kategorie_KategoriaID_fk
-        FOREIGN KEY (kategoria_id) REFERENCES sus_database.kategorie (kategoria_id)
-);
-
-CREATE TABLE sus_database.statusy
-(
-    status_id    INT AUTO_INCREMENT
-        PRIMARY KEY,
-    status_nazwa VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE sus_database.sprzet
 (
     przedmiot_id   int auto_increment
@@ -64,16 +26,6 @@ CREATE TABLE sus_database.sprzet
         foreign key (status_id) references statusy (status_id),
     constraint sprzet_wlasciciele_WlascicielID_fk
         foreign key (wlasciciel_id) references podmioty (podmiot_id)
-);
-
-CREATE TABLE sus_database.users
-(
-    username         VARCHAR(255)         NOT NULL
-        PRIMARY KEY,
-    password_hash    VARCHAR(255)         NOT NULL,
-    czy_admin        TINYINT(1) DEFAULT 0 NOT NULL,
-    adres_email      VARCHAR(255)         NULL,
-    data_wygasniecia DATE                 NULL
 );
 
 CREATE TABLE sus_database.zdjecia_uszkodzen
