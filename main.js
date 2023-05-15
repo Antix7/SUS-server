@@ -271,7 +271,7 @@ async function main() {
   });
 
   // sending the user data necessary for the form for adding new rows
-  app.get('/dodaj/dropdowns', async function (request, response) {
+  app.get('/available_values', async function (request, response) {
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -561,40 +561,6 @@ async function main() {
   });
 
 
-
-
-  app.get('/sprzet_panel/wyswietl/filters', async function (request, response) {
-    if (!request.session.loggedin) {
-      return;
-    }
-
-    let query, rows, columns, form_name, result = {};
-
-    form_name = 'kategoria';
-    query = 'SELECT kategoria_nazwa, kategoria_id FROM kategorie;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    form_name = 'lokalizacja';
-    query = 'SELECT lokalizacja_nazwa, lokalizacja_id FROM lokalizacje;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    form_name = 'status';
-    query = 'SELECT status_nazwa, status_id FROM statusy;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    form_name = 'wlasciciel';
-    query = 'SELECT podmiot_nazwa, podmiot_id FROM podmioty;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-    form_name = 'uzytkownik';
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    response.send(result);
-
-  });
 
   app.post('/sprzet_panel/wyswietl/filters/stany', async function(request, response) {
     if (!request.session.loggedin) {
