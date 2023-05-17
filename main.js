@@ -8,6 +8,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
+const bodyParser = require('body-parser')
 
 let con;
 
@@ -82,14 +83,10 @@ function generate_random_string(length) {
   return name;
 }
 
-function build_sprzet_select_form(rows, form_id) {
-  let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}_form">`;
-  for(let option of rows) {
-    values = Object.values(option);
-    form += `<input type="checkbox" name="${form_id}_${values[1]}">`;
-    form += `<label for="${form_id}_${values[1]}">${values[0]}</label><br>` //perhaps there is a cleaner way of doing it?
-  }
-  return form + '</form>';
+function isObjectEmpty(obj) {
+  return obj
+    && Object.keys(obj).length === 0
+    && Object.getPrototypeOf(obj) === Object.prototype;
 }
 
 function verifyToken(token, shouldBeAdmin) {
@@ -138,6 +135,10 @@ async function main() {
     optionSuccessStatus:200,
   }
   app.use(cors(corsOptions))
+
+  app.use(bodyParser.urlencoded({
+    extended: false
+  }));
 
 
   // user authentication - sending/verifying a JSON Web Token
@@ -391,6 +392,8 @@ async function main() {
     if(!verifyToken(token, true))
       return;
 
+    console.log(request.body);
+
     let czy_admin = request.body.czy_admin ? 1 : 0;
     let data = request.body.data ? request.body.data : null;
 
@@ -568,7 +571,7 @@ async function main() {
 
 
 
-  app.post('/wyswietl', async function (request, response){
+  app.post('/wyswietl', upload.none(), async function (request, response){
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -595,70 +598,69 @@ async function main() {
     JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
     JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
     AND sprzet.stan_id = stany.stan_id
-    WHERE sprzet.czy_usuniete = 0
     `;
 
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
-    let clauses = []; // array to store joined conditions form before, later to be joined with AND
+    let clauses = ['sprzet.czy_usuniete = 0']; // array to store joined conditions form before, later to be joined with AND
 
-    // we unfortunately need to process each column separately, TODO find a better way of doing this
+    // we unfortunately need to process each column separately
 
-    // if(request.body.kategoria) {
-    //   for(let box of request.body.kategoria) {
-    //     conditions.push(`sprzet.kategoria_id = ${box.name.split('_').at(-1)}`);
-    //   }
-    //   clauses.push(`(${conditions.join(' OR ')})`);
-    //   conditions = [];
-    // }
-    //
-    // if(request.body.stan) {
-    //   for(let box of request.body.stan) {
-    //     conditions.push(`stany.stan_id = ${box.name.split('_').at(-1)}`);
-    //   }
-    //   clauses.push(`(${conditions.join(' OR ')})`);
-    //   conditions = [];
-    // }
-    //
-    // if(request.body.lokalizacja) {
-    //   for(let box of request.body.lokalizacja) {
-    //     conditions.push(`sprzet.lokalizacja_id = ${box.name.split('_').at(-1)}`);
-    //   }
-    //   clauses.push(`(${conditions.join(' OR ')})`);
-    //   conditions = [];
-    // }
-    //
-    // if(request.body.status) {
-    //   for(let box of request.body.status) {
-    //     conditions.push(`sprzet.status_id = ${box.name.split('_').at(-1)}`);
-    //   }
-    //   clauses.push(`(${conditions.join(' OR ')})`);
-    //   conditions = [];
-    // }
-    //
-    // if(request.body.nazwa[0].value) {
-    //   clauses.push(`sprzet.nazwa LIKE '%${request.body.nazwa[0].value}%'`);
-    // }
-    //
-    // if(request.body.wlasciciel) {
-    //   for(let box of request.body.wlasciciel) {
-    //     conditions.push(`wla.podmiot_id = ${box.name.split('_').at(-1)}`);
-    //   }
-    //   clauses.push(`(${conditions.join(' OR ')})`);
-    //   conditions = [];
-    // }
-    //
-    // if(request.body.uzytkownik) {
-    //   for(let box of request.body.uzytkownik) {
-    //     conditions.push(`uzy.podmiot_id = ${box.name.split('_').at(-1)}`);
-    //   }
-    //   clauses.push(`(${conditions.join(' OR ')})`);
-    //   conditions = [];
-    // }
-    //
-    // let clause = clauses.join(' AND ');
-    // if(clause) {
-    //   query += ' WHERE ' + clause;
-    // }
+    if(!isObjectEmpty(request.body['kategoria'])) {
+      for(let box in request.body['kategoria']) {
+        conditions.push(`sprzet.kategoria_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['stan'])) {
+      for(let box in request.body['stan']) {
+        conditions.push(`stany.stan_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['lokalizacja'])) {
+      for(let box in request.body['lokalizacja']) {
+        conditions.push(`sprzet.lokalizacja_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['status'])) {
+      for(let box in request.body['status']) {
+        conditions.push(`sprzet.status_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body['nazwa']['nazwa']) {
+      clauses.push(`sprzet.nazwa LIKE '%${request.body['nazwa']['nazwa']}%'`);
+    }
+
+    if(!isObjectEmpty(request.body['wlasciciel'])) {
+      for(let box in request.body['wlasciciel']) {
+        conditions.push(`wla.podmiot_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['uzytkownik'])) {
+      for(let box in request.body['uzytkownik']) {
+        conditions.push(`uzy.podmiot_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    let clause = clauses.join(' AND ');
+    if(clause) {
+      query += ' WHERE ' + clause;
+    }
     query += ';';
 
     let [rows, columns] = await con.execute(query);
