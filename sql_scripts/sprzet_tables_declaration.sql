@@ -37,4 +37,3 @@ CREATE TABLE sus_database.zdjecia_uszkodzen
     CONSTRAINT zdjecia_uszkodzen_sprzet_PrzedmiotID_fk
         FOREIGN KEY (przedmiot_id) REFERENCES sus_database.sprzet (przedmiot_id)
 );
-
