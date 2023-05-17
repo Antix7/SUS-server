@@ -1,3 +1,14 @@
+DROP TABLE sus_database.stany;
+DROP TABLE sus_database.zdjecia_uszkodzen;
+DROP TABLE sus_database.sprzet;
+DROP TABLE sus_database.kategorie;
+DROP TABLE sus_database.lokalizacje;
+DROP TABLE sus_database.podmioty;
+DROP TABLE sus_database.statusy;
+DROP TABLE sus_database.users;
+
+
+
 CREATE TABLE sus_database.kategorie
 (
     kategoria_id    INT AUTO_INCREMENT

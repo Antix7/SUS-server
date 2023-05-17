@@ -8,6 +8,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
+const bodyParser = require('body-parser')
 
 let con;
 
@@ -45,7 +46,7 @@ function create_hash(password) {
 }
 
  // this function adds a specified user to the database
- // used solely for debugging
+ // used for debugging
 async function create_user(username, password, czy_admin) {
   let password_hash = create_hash(password);
   console.log(password_hash);
@@ -82,108 +83,14 @@ function generate_random_string(length) {
   return name;
 }
 
- // the three functions below use the for ... in .. loops, which iterate through the properties of an object
-
- // this function returns a string with an HTML table based on the object parameter
- // used for user list in admin panel
-function build_table_users(ob) {
-  let table = '<table><tr>';
-  for(let i in ob[0]) {
-    table += '<th>' + i.toString() + '</th>';
-  }
-  table += '<th> guziczki </th>';
-  table += '</tr>';
-  for(let i in ob) {
-    table += '<tr>';
-    for(let j in ob[i]) {
-      table += '<td>';
-      table += ob[i][j];
-      table += '</td>';
-    }
-    table += '<td> ' +
-        '<form action="/panel/uzytkownicy/usun" method="post"> ' +
-        '<input type="submit" value="usuń"> ' +
-        '<input type="hidden" name="username" value="' + ob[i].username + '"> ' +
-        '</form> </td>';
-    table += '</tr>';
-  }
-  table += '</table>';
-  return table;
+function isObjectEmpty(obj) {
+  return obj
+    && Object.keys(obj).length === 0
+    && Object.getPrototypeOf(obj) === Object.prototype;
 }
-
-function usersTableInfo(rows) {
-  let head = [], body = [], curRow = [];
-  for(let i in rows[0])
-    head.push(i.toString());
-  for(let i in rows) {
-    curRow = [];
-    for (let j in rows[i])
-      curRow.push(rows[i][j]);
-    body.push(curRow);
-  }
-  return [head, body];
-}
-
-function build_sprzet_select_form(rows, form_id) {
-  let values, form = `<b class="form_title">${form_id}</b><br><form id="${form_id}_form">`;
-  for(let option of rows) {
-    values = Object.values(option);
-    form += `<input type="checkbox" name="${form_id}_${values[1]}">`;
-    form += `<label for="${form_id}_${values[1]}">${values[0]}</label><br>` //perhaps there is a cleaner way of doing it?
-  }
-  return form + '</form>';
-}
-
- // these two functions together return a string with an HTML table based on the object parameter
- // the first one is for the headers, the second one for the body
- // it's made this way, so it's easier if we load the data in chunks, not all at once
- // used for 'sprzet' table
-function build_thead_sprzet(ob) {
-
-  let table = '<thead>';
-  for (let i in ob[0]) {
-    if(i === "og_id")
-      continue;
-    if(i === "ID")
-      table += "<th>wybierz</th>";
-    else
-      table += `<th>${i}</th>`;
-  }
-  table += "<th>edytuj</th>";
-  table += "<th>og_id</th>"
-  table += '</thead>';
-
-  return table;
-}
-function build_table_sprzet(ob) {
-  let table = '';
-  for(let i in ob) {
-    table += `<tr data-row-id="${ob[i]['ID']}" data-row-ogid="${ob[i]['og_id']}">`;
-    table += '<td><input type = "checkbox" class="selectRow"></td>';
-    for(let j in ob[i]) {
-      if(j === 'ID' || j === 'og_id')
-        continue;
-      if(j === 'ilosc')
-        table += '<td class="ilosc">';
-      else
-        table += '<td>';
-      if(j === 'zdjecie')
-        table += `<img src="${ob[i][j]}" alt="brak">`;
-      else
-        table += ob[i][j];
-      table += '</td>';
-    }
-    table += `<td> <form class="edytuj" > <input type="submit" value="💀"> </form> </td>`;
-    table += '<td> <button class="zabierz">zabierz</button> ' +
-        '<button class="odloz">odłóż</button>' +
-        '<button class="forger">forger</button></td>';
-    table += '</tr>';
-  }
-  return table;
-}
-
 
 function verifyToken(token, shouldBeAdmin, resetOnly = false) {
+
   if(!token) return false;
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
     if(err) return false;
@@ -230,6 +137,10 @@ async function main() {
     optionSuccessStatus:200,
   }
   app.use(cors(corsOptions))
+
+  app.use(bodyParser.urlencoded({
+    extended: false
+  }));
 
 
   // user authentication - sending/verifying a JSON Web Token
@@ -363,7 +274,7 @@ async function main() {
   });
 
   // sending the user data necessary for the form for adding new rows
-  app.get('/dodaj/dropdowns', async function (request, response) {
+  app.get('/available_values', async function (request, response) {
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -401,9 +312,15 @@ async function main() {
       stany[rows[i]["kategoria_id"]][rows[i]["stan_id"]] = rows[i]["stan_nazwa"];
     }
 
+    [rows, columns] = await con.execute('SELECT stan_id, stan_nazwa FROM stany GROUP BY stan_id, stan_nazwa ORDER BY stan_id');
+    let stanyAll = {};
+    for(let i in rows) {
+      stanyAll[rows[i]['stan_id']] = rows[i]['stan_nazwa'];
+    }
+
     response.json({
       success: true,
-      data: {podmioty: pod, statusy: statusy, lokalizacje: lok, kategorie: kat, stany: stany}
+      data: {podmioty: pod, statusy: statusy, lokalizacje: lok, kategorie: kat, stany: stany, stanyAll: stanyAll}
     });
     response.end();
   });
@@ -476,6 +393,8 @@ async function main() {
     }
     if(!verifyToken(token, true))
       return;
+
+    console.log(request.body);
 
     let czy_admin = request.body.czy_admin ? 1 : 0;
     let data = request.body.data ? request.body.data : null;
@@ -685,66 +604,10 @@ async function main() {
 
 
 
+  app.post('/wyswietl', upload.none(), async function (request, response){
 
-  app.get('/sprzet_panel/wyswietl/filters', async function (request, response) {
-    if (!request.session.loggedin) {
-      return;
-    }
-
-    let query, rows, columns, form_name, result = {};
-
-    form_name = 'kategoria';
-    query = 'SELECT kategoria_nazwa, kategoria_id FROM kategorie;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    form_name = 'lokalizacja';
-    query = 'SELECT lokalizacja_nazwa, lokalizacja_id FROM lokalizacje;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    form_name = 'status';
-    query = 'SELECT status_nazwa, status_id FROM statusy;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    form_name = 'wlasciciel';
-    query = 'SELECT podmiot_nazwa, podmiot_id FROM podmioty;';
-    [rows, columns] = await con.execute(query);
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-    form_name = 'uzytkownik';
-    result[form_name] = build_sprzet_select_form(rows, form_name);
-
-    response.send(result);
-
-  });
-
-  app.post('/sprzet_panel/wyswietl/filters/stany', async function(request, response) {
-    if (!request.session.loggedin) {
-      return;
-    }
-
-    if(!request.body.kategoria) return;
-
-    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
-
-    for(let box of request.body.kategoria) {
-      conditions.push(`kategoria_id = ${box.name.split('_').at(-1)}`);
-    }
-
-    let query = `SELECT stan_nazwa, stan_id FROM stany WHERE ${conditions.join(' OR ')} 
-    GROUP BY stan_id, stan_nazwa ORDER BY stan_id`;
-    let [rows, columns] = await con.execute(query);
-
-    response.send(build_sprzet_select_form(rows, 'stan'));
-
-  });
-
-  app.post('/sprzet_panel/wyswietl/auth', async function (request, response){
-    if (!request.session.loggedin) {
-      response.sendFile(__dirname + '/login/oszust.html');
-      return;
-    }
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
 
     // this is the basic query structure to which a clause will be added
     let query = `SELECT
@@ -768,61 +631,60 @@ async function main() {
     JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
     JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
     AND sprzet.stan_id = stany.stan_id
-    WHERE sprzet.czy_usuniete = 0
     `;
 
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
-    let clauses = []; // array to store joined conditions form before, later to be joined with AND
+    let clauses = ['sprzet.czy_usuniete = 0']; // array to store joined conditions form before, later to be joined with AND
 
-    // we unfortunately need to process each column separately, TODO find a better way of doing this
+    // we unfortunately need to process each column separately
 
-    if(request.body.kategoria) {
-      for(let box of request.body.kategoria) {
-        conditions.push(`sprzet.kategoria_id = ${box.name.split('_').at(-1)}`);
+    if(!isObjectEmpty(request.body['kategoria'])) {
+      for(let box in request.body['kategoria']) {
+        conditions.push(`sprzet.kategoria_id = ${box.split('_').at(-1)}`);
       }
       clauses.push(`(${conditions.join(' OR ')})`);
       conditions = [];
     }
 
-    if(request.body.stan) {
-      for(let box of request.body.stan) {
-        conditions.push(`stany.stan_id = ${box.name.split('_').at(-1)}`);
+    if(!isObjectEmpty(request.body['stan'])) {
+      for(let box in request.body['stan']) {
+        conditions.push(`stany.stan_id = ${box.split('_').at(-1)}`);
       }
       clauses.push(`(${conditions.join(' OR ')})`);
       conditions = [];
     }
 
-    if(request.body.lokalizacja) {
-      for(let box of request.body.lokalizacja) {
-        conditions.push(`sprzet.lokalizacja_id = ${box.name.split('_').at(-1)}`);
+    if(!isObjectEmpty(request.body['lokalizacja'])) {
+      for(let box in request.body['lokalizacja']) {
+        conditions.push(`sprzet.lokalizacja_id = ${box.split('_').at(-1)}`);
       }
       clauses.push(`(${conditions.join(' OR ')})`);
       conditions = [];
     }
 
-    if(request.body.status) {
-      for(let box of request.body.status) {
-        conditions.push(`sprzet.status_id = ${box.name.split('_').at(-1)}`);
+    if(!isObjectEmpty(request.body['status'])) {
+      for(let box in request.body['status']) {
+        conditions.push(`sprzet.status_id = ${box.split('_').at(-1)}`);
       }
       clauses.push(`(${conditions.join(' OR ')})`);
       conditions = [];
     }
 
-    if(request.body.nazwa[0].value) {
-      clauses.push(`sprzet.nazwa LIKE '%${request.body.nazwa[0].value}%'`);
+    if(request.body['nazwa']['nazwa']) {
+      clauses.push(`sprzet.nazwa LIKE '%${request.body['nazwa']['nazwa']}%'`);
     }
 
-    if(request.body.wlasciciel) {
-      for(let box of request.body.wlasciciel) {
-        conditions.push(`wla.podmiot_id = ${box.name.split('_').at(-1)}`);
+    if(!isObjectEmpty(request.body['wlasciciel'])) {
+      for(let box in request.body['wlasciciel']) {
+        conditions.push(`wla.podmiot_id = ${box.split('_').at(-1)}`);
       }
       clauses.push(`(${conditions.join(' OR ')})`);
       conditions = [];
     }
 
-    if(request.body.uzytkownik) {
-      for(let box of request.body.uzytkownik) {
-        conditions.push(`uzy.podmiot_id = ${box.name.split('_').at(-1)}`);
+    if(!isObjectEmpty(request.body['uzytkownik'])) {
+      for(let box in request.body['uzytkownik']) {
+        conditions.push(`uzy.podmiot_id = ${box.split('_').at(-1)}`);
       }
       clauses.push(`(${conditions.join(' OR ')})`);
       conditions = [];
@@ -835,7 +697,10 @@ async function main() {
     query += ';';
 
     let [rows, columns] = await con.execute(query);
-    response.send(build_thead_sprzet(rows)+build_table_sprzet(rows));
+    response.json({
+      success: true,
+      data: rows
+    });
 
   });
   // TODO not loading the whole table at once
