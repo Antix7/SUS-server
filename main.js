@@ -49,7 +49,6 @@ function create_hash(password) {
  // used for debugging
 async function create_user(username, password, czy_admin) {
   let password_hash = create_hash(password);
-  console.log(password_hash);
   let query = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
   await con.execute(query, [username, password_hash, czy_admin]);
 }
@@ -60,7 +59,8 @@ async function connect_to_database(host, user, password, database) {
     host: host,
     user: user,
     password: password,
-    database: database
+    database: database,
+    multipleStatements: true
   });
   return 0;
 }
@@ -110,6 +110,36 @@ function getTokenData(token) {
 }
 
 
+// this function only runs if the "DEVELOPMENT_MODE" property in .env file is set to 1
+// it resets the entire database and should NEVER be used outside development
+// con.query is used, since con.execute doesn't allow multiple statements
+async function developmentScripts() {
+  console.log("Development mode enabled. Executing development scripts...");
+
+  if(process.env.DEV_MODE_SPRZET_DROP === "1")
+    await con.query(fs.readFileSync('./sql_scripts/sprzet_tables_drop.sql').toString());
+  if(process.env.DEV_MODE_ASSISTING_DROP === "1")
+    await con.query(fs.readFileSync('./sql_scripts/assisting_tables_drop.sql').toString());
+  if(process.env.DEV_MODE_ASSISTING_DECLARE === "1")
+    await con.query(fs.readFileSync('./sql_scripts/assisting_tables_declaration.sql').toString());
+  if(process.env.DEV_MODE_ASSISTING_SETUP === "1")
+    await con.query(fs.readFileSync('./sql_scripts/assisting_tables_setup.sql').toString());
+  if(process.env.DEV_MODE_SPRZET_DECLARE === "1")
+    await con.query(fs.readFileSync('./sql_scripts/sprzet_tables_declaration.sql').toString());
+
+  if(process.env.DEV_MODE_USERS_DROP === "1")
+    await con.query(fs.readFileSync('./sql_scripts/users_table_drop.sql').toString());
+  if(process.env.DEV_MODE_USERS_DECLARE === "1")
+    await con.query(fs.readFileSync('./sql_scripts/users_table_declaration.sql').toString());
+  if(process.env.DEV_MODE_USERS_SETUP === "1") {
+    await con.query("DELETE FROM sus_database.users;");
+    await create_user('admin', 'a', 1);
+    await create_user('twoj_stary', '2137', 0);
+  }
+
+  console.log("Executed development scripts. Powering up the server");
+}
+
 async function main() {
 
   if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
@@ -122,6 +152,9 @@ async function main() {
 
   // configuring environment variables
   dotenv.config();
+
+  if(process.env.DEVELOPMENT_MODE === "1")
+    await developmentScripts();
 
   // initialising the express app
   const app = express();
