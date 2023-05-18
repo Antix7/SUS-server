@@ -101,6 +101,7 @@ function verifyToken(token, shouldBeAdmin, resetOnly = false) {
     return true;
   });
 }
+
 function getTokenData(token) {
   if(!token) return {};
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
