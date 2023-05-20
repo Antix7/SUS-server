@@ -434,8 +434,20 @@ async function main() {
 
   });
 
+  app.post('/usun_sprzet', async function (request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
+    let query = `UPDATE sus_database.sprzet 
+    SET sprzet.czy_usuniete = 1 
+    WHERE sprzet.przedmiot_id = ?;`;
+
+    con.execute(query, [request.body.id]);
+    response.end();
+  });
+
   // adding the new row to the database
-  app.post('/dodaj', upload.single('zdjecie'), function (request, response) {
+  app.post('/dodaj', upload.single('zdjecie'), async function (request, response) {
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -709,25 +721,6 @@ async function main() {
     let query = "DELETE FROM users WHERE username = ?;";
     await con.execute(query, [username]);
     response.redirect('/panel/uzytkownicy');
-  });
-
-
-
-
-
-
-  app.post('/sprzet_panel/wyswietl/usun', function (request, response) {
-    let conditions = [];
-    request.body.toDelete.forEach((x) => {
-      conditions.push(`sprzet.przedmiot_id = ${x}`);
-    });
-    let query = `UPDATE 
-    sus_database.sprzet
-    SET sprzet.czy_usuniete = 1 
-    WHERE ${conditions.join(' OR ')}
-    `;
-    con.execute(query);
-    response.end();
   });
 
 
