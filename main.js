@@ -84,6 +84,7 @@ function generate_random_string(length) {
 }
 
 function isObjectEmpty(obj) {
+  if(obj === undefined) return true;
   return obj
     && Object.keys(obj).length === 0
     && Object.getPrototypeOf(obj) === Object.prototype;
@@ -392,7 +393,7 @@ async function main() {
       conditions = [];
     }
 
-    if(request.body['nazwa']['nazwa']) {
+    if(request.body['nazwa'] && request.body['nazwa']['nazwa']) {
       clauses.push(`sprzet.nazwa LIKE '%${request.body['nazwa']['nazwa']}%'`);
     }
 
@@ -418,7 +419,10 @@ async function main() {
       query += ' WHERE ' + clause;
     }
 
-    let order = request.body['sortOrder'].join(',');
+    let order;
+    if(request.body['sortOrder']) {
+      order = request.body['sortOrder'].join(',');
+    }
     if(order) {
       query += ' ORDER BY ' + order;
     }
