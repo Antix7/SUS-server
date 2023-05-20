@@ -24,10 +24,10 @@ INSERT INTO podmioty VALUES (5, '151 WDW "A co może pójśc źle?"');
 INSERT INTO podmioty VALUES (6, 'Szczep Burza');
 
 INSERT INTO kategorie VALUES (1, 'Narzędzia');
-INSERT INTO stany VALUES (1, 1, 'Dobry');
-INSERT INTO stany VALUES (1, 2, 'Tępy');
-INSERT INTO stany VALUES (1, 3, 'Krzywy');
-INSERT INTO stany VALUES (1, 4, 'Zardzewiały');
+INSERT INTO stany VALUES (1, 2, 'Dobry');
+INSERT INTO stany VALUES (1, 3, 'Tępy');
+INSERT INTO stany VALUES (1, 4, 'Krzywy');
+INSERT INTO stany VALUES (1, 5, 'Zardzewiały');
 INSERT INTO stany VALUES (1, 11, 'Zły');
 
 INSERT INTO kategorie VALUES (2, 'Namioty');
