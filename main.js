@@ -326,6 +326,114 @@ async function main() {
     response.end();
   });
 
+  app.post('/wyswietl', upload.none(), async function (request, response){
+
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
+    // this is the basic query structure to which a clause will be added
+    let query = `SELECT
+    sprzet.przedmiot_id AS ID,
+    sprzet.nazwa AS nazwa,
+    sprzet.ilosc AS ilosc,
+    statusy.status_nazwa AS status,
+    kat.kategoria_nazwa AS kategoria,
+    stany.stan_nazwa AS stan,
+    lok.lokalizacja_nazwa AS lokalizacja,
+    wla.podmiot_nazwa AS wlasciciel,
+    uzy.podmiot_nazwa AS uzytkownik,
+    sprzet.opis AS opis,
+    sprzet.zdjecie_path AS zdjecie,
+    sprzet.og_id AS og_id
+    FROM sprzet
+    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+    JOIN statusy ON sprzet.status_id = statusy.status_id
+    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+    AND sprzet.stan_id = stany.stan_id
+    `;
+
+    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
+    let clauses = ['sprzet.czy_usuniete = 0']; // array to store joined conditions form before, later to be joined with AND
+
+    // we unfortunately need to process each column separately
+
+    if(!isObjectEmpty(request.body['kategoria'])) {
+      for(let box in request.body['kategoria']) {
+        conditions.push(`sprzet.kategoria_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['stan'])) {
+      for(let box in request.body['stan']) {
+        conditions.push(`stany.stan_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['lokalizacja'])) {
+      for(let box in request.body['lokalizacja']) {
+        conditions.push(`sprzet.lokalizacja_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['status'])) {
+      for(let box in request.body['status']) {
+        conditions.push(`sprzet.status_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(request.body['nazwa']['nazwa']) {
+      clauses.push(`sprzet.nazwa LIKE '%${request.body['nazwa']['nazwa']}%'`);
+    }
+
+    if(!isObjectEmpty(request.body['wlasciciel'])) {
+      for(let box in request.body['wlasciciel']) {
+        conditions.push(`wla.podmiot_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+    if(!isObjectEmpty(request.body['uzytkownik'])) {
+      for(let box in request.body['uzytkownik']) {
+        conditions.push(`uzy.podmiot_id = ${box.split('_').at(-1)}`);
+      }
+      clauses.push(`(${conditions.join(' OR ')})`);
+      conditions = [];
+    }
+
+
+    let clause = clauses.join(' AND ');
+    if(clause) {
+      query += ' WHERE ' + clause;
+    }
+
+    let order = request.body['sortOrder'].join(',');
+    if(order) {
+      query += ' ORDER BY ' + order;
+    }
+
+    query += ';';
+
+
+    let [rows, columns] = await con.execute(query);
+    response.json({
+      success: true,
+      data: rows
+    });
+
+  });
+
   // adding the new row to the database
   app.post('/dodaj', upload.single('zdjecie'), function (request, response) {
 
@@ -605,106 +713,8 @@ async function main() {
 
 
 
-  app.post('/wyswietl', upload.none(), async function (request, response){
 
-    let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false)) return;
 
-    // this is the basic query structure to which a clause will be added
-    let query = `SELECT
-    sprzet.przedmiot_id AS ID,
-    sprzet.nazwa AS nazwa,
-    sprzet.ilosc AS ilosc,
-    statusy.status_nazwa AS status,
-    kat.kategoria_nazwa AS kategoria,
-    stany.stan_nazwa AS stan,
-    lok.lokalizacja_nazwa AS lokalizacja,
-    wla.podmiot_nazwa AS wlasciciel,
-    uzy.podmiot_nazwa AS uzytkownik,
-    sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie,
-    sprzet.og_id AS og_id
-    FROM sprzet
-    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
-    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
-    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
-    JOIN statusy ON sprzet.status_id = statusy.status_id
-    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
-    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
-    AND sprzet.stan_id = stany.stan_id
-    `;
-
-    let conditions = []; // array to store individual conditions for each column, later to be joined with OR
-    let clauses = ['sprzet.czy_usuniete = 0']; // array to store joined conditions form before, later to be joined with AND
-
-    // we unfortunately need to process each column separately
-
-    if(!isObjectEmpty(request.body['kategoria'])) {
-      for(let box in request.body['kategoria']) {
-        conditions.push(`sprzet.kategoria_id = ${box.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(!isObjectEmpty(request.body['stan'])) {
-      for(let box in request.body['stan']) {
-        conditions.push(`stany.stan_id = ${box.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(!isObjectEmpty(request.body['lokalizacja'])) {
-      for(let box in request.body['lokalizacja']) {
-        conditions.push(`sprzet.lokalizacja_id = ${box.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(!isObjectEmpty(request.body['status'])) {
-      for(let box in request.body['status']) {
-        conditions.push(`sprzet.status_id = ${box.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(request.body['nazwa']['nazwa']) {
-      clauses.push(`sprzet.nazwa LIKE '%${request.body['nazwa']['nazwa']}%'`);
-    }
-
-    if(!isObjectEmpty(request.body['wlasciciel'])) {
-      for(let box in request.body['wlasciciel']) {
-        conditions.push(`wla.podmiot_id = ${box.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    if(!isObjectEmpty(request.body['uzytkownik'])) {
-      for(let box in request.body['uzytkownik']) {
-        conditions.push(`uzy.podmiot_id = ${box.split('_').at(-1)}`);
-      }
-      clauses.push(`(${conditions.join(' OR ')})`);
-      conditions = [];
-    }
-
-    let clause = clauses.join(' AND ');
-    if(clause) {
-      query += ' WHERE ' + clause;
-    }
-    query += ';';
-
-    let [rows, columns] = await con.execute(query);
-    response.json({
-      success: true,
-      data: rows
-    });
-
-  });
-  // TODO not loading the whole table at once
 
   app.post('/sprzet_panel/wyswietl/usun', function (request, response) {
     let conditions = [];
