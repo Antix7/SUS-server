@@ -17,5 +17,4 @@ Before continuing, please <a href="https://www.facebook.com/profile.php?id=10007
 ## How to use the program:
 
     1. start the main.js file using node
-    2. open your browser
-    3. go to the address "localhost:3000"
+    2. the server will open on localhost:3001
