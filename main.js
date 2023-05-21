@@ -419,12 +419,14 @@ async function main() {
       query += ' WHERE ' + clause;
     }
 
-    let order;
+    let order = [];
     if(request.body['sortOrder']) {
-      order = request.body['sortOrder'].join(',');
+      for(let [field, desc] of request.body['sortOrder']) {
+        order.push(field + (desc ? ' DESC ' : ' ASC '));
+      }
     }
-    if(order) {
-      query += ' ORDER BY ' + order;
+    if(order.length !== 0) {
+      query += ' ORDER BY ' + order.join(',');
     }
 
     query += ';';
