@@ -12,9 +12,7 @@ const bodyParser = require('body-parser')
 
 let con;
 
-const oszust = 'Nie ma tak nigerze mały!';
-
- // configuration of nodemailer module used for sending emails
+// configuration of nodemailer module used for sending emails
 const sus_email_address = 'noreply.sus@gmail.com';
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
@@ -27,7 +25,7 @@ let mail_client = nodemailer.createTransport({
   }
 });
 
- // configuration of multer module used for saving images
+// configuration of multer module used for saving images
 const storage = multer.diskStorage({
   destination: (req, file, callBack) => {
     callBack(null, './public/images/')     // './public/images/' directory name where save the file
@@ -40,7 +38,7 @@ const upload = multer({
   storage: storage
 });
 
- // this function returns a hex representation of a sha256 hash of the password parameter
+// this function returns a hex representation of a sha256 hash of the password parameter
 function create_hash(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
@@ -53,7 +51,7 @@ async function create_user(username, password, czy_admin) {
   await con.execute(query, [username, password_hash, czy_admin]);
 }
 
- // this function initialises the con variable for sql queries
+// this function initialises the con variable for sql queries
 async function connect_to_database(host, user, password, database) {
   con = await mysql_promise.createConnection({
     host: host,
@@ -65,7 +63,7 @@ async function connect_to_database(host, user, password, database) {
   return 0;
 }
 
- // this function generates a random string for account activation
+// this function generates a random string for account activation
 function generate_random_string(length) {
   let name = '';
   for(let i = 0; i < length; i++) {
@@ -83,6 +81,7 @@ function generate_random_string(length) {
   return name;
 }
 
+
 function isObjectEmpty(obj) {
   if(obj === undefined) return true;
   return obj
@@ -91,7 +90,6 @@ function isObjectEmpty(obj) {
 }
 
 function verifyToken(token, shouldBeAdmin, resetOnly = false) {
-
   if(!token) return false;
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
     if(err) return false;
@@ -452,6 +450,7 @@ async function main() {
       query += ' WHERE ' + clause;
     }
 
+
     let order = [];
     if(request.body['sortOrder']) {
       for(let [field, desc] of request.body['sortOrder']) {
@@ -460,6 +459,7 @@ async function main() {
     }
     if(order.length !== 0) {
       query += ' ORDER BY ' + order.join(',');
+
     }
 
     query += ';';
@@ -894,7 +894,7 @@ async function main() {
 
 main();
 
- // the code below is used to add debug users to the database
+// the code below is used to add debug users to the database
 // connect_to_database("localhost", "sqluser", "imposter", "sus_database");
 // setTimeout(function() {
 // create_user('admin', 'admin', 1);
