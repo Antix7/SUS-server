@@ -503,8 +503,6 @@ async function main() {
     let uzytkownik = body["uzytkownik"];
     let opis = body["opis"];
 
-    console.log(nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis);
-
     if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
       response.json({
         success: false,
@@ -594,6 +592,24 @@ async function main() {
       data: rows
     });
     response.end();
+  });
+
+  app.post('/usun_uzytkownika', async function (request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, true)) return;
+    const tokenData = getTokenData(token);
+
+    let username = request.body.username;
+    if (username === tokenData.username) {
+      response.json({
+        success: false,
+        message: 'Nie możesz usunąć własnego konta'
+      });
+      return;
+    }
+    let query = 'DELETE FROM users WHERE username = ?;';
+    await con.execute(query, [username]);
+    response.json({success: true});
   });
 
   // performing a custom query to the database
@@ -744,25 +760,6 @@ async function main() {
 
 
   // Not implemented with React yet
-
-
-  // deleting a user from the list
-  app.post('/panel/uzytkownicy/usun', async function (request, response) {
-    if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
-    let username = request.body.username;
-    if (username === request.session.username) {
-      response.send("lol nie możesz usunąć własnego konta");
-      return;
-    }
-    let query = "DELETE FROM users WHERE username = ?;";
-    await con.execute(query, [username]);
-    response.redirect('/panel/uzytkownicy');
-  });
-
-
 
 
   app.get('/sprzet_panel/edytuj', function(request, response) {
