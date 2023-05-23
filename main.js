@@ -539,18 +539,7 @@ async function main() {
   app.post('/generuj_klucz', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
-
-    console.log(request.body);
+    if(!verifyToken(token, true)) return;
 
     let czy_admin = request.body.czy_admin ? 1 : 0;
     let data = request.body.data ? request.body.data : null;
@@ -571,16 +560,7 @@ async function main() {
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
+    if(!verifyToken(token, true)) return;
 
     let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
     let [rows, columns] = await con.execute(query);
@@ -615,16 +595,7 @@ async function main() {
   app.post('/query', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
+    if(!verifyToken(token, true)) return;
 
     let query = request.body.query;
     if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
@@ -760,15 +731,6 @@ async function main() {
   // Not implemented with React yet
 
 
-  app.get('/sprzet_panel/edytuj', function(request, response) {
-    if(!request.query.id) {
-      response.redirect('/sprzet_panel/wyswietl');
-      return;
-    }
-    request.session.editid = request.query.id;
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/edytuj_sprzet.html');
-  });
-
   app.post('/sprzet_panel/edytuj/info', async function (request, response) {
     let [rows, columns] = await con.execute(`SELECT *
                                              FROM sus_database.sprzet
@@ -888,10 +850,3 @@ async function main() {
 
 
 main();
-
- // the code below is used to add debug users to the database
-// connect_to_database("localhost", "sqluser", "imposter", "sus_database");
-// setTimeout(function() {
-// create_user('admin', 'admin', 1);
-// create_user('twoj_stary', '2137', 0);
-// }, 1000);
