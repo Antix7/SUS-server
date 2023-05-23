@@ -12,13 +12,13 @@ const bodyParser = require('body-parser')
 
 let con;
 
-// configuration of nodemailer module used for sending emails
-const sus_email_address = 'noreply.sus@gmail.com';
+
+ // configuration of nodemailer module used for sending emails;
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: sus_email_address,
-    pass: 'fnoizumcdgzkrisd'
+    user: process.env.SUS_EMAIL_ADDRESS,
+    pass: process.env.SUS_EMAIL_PASSWORD
   },
   tls: {
     rejectUnauthorized: false
@@ -142,16 +142,17 @@ async function developmentScripts() {
 
 async function main() {
 
-  if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
+  // configuring environment variables
+  dotenv.config();
+
+  if(await connect_to_database(
+    process.env.MYSQL_HOSTNAME,
+    process.env.MYSQL_USERNAME,
+    process.env.MYSQL_PASSWORD,
+    process.env.MYSQL_DATABASE) !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
-  // create_user('admin', 'admin', 1);
-  // create_user('twoj_stary', '2137', 0);
-  // return 0;
-
-  // configuring environment variables
-  dotenv.config();
 
   if(process.env.DEVELOPMENT_MODE === "1")
     await developmentScripts();
@@ -503,8 +504,6 @@ async function main() {
     let uzytkownik = body["uzytkownik"];
     let opis = body["opis"];
 
-    console.log(nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis);
-
     if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
       response.json({
         success: false,
@@ -543,18 +542,7 @@ async function main() {
   app.post('/generuj_klucz', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
-
-    console.log(request.body);
+    if(!verifyToken(token, true)) return;
 
     let czy_admin = request.body.czy_admin ? 1 : 0;
     let data = request.body.data ? request.body.data : null;
@@ -575,16 +563,7 @@ async function main() {
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
+    if(!verifyToken(token, true)) return;
 
     let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
     let [rows, columns] = await con.execute(query);
@@ -596,21 +575,30 @@ async function main() {
     response.end();
   });
 
+  app.post('/usun_uzytkownika', async function (request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, true)) return;
+    const tokenData = getTokenData(token);
+
+    let username = request.body.username;
+    if (username === tokenData.username) {
+      response.json({
+        success: false,
+        message: 'Nie możesz usunąć własnego konta'
+      });
+      return;
+    }
+    let query = 'DELETE FROM users WHERE username = ?;';
+    await con.execute(query, [username]);
+    response.json({success: true});
+  });
+
   // performing a custom query to the database
   // DROP and DELETE keywords are forbidden
   app.post('/query', upload.none(), async function (request, response) {
 
     let token = request.headers["x-access-token"];
-    if(verifyToken(token, false) && !verifyToken(token, true)) {
-      response.json({
-        success: false,
-        message: "Funkcja dostępna tylko dla użytkowników z uprawnieniami administratorskimi"
-      });
-      response.end();
-      return;
-    }
-    if(!verifyToken(token, true))
-      return;
+    if(!verifyToken(token, true)) return;
 
     let query = request.body.query;
     if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
@@ -746,34 +734,6 @@ async function main() {
   // Not implemented with React yet
 
 
-  // deleting a user from the list
-  app.post('/panel/uzytkownicy/usun', async function (request, response) {
-    if (!(request.session.isadmin && request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
-      return;
-    }
-    let username = request.body.username;
-    if (username === request.session.username) {
-      response.send("lol nie możesz usunąć własnego konta");
-      return;
-    }
-    let query = "DELETE FROM users WHERE username = ?;";
-    await con.execute(query, [username]);
-    response.redirect('/panel/uzytkownicy');
-  });
-
-
-
-
-  app.get('/sprzet_panel/edytuj', function(request, response) {
-    if(!request.query.id) {
-      response.redirect('/sprzet_panel/wyswietl');
-      return;
-    }
-    request.session.editid = request.query.id;
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/edytuj_sprzet.html');
-  });
-
   app.post('/sprzet_panel/edytuj/info', async function (request, response) {
     let [rows, columns] = await con.execute(`SELECT *
                                              FROM sus_database.sprzet
@@ -893,10 +853,3 @@ async function main() {
 
 
 main();
-
-// the code below is used to add debug users to the database
-// connect_to_database("localhost", "sqluser", "imposter", "sus_database");
-// setTimeout(function() {
-// create_user('admin', 'admin', 1);
-// create_user('twoj_stary', '2137', 0);
-// }, 1000);
