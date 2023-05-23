@@ -733,15 +733,6 @@ async function main() {
   // Not implemented with React yet
 
 
-  app.get('/sprzet_panel/edytuj', function(request, response) {
-    if(!request.query.id) {
-      response.redirect('/sprzet_panel/wyswietl');
-      return;
-    }
-    request.session.editid = request.query.id;
-    response.sendFile(__dirname + '/user_panel/sprzet_panel/edytuj_sprzet.html');
-  });
-
   app.post('/sprzet_panel/edytuj/info', async function (request, response) {
     let [rows, columns] = await con.execute(`SELECT *
                                              FROM sus_database.sprzet
@@ -861,10 +852,3 @@ async function main() {
 
 
 main();
-
- // the code below is used to add debug users to the database
-// connect_to_database("localhost", "sqluser", "imposter", "sus_database");
-// setTimeout(function() {
-// create_user('admin', 'admin', 1);
-// create_user('twoj_stary', '2137', 0);
-// }, 1000);
