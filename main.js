@@ -8,7 +8,8 @@ const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const cors=require("cors");
 
 let con;
 
@@ -164,7 +165,6 @@ async function main() {
   app.use(express.static(path.join(__dirname, 'public')));
 
   // CORS is required when Node.js acts as an external server
-  const cors=require("cors");
   const corsOptions ={
     origin:'*',
     credentials:false, //access-control-allow-credentials:true
