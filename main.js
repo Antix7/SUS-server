@@ -12,15 +12,12 @@ const bodyParser = require('body-parser')
 
 let con;
 
-const oszust = 'Nie ma tak nigerze mały!';
-
- // configuration of nodemailer module used for sending emails
-const sus_email_address = 'noreply.sus@gmail.com';
+ // configuration of nodemailer module used for sending emails;
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: sus_email_address,
-    pass: 'fnoizumcdgzkrisd'
+    user: process.env.SUS_EMAIL_ADDRESS,
+    pass: process.env.SUS_EMAIL_PASSWORD
   },
   tls: {
     rejectUnauthorized: false
@@ -144,16 +141,17 @@ async function developmentScripts() {
 
 async function main() {
 
-  if(await connect_to_database("localhost", "sqluser", "imposter", "sus_database") !== 0) {
+  // configuring environment variables
+  dotenv.config();
+
+  if(await connect_to_database(
+    process.env.MYSQL_HOSTNAME,
+    process.env.MYSQL_USERNAME,
+    process.env.MYSQL_PASSWORD,
+    process.env.MYSQL_DATABASE) !== 0) {
     console.log("Problem z bazą danych");
     return -1;
   }
-  // create_user('admin', 'admin', 1);
-  // create_user('twoj_stary', '2137', 0);
-  // return 0;
-
-  // configuring environment variables
-  dotenv.config();
 
   if(process.env.DEVELOPMENT_MODE === "1")
     await developmentScripts();
