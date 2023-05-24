@@ -818,6 +818,9 @@ async function main() {
   });
 
 
+  // the three following endpoints are for og_id related functions
+
+  // taking items from a row
   app.post('/zabierz', upload.none(), async function(request, response) {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
@@ -855,7 +858,7 @@ async function main() {
     response.json({success: true});
     response.end();
   });
-
+  // putting items back into parent row
   app.post('/odloz', upload.none(), async function(request, response) {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
@@ -879,7 +882,7 @@ async function main() {
     });
     response.end();
   });
-
+  // forgetting the parent row
   app.post('/zapomnij', function(request, response) {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
