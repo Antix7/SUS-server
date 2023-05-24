@@ -732,6 +732,7 @@ async function main() {
 
   });
 
+  // enpoint which returns values of one specific row in order to edit said row
   app.post('/editing_info', upload.none(), async function (request, response) {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
@@ -767,7 +768,7 @@ async function main() {
     response.end();
   });
 
-
+  // editing a row
   app.post('/edytuj', upload.single('zdjecie'), function (request, response) {
     let body = request.body;
 
