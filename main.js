@@ -10,9 +10,9 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const cors=require("cors");
+const {response} = require("express");
 
 let con;
-
 
  // configuration of nodemailer module used for sending emails;
 let mail_client = nodemailer.createTransport({
@@ -134,7 +134,7 @@ async function developmentScripts() {
     await con.query(fs.readFileSync('./sql_scripts/users_table_declaration.sql').toString());
   if(process.env.DEV_MODE_USERS_SETUP === "1") {
     await con.query("DELETE FROM sus_database.users;");
-    await create_user('admin', 'a', 1);
+    await create_user('admin', 'admin', 1);
     await create_user('twoj_stary', '2137', 0);
   }
 
@@ -177,6 +177,9 @@ async function main() {
     extended: false
   }));
 
+  app.get("/", function(request, response) {
+    response.send("Witaj w SUSie");
+  });
 
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
