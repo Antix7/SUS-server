@@ -770,6 +770,9 @@ async function main() {
 
   // editing a row
   app.post('/edytuj', upload.single('zdjecie'), function (request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
     let body = request.body;
 
     let kat = body['kategoria'];
