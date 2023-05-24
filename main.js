@@ -160,17 +160,18 @@ async function main() {
 
   // initialising the express app
   const app = express();
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(express.static(path.join(__dirname, 'public')));
 
   // CORS is required when Node.js acts as an external server
   const corsOptions ={
-    origin:'*',
-    credentials:false, //access-control-allow-credentials:true
+    origin:'https://antix7.github.io/SUS-UI',
+    credentials:true, //access-control-allow-credentials:true
     optionSuccessStatus:200,
   }
-  app.use(cors(corsOptions))
+  app.use(cors(corsOptions));
+
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.static(path.join(__dirname, 'public')));
 
   app.use(bodyParser.urlencoded({
     extended: false
@@ -847,7 +848,7 @@ async function main() {
     response.end();
   });
 
-  app.listen(3001, '0.0.0.0');
+  app.listen(3001);
   console.log("Server listening at localhost:3001")
 }
 
