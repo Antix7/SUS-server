@@ -487,6 +487,10 @@ async function main() {
     WHERE sprzet.przedmiot_id = ?;`;
 
     con.execute(query, [request.body.id]);
+
+    query = "UPDATE sus_database.sprzet SET sprzet.og_id = ? WHERE sprzet.og_id = ?;";
+    con.execute(query, [null, request.body.id]);
+
     response.end();
   });
 
