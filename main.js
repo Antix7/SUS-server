@@ -10,6 +10,7 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const cors=require("cors");
+const {response} = require("express");
 
 let con;
 
@@ -134,7 +135,7 @@ async function developmentScripts() {
     await con.query(fs.readFileSync('./sql_scripts/users_table_declaration.sql').toString());
   if(process.env.DEV_MODE_USERS_SETUP === "1") {
     await con.query("DELETE FROM sus_database.users;");
-    await create_user('admin', 'a', 1);
+    await create_user('admin', 'admin', 1);
     await create_user('twoj_stary', '2137', 0);
   }
 
@@ -167,7 +168,7 @@ async function main() {
   // CORS is required when Node.js acts as an external server
   const corsOptions ={
     origin:'*',
-    credentials:false, //access-control-allow-credentials:true
+    credentials:true, //access-control-allow-credentials:true
     optionSuccessStatus:200,
   }
   app.use(cors(corsOptions))
@@ -176,6 +177,9 @@ async function main() {
     extended: false
   }));
 
+  app.get("/", function(request, response) {
+    response.send("Witaj w SUSie");
+  });
 
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
@@ -847,7 +851,7 @@ async function main() {
     response.end();
   });
 
-  app.listen(3001, '0.0.0.0');
+  app.listen(3001);
   console.log("Server listening at localhost:3001")
 }
 
