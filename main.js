@@ -732,44 +732,60 @@ async function main() {
 
   });
 
-
-
-
-  // Not implemented with React yet
-
-
-  app.post('/sprzet_panel/edytuj/info', async function (request, response) {
+  app.post('/editing_info', upload.none(), async function (request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+    if(!request.body.editid) {
+      response.json({
+        success: false,
+        message: "Brak id do edycji"
+      });
+      return;
+    }
     let [rows, columns] = await con.execute(`SELECT *
                                              FROM sus_database.sprzet
-                                             WHERE przedmiot_id = ${request.session.editid}`);
+                                             WHERE przedmiot_id = ${request.body.editid}`);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        message: "Przedmiot o takim id nie istnieje"
+      })
+      return;
+    }
     response.json({
-      kat: rows[0]['kategoria_id'],
-      lok: rows[0]['lokalizacja_id'],
-      wla: rows[0]['wlasciciel_id'],
-      uzy: rows[0]['uzytkownik_id'],
-      stn: rows[0]['stan_id'],
-      sts: rows[0]['status_id'],
+      success: true,
+      kat: parseInt(rows[0]['kategoria_id']),
+      lok: parseInt(rows[0]['lokalizacja_id']),
+      wla: parseInt(rows[0]['wlasciciel_id']),
+      uzy: parseInt(rows[0]['uzytkownik_id']),
+      stn: parseInt(rows[0]['stan_id']),
+      sts: parseInt(rows[0]['status_id']),
       nazwa: rows[0]['nazwa'],
       ilosc: rows[0]['ilosc'],
       opis: rows[0]['opis']});
     response.end();
   });
 
-  app.post('/sprzet_panel/edytuj/auth', upload.single('zdjecie'), function (request, response) {
+
+  app.post('/edytuj', upload.single('zdjecie'), function (request, response) {
     let body = request.body;
 
-    let kat = body['kat_id'];
-    let lok = body['lok_id'];
-    let wla = body['wla_id'];
-    let uzy = body['uzy_id'];
-    let sts = body['sts_id'];
-    let stn = body['stn_id'];
+    let kat = body['kategoria'];
+    let lok = body['lokalizacja'];
+    let wla = body['wlasciciel'];
+    let uzy = body['uzytkownik'];
+    let sts = body['status'];
+    let stn = body['stan'];
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
     let opis = body['opis'];
 
-    if (kat == '0' || lok == '0' || wla == '0' || uzy == '0' || sts == '0' || stn == '0' || ilo == '' || naz == '') {
-      response.json({"msg": "Niepoprawne dane"});
+    if (!(naz && ilo && sts && kat && stn && lok && wla && uzy)) {
+      response.json({
+        success: false,
+        message: "Niepoprawne dane"
+      });
       return
     }
 
@@ -778,17 +794,27 @@ async function main() {
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, request.session.editid]);
-    } else {
+      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+    }
+    else {
       let zdj = '/images/' + request.file.filename;
       let sql = 'UPDATE sus_database.sprzet t\n' +
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, request.session.editid]);
+      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
     }
-    response.json({'redirect': '/sprzet_panel/wyswietl'});
+    response.json({
+      success: true
+    });
   });
+
+
+
+  // Not implemented with React yet
+
+
+
 
   app.post('/sprzet_panel/zabierz', async function(request, response) {
     if (!(request.session.loggedin)) {
