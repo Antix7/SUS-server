@@ -814,17 +814,10 @@ async function main() {
   });
 
 
-
-  // Not implemented with React yet
-
-
-
-
-  app.post('/sprzet_panel/zabierz', async function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+  app.post('/zabierz', upload.none(), async function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
       return;
-    }
     let query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
     let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     newID = newID[0].insertId;
@@ -855,31 +848,56 @@ async function main() {
     WHERE sprzet.przedmiot_id = ?
     `;
     let [rows, columns] = await con.execute(query, [newID]);
-    response.json({'newRow': build_table_sprzet(rows)});
+    response.json({success: true});
     response.end();
   });
 
-  app.post('/sprzet_panel/odloz', function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+  app.post('/odloz', upload.none(), async function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+    let query = "SELECT ilosc, og_id FROM sprzet WHERE przedmiot_id=?";
+    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        message: "Nie ma przedmiotu z takim id"
+      });
       return;
     }
-    let query = `UPDATE sus_database.sprzet SET czy_usuniete = 1 WHERE przedmiot_id=?;`;
+    const amount = rows[0]['ilosc'], og_id = rows[0]['og_id'];
+    query = "DELETE FROM sprzet WHERE przedmiot_id=?";
     con.execute(query, [request.body['id']]);
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc + ? where przedmiot_id = ?";
-    con.execute(query, [request.body['amount'], request.body['ogid']]);
+    con.execute(query, [amount, og_id]);
+    response.json({
+      success: true
+    });
     response.end();
   });
 
-  app.post('/sprzet_panel/zapomnij', function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+  app.post('/zapomnij', function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
       return;
-    }
     let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
     con.execute(query, [request.body['id']]);
+    response.json({
+      success: true
+    })
     response.end();
   });
+
+
+
+
+  // Not implemented with React yet
+
+
+
+
+
+
 
   app.listen(3001);
   console.log("Server listening at localhost:3001")
