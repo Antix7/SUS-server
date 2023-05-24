@@ -14,14 +14,6 @@ const {response} = require("express");
 
 let con;
 
-// CORS is required when Node.js acts as an external server
-const corsOptions ={
-  origin:'https://antix7.github.io/SUS-UI',
-  credentials:true, //access-control-allow-credentials:true
-  optionSuccessStatus:200,
-}
-app.use(cors(corsOptions));
-
  // configuration of nodemailer module used for sending emails;
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
@@ -168,6 +160,15 @@ async function main() {
 
   // initialising the express app
   const app = express();
+
+  // CORS is required when Node.js acts as an external server
+  const corsOptions ={
+    origin:'https://antix7.github.io/SUS-UI',
+    credentials:true, //access-control-allow-credentials:true
+    optionSuccessStatus:200,
+  }
+  app.use(cors(corsOptions));
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
