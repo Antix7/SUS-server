@@ -187,7 +187,7 @@ async function main() {
     extended: false
   }));
 
-  app.get("/", function(request, response) {
+  app.get('/', function(request, response) {
     response.send("Witaj w SUSie");
   });
 
@@ -401,9 +401,8 @@ async function main() {
     JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
     AND sprzet.stan_id = stany.stan_id
     `;
-
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
-    let clauses = ['sprzet.czy_usuniete = 0']; // array to store joined conditions form before, later to be joined with AND
+    let clauses = [`sprzet.czy_usuniete = ${request.body['usuniete'] ? 1 : 0}`]; // array to store joined conditions form before, later to be joined with AND
 
     // we unfortunately need to process each column separately
 
