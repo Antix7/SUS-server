@@ -392,7 +392,8 @@ async function main() {
     sprzet.opis AS opis,
     sprzet.zdjecie_path AS zdjecie,
     sprzet.og_id AS og_id,
-    sprzet.czy_usuniete AS czy_usuniete
+    sprzet.czy_usuniete AS czy_usuniete,
+    sprzet.box_id AS box_id
     FROM sprzet
     JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
     JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
@@ -519,7 +520,8 @@ async function main() {
     let lokalizacja = body["lokalizacja"];
     let wlasciciel = body["wlasciciel"];
     let uzytkownik = body["uzytkownik"];
-    let opis = body["opis"];
+    let opis = body["opis"]!=='' ? body["opis"] : null;
+    let box_id = body["box_id"]!=='' ? body["box_id"] : null;
 
     if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
       response.json({
@@ -532,22 +534,22 @@ async function main() {
     if(!request.file) {
       const query = `INSERT INTO sprzet 
       (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, 
+      kategoria_id, stan_id, lokalizacja_id, box_id,
       wlasciciel_id, uzytkownik_id, opis) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis]);
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
     }
     else {
       let zdjecie_path = '/images/' + request.file.filename;
 
       const query = `INSERT INTO sprzet 
       (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, 
+      kategoria_id, stan_id, lokalizacja_id, box_id,
       wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis, zdjecie_path]);
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
     }
 
     response.json({

@@ -1,31 +1,32 @@
-CREATE TABLE sus_database.sprzet
+CREATE TABLE sprzet
 (
-    przedmiot_id   int auto_increment
-        primary key,
-    nazwa          varchar(255)         not null,
-    kategoria_id   int                  not null,
-    ilosc          int                  not null,
-    lokalizacja_id int                  not null,
-    zdjecie_path   text                 null,
-    wlasciciel_id  int                  null,
-    uzytkownik_id  int                  null,
-    status_id      int                  not null,
-    stan_id        int                  not null,
-    opis           varchar(1023)        null,
-    og_id          int                  null,
-    czy_usuniete   tinyint(1) default 0 null,
-    constraint sprzet_kategorie_KategoriaID_fk
-        foreign key (kategoria_id) references kategorie (kategoria_id),
-    constraint sprzet_lokalizacje_LokalizacjaID_fk
-        foreign key (lokalizacja_id) references lokalizacje (lokalizacja_id),
-    constraint sprzet_podmioty_PodmiotID_fk
-        foreign key (uzytkownik_id) references podmioty (podmiot_id),
-    constraint sprzet_sprzet_przedmiot_id_fk
-        foreign key (og_id) references sprzet (przedmiot_id),
-    constraint sprzet_statusy_StatusID_fk
-        foreign key (status_id) references statusy (status_id),
-    constraint sprzet_wlasciciele_WlascicielID_fk
-        foreign key (wlasciciel_id) references podmioty (podmiot_id)
+    przedmiot_id   INT AUTO_INCREMENT
+        PRIMARY KEY,
+    nazwa          VARCHAR(255)         NOT NULL,
+    kategoria_id   INT                  NOT NULL,
+    ilosc          INT                  NOT NULL,
+    lokalizacja_id INT                  NOT NULL,
+    zdjecie_path   TEXT                 NULL,
+    wlasciciel_id  INT                  NULL,
+    uzytkownik_id  INT                  NULL,
+    status_id      INT                  NOT NULL,
+    stan_id        INT                  NOT NULL,
+    opis           VARCHAR(1023)        NULL,
+    og_id          INT                  NULL,
+    czy_usuniete   TINYINT(1) DEFAULT 0 NULL,
+    box_id         INT                  NULL,
+    CONSTRAINT sprzet_kategorie_KategoriaID_fk
+        FOREIGN KEY (kategoria_id) REFERENCES kategorie (kategoria_id),
+    CONSTRAINT sprzet_lokalizacje_LokalizacjaID_fk
+        FOREIGN KEY (lokalizacja_id) REFERENCES lokalizacje (lokalizacja_id),
+    CONSTRAINT sprzet_podmioty_PodmiotID_fk
+        FOREIGN KEY (uzytkownik_id) REFERENCES podmioty (podmiot_id),
+    CONSTRAINT sprzet_sprzet_przedmiot_id_fk
+        FOREIGN KEY (og_id) REFERENCES sprzet (przedmiot_id),
+    CONSTRAINT sprzet_statusy_StatusID_fk
+        FOREIGN KEY (status_id) REFERENCES statusy (status_id),
+    CONSTRAINT sprzet_wlasciciele_WlascicielID_fk
+        FOREIGN KEY (wlasciciel_id) REFERENCES podmioty (podmiot_id)
 );
 
 CREATE TABLE sus_database.zdjecia_uszkodzen
