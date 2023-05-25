@@ -147,6 +147,7 @@ async function main() {
   dotenv.config();
 
   const nice_logs = process.env.NICE_EVENT_LOGS === "1";
+  const nicent_logs = process.env.NICENT_EVENT_LOGS === "1";
 
   if(await connect_to_database(
       process.env.MYSQL_HOSTNAME,
@@ -190,11 +191,15 @@ async function main() {
   }));
 
   app.get('/', function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tget request for '/', token: ${request.headers["x-access-token"]}, body: `, request.body);
     response.send("Witaj w SUSie");
   });
 
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/auth', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(verifyToken(token, false)) {
@@ -255,6 +260,8 @@ async function main() {
 
   // activating an account
   app.post('/aktywuj', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let key = request.body.key;
     let username = request.body.username;
@@ -301,6 +308,8 @@ async function main() {
   });
 
   app.post('/zmien_haslo', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -330,6 +339,8 @@ async function main() {
 
   // sending the user data necessary for the form for adding new rows
   app.get('/available_values', async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tget request for '/available_values', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -381,6 +392,8 @@ async function main() {
   });
 
   app.post('/wyswietl', upload.none(), async function (request, response){
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/wyswietl', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -502,6 +515,8 @@ async function main() {
   });
 
   app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/wyswietl_zdjecie', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
@@ -514,6 +529,8 @@ async function main() {
   });
 
   app.post('/usun_sprzet', async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/usun_sprzet', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
@@ -534,6 +551,8 @@ async function main() {
 
   // adding the new row to the database
   app.post('/dodaj', upload.single('zdjecie'), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/dodaj', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -597,6 +616,8 @@ async function main() {
 
   // generating an account activation key
   app.post('/generuj_klucz', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/generuj_klucz', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -620,6 +641,8 @@ async function main() {
   });
 
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/uzytkownicy', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -637,6 +660,8 @@ async function main() {
   });
 
   app.post('/usun_uzytkownika', async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/usun_uzytkownika', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
     const tokenData = getTokenData(token);
@@ -659,6 +684,8 @@ async function main() {
   // performing a custom query to the database
   // DROP and DELETE keywords are forbidden
   app.post('/query', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/query', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -698,6 +725,8 @@ async function main() {
   // the reset code is password hash since it is already in the database and knowing it is not a security concern
   // (as long as it is not a frequently used password :skull:)
   app.post('/send_reset_code', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/send_reset_code', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let username = request.body.username;
     let query = "SELECT adres_email, password_hash FROM sus_database.users WHERE users.username=?";
 
@@ -745,6 +774,8 @@ async function main() {
 
   // checking the reset code and sending the temporary token
   app.post('/check_reset_code', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/check_reset_code', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let username = request.body.username;
     let code = request.body.code;
     let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
@@ -774,6 +805,8 @@ async function main() {
 
   // changing one's password from the reset form
   app.post('/resetuj_haslo', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false, true))
       return;
@@ -803,6 +836,8 @@ async function main() {
 
   // enpoint which returns values of one specific row in order to edit said row
   app.post('/editing_info', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/editing_info', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -839,6 +874,8 @@ async function main() {
 
   // editing a row
   app.post('/edytuj', upload.single('zdjecie'), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/edytuj', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -897,6 +934,8 @@ async function main() {
 
   // taking items from a row
   app.post('/zabierz', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/zabierz', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -949,6 +988,8 @@ async function main() {
   });
   // putting items back into parent row
   app.post('/odloz', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/odloz', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -975,6 +1016,8 @@ async function main() {
   });
   // forgetting the parent row
   app.post('/zapomnij', function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
