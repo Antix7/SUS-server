@@ -14,7 +14,7 @@ const {response} = require("express");
 
 let con;
 
- // configuration of nodemailer module used for sending emails;
+// configuration of nodemailer module used for sending emails;
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -44,8 +44,8 @@ function create_hash(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
- // this function adds a specified user to the database
- // used for debugging
+// this function adds a specified user to the database
+// used for debugging
 async function create_user(username, password, czy_admin) {
   let password_hash = create_hash(password);
   let query = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
@@ -86,8 +86,8 @@ function generate_random_string(length) {
 function isObjectEmpty(obj) {
   if(obj === undefined) return true;
   return obj
-    && Object.keys(obj).length === 0
-    && Object.getPrototypeOf(obj) === Object.prototype;
+      && Object.keys(obj).length === 0
+      && Object.getPrototypeOf(obj) === Object.prototype;
 }
 
 function verifyToken(token, shouldBeAdmin, resetOnly = false) {
@@ -146,11 +146,14 @@ async function main() {
   // configuring environment variables
   dotenv.config();
 
+  const nice_logs = process.env.NICE_EVENT_LOGS === "1";
+  const nicent_logs = process.env.NICENT_EVENT_LOGS === "1";
+
   if(await connect_to_database(
-    process.env.MYSQL_HOSTNAME,
-    process.env.MYSQL_USERNAME,
-    process.env.MYSQL_PASSWORD,
-    process.env.MYSQL_DATABASE) !== 0) {
+      process.env.MYSQL_HOSTNAME,
+      process.env.MYSQL_USERNAME,
+      process.env.MYSQL_PASSWORD,
+      process.env.MYSQL_DATABASE) !== 0) {
     console.log('Problem z bazą danych');
     return -1;
   }
@@ -188,11 +191,15 @@ async function main() {
   }));
 
   app.get('/', function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tget request for '/', token: ${request.headers["x-access-token"]}, body: `, request.body);
     response.send("Witaj w SUSie");
   });
 
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/auth', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(verifyToken(token, false)) {
@@ -247,10 +254,14 @@ async function main() {
       token: newToken
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${username}" has logged in from the following ip: "${request.socket.remoteAddress}"`);
   });
 
   // activating an account
   app.post('/aktywuj', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let key = request.body.key;
     let username = request.body.username;
@@ -292,9 +303,13 @@ async function main() {
       message: 'Użytkownik został pomyślnie stworzony'
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tnew user activated: "${username}"`);
   });
 
   app.post('/zmien_haslo', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -319,10 +334,13 @@ async function main() {
     });
     response.end();
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${username}" has changed their password`);
   });
 
   // sending the user data necessary for the form for adding new rows
   app.get('/available_values', async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tget request for '/available_values', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -374,34 +392,36 @@ async function main() {
   });
 
   app.post('/wyswietl', upload.none(), async function (request, response){
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/wyswietl', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
     // this is the basic query structure to which a clause will be added
     let query = `SELECT
-    sprzet.przedmiot_id AS ID,
-    sprzet.nazwa AS nazwa,
-    sprzet.ilosc AS ilosc,
-    statusy.status_nazwa AS status,
-    kat.kategoria_nazwa AS kategoria,
-    stany.stan_nazwa AS stan,
-    lok.lokalizacja_nazwa AS lokalizacja,
-    wla.podmiot_nazwa AS wlasciciel,
-    uzy.podmiot_nazwa AS uzytkownik,
-    sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie_path,
-    sprzet.og_id AS og_id,
-    sprzet.czy_usuniete AS czy_usuniete,
-    sprzet.box_id AS box_id
-    FROM sprzet
-    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
-    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
-    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
-    JOIN statusy ON sprzet.status_id = statusy.status_id
-    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
-    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
-    AND sprzet.stan_id = stany.stan_id
+                   sprzet.przedmiot_id AS ID,
+                   sprzet.nazwa AS nazwa,
+                   sprzet.ilosc AS ilosc,
+                   statusy.status_nazwa AS status,
+                   kat.kategoria_nazwa AS kategoria,
+                   stany.stan_nazwa AS stan,
+                   lok.lokalizacja_nazwa AS lokalizacja,
+                   wla.podmiot_nazwa AS wlasciciel,
+                   uzy.podmiot_nazwa AS uzytkownik,
+                   sprzet.opis AS opis,
+                   sprzet.zdjecie_path AS zdjecie_path,
+                   sprzet.og_id AS og_id,
+                   sprzet.czy_usuniete AS czy_usuniete,
+                   sprzet.box_id AS box_id
+                 FROM sprzet
+                        JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+                        JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+                        JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+                        JOIN statusy ON sprzet.status_id = statusy.status_id
+                        JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+                        JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+                   AND sprzet.stan_id = stany.stan_id
     `;
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
     let clauses = [`sprzet.czy_usuniete = ${request.body['usuniete'] ? 1 : 0}`]; // array to store joined conditions form before, later to be joined with AND
@@ -491,9 +511,12 @@ async function main() {
       data: rows
     });
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the "sprzet" table`);
   });
 
   app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/wyswietl_zdjecie', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
@@ -501,30 +524,48 @@ async function main() {
     let [rows, columns] = await con.execute(query, [request.body.id]);
     if(rows[0]['zdjecie_path'] === null) return;
     response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
 
   app.post('/usun_sprzet', async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/usun_sprzet', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
     let query = 'SELECT czy_usuniete FROM sprzet WHERE przedmiot_id = ?;';
     let [rows, columns] = await con.execute(query, [request.body.id]);
 
-    query = `UPDATE sus_database.sprzet 
-    SET sprzet.czy_usuniete = ? 
-    WHERE sprzet.przedmiot_id = ?;`;
-
+    query = `UPDATE sus_database.sprzet
+             SET sprzet.czy_usuniete = ?
+             WHERE sprzet.przedmiot_id = ?;`;
     con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
+
+    query = "UPDATE sus_database.sprzet SET sprzet.og_id = ? WHERE sprzet.og_id = ?;";
+    con.execute(query, [null, request.body.id]);
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
   });
 
   // adding the new row to the database
   app.post('/dodaj', upload.single('zdjecie'), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/dodaj', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
     let body = request.body;
+
+    if(body['ilosc'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
+      return;
+    }
 
     let nazwa = body["nazwa"];
     let ilosc = body["ilosc"];
@@ -546,22 +587,22 @@ async function main() {
     }
 
     if(!request.file) {
-      const query = `INSERT INTO sprzet 
-      (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, box_id,
-      wlasciciel_id, uzytkownik_id, opis) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const query = `INSERT INTO sprzet
+                     (nazwa, ilosc, status_id,
+                      kategoria_id, stan_id, lokalizacja_id, box_id,
+                      wlasciciel_id, uzytkownik_id, opis)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
     }
     else {
       let zdjecie_path = request.file.filename;
 
-      const query = `INSERT INTO sprzet 
-      (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, box_id,
-      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const query = `INSERT INTO sprzet
+                     (nazwa, ilosc, status_id,
+                      kategoria_id, stan_id, lokalizacja_id, box_id,
+                      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
     }
@@ -569,10 +610,14 @@ async function main() {
     response.json({
       success: true
     });
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has added a new row`);
   });
 
   // generating an account activation key
   app.post('/generuj_klucz', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/generuj_klucz', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -591,9 +636,13 @@ async function main() {
       klucz: username
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has generated a new user key: "${username}"`);
   });
 
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/uzytkownicy', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -606,9 +655,13 @@ async function main() {
       data: rows
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the "users" table`);
   });
 
   app.post('/usun_uzytkownika', async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/usun_uzytkownika', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
     const tokenData = getTokenData(token);
@@ -624,11 +677,15 @@ async function main() {
     let query = 'DELETE FROM users WHERE username = ?;';
     await con.execute(query, [username]);
     response.json({success: true});
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted the following user: "${username}"`);
   });
 
   // performing a custom query to the database
   // DROP and DELETE keywords are forbidden
   app.post('/query', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/query', token: ${request.headers["x-access-token"]}, body: `, request.body);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -649,6 +706,8 @@ async function main() {
         result: rows
       });
       response.end();
+
+      if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has preformed the following query: "${query}"`);
     }
     catch(err) {
       response.json({
@@ -657,6 +716,8 @@ async function main() {
       });
       console.log(err);
       response.end();
+
+      if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}"'s query has failed: "${query}"`);
     }
   });
 
@@ -664,6 +725,8 @@ async function main() {
   // the reset code is password hash since it is already in the database and knowing it is not a security concern
   // (as long as it is not a frequently used password :skull:)
   app.post('/send_reset_code', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/send_reset_code', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let username = request.body.username;
     let query = "SELECT adres_email, password_hash FROM sus_database.users WHERE users.username=?";
 
@@ -696,17 +759,23 @@ async function main() {
             success: true,
             message: 'Pomyślnie wysłano e-mail'
           });
+
+          if(nice_logs) console.log(`| ${Date.now()} |\t\tpassword resetting email for user "${username}" has been sent`);
         })
         .catch(error => {
           response.json({
             success: false,
             message: 'Wystąpił błąd, spróbuj ponownie później'
           });
+
+          if(nice_logs) console.log(`| ${Date.now()} |\t\tpassword resetting email for user "${username}" has failed`);
         });
   });
 
   // checking the reset code and sending the temporary token
   app.post('/check_reset_code', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/check_reset_code', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let username = request.body.username;
     let code = request.body.code;
     let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
@@ -731,10 +800,13 @@ async function main() {
       token: newToken
     });
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has authenticated with reset code from email`);
   });
 
   // changing one's password from the reset form
   app.post('/resetuj_haslo', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false, true))
       return;
@@ -759,46 +831,79 @@ async function main() {
     });
     response.end();
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has reset their password`);
   });
 
-
-
-
-  // Not implemented with React yet
-
-
-  app.post('/sprzet_panel/edytuj/info', async function (request, response) {
+  // enpoint which returns values of one specific row in order to edit said row
+  app.post('/editing_info', upload.none(), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/editing_info', token: ${request.headers["x-access-token"]}, body: `, request.body);
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+    if(!request.body.editid) {
+      response.json({
+        success: false,
+        message: "Brak id do edycji"
+      });
+      return;
+    }
     let [rows, columns] = await con.execute(`SELECT *
                                              FROM sus_database.sprzet
-                                             WHERE przedmiot_id = ${request.session.editid}`);
+                                             WHERE przedmiot_id = ${request.body.editid}`);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        message: "Przedmiot o takim id nie istnieje"
+      })
+      return;
+    }
     response.json({
-      kat: rows[0]['kategoria_id'],
-      lok: rows[0]['lokalizacja_id'],
-      wla: rows[0]['wlasciciel_id'],
-      uzy: rows[0]['uzytkownik_id'],
-      stn: rows[0]['stan_id'],
-      sts: rows[0]['status_id'],
+      success: true,
+      kat: parseInt(rows[0]['kategoria_id']),
+      lok: parseInt(rows[0]['lokalizacja_id']),
+      wla: parseInt(rows[0]['wlasciciel_id']),
+      uzy: parseInt(rows[0]['uzytkownik_id']),
+      stn: parseInt(rows[0]['stan_id']),
+      sts: parseInt(rows[0]['status_id']),
       nazwa: rows[0]['nazwa'],
       ilosc: rows[0]['ilosc'],
       opis: rows[0]['opis']});
     response.end();
   });
 
-  app.post('/sprzet_panel/edytuj/auth', upload.single('zdjecie'), function (request, response) {
+  // editing a row
+  app.post('/edytuj', upload.single('zdjecie'), async function (request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/edytuj', token: ${request.headers["x-access-token"]}, body: `, request.body);
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
     let body = request.body;
 
-    let kat = body['kat_id'];
-    let lok = body['lok_id'];
-    let wla = body['wla_id'];
-    let uzy = body['uzy_id'];
-    let sts = body['sts_id'];
-    let stn = body['stn_id'];
+    if(body['ilosc'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
+      return;
+    }
+
+    let kat = body['kategoria'];
+    let lok = body['lokalizacja'];
+    let wla = body['wlasciciel'];
+    let uzy = body['uzytkownik'];
+    let sts = body['status'];
+    let stn = body['stan'];
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
     let opis = body['opis'];
 
-    if (kat == '0' || lok == '0' || wla == '0' || uzy == '0' || sts == '0' || stn == '0' || ilo == '' || naz == '') {
-      response.json({"msg": "Niepoprawne dane"});
+    if (!(naz && ilo && sts && kat && stn && lok && wla && uzy)) {
+      response.json({
+        success: false,
+        message: "Niepoprawne dane"
+      });
       return
     }
 
@@ -807,77 +912,123 @@ async function main() {
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, request.session.editid]);
-    } else {
+      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+    }
+    else {
       let zdj = '/images/' + request.file.filename;
       let sql = 'UPDATE sus_database.sprzet t\n' +
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, request.session.editid]);
+      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
     }
-    response.json({'redirect': '/sprzet_panel/wyswietl'});
+    response.json({
+      success: true
+    });
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has edited the row with the following id: "${request.body.editid}"`);
   });
 
-  app.post('/sprzet_panel/zabierz', async function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+
+  // the three following endpoints are for og_id related functions
+
+  // taking items from a row
+  app.post('/zabierz', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/zabierz', token: ${request.headers["x-access-token"]}, body: `, request.body);
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+
+    let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
+    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    let baseAmount = rows[0]['ilosc'];
+    if(baseAmount <= request.body['amount'] || request.body['amount'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
       return;
     }
-    let query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
+
+    query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
     let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     newID = newID[0].insertId;
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc - ? where przedmiot_id = ?";
     await con.execute(query, [request.body['amount'], request.body['id']]);
 
     query = `SELECT
-    sprzet.przedmiot_id AS ID,
-    sprzet.nazwa AS nazwa,
-    sprzet.ilosc AS ilosc,
-    statusy.status_nazwa AS status,
-    kat.kategoria_nazwa AS kategoria,
-    stany.stan_nazwa AS stan,
-    lok.lokalizacja_nazwa AS lokalizacja,
-    wla.podmiot_nazwa AS wlasciciel,
-    uzy.podmiot_nazwa AS uzytkownik,
-    sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie,
-    sprzet.og_id AS og_id
-    FROM sprzet
-    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
-    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
-    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
-    JOIN statusy ON sprzet.status_id = statusy.status_id
-    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
-    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
-    AND sprzet.stan_id = stany.stan_id
-    WHERE sprzet.przedmiot_id = ?
+               sprzet.przedmiot_id AS ID,
+               sprzet.nazwa AS nazwa,
+               sprzet.ilosc AS ilosc,
+               statusy.status_nazwa AS status,
+               kat.kategoria_nazwa AS kategoria,
+               stany.stan_nazwa AS stan,
+               lok.lokalizacja_nazwa AS lokalizacja,
+               wla.podmiot_nazwa AS wlasciciel,
+               uzy.podmiot_nazwa AS uzytkownik,
+               sprzet.opis AS opis,
+               sprzet.zdjecie_path AS zdjecie,
+               sprzet.og_id AS og_id
+             FROM sprzet
+                    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+                    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+                    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+                    JOIN statusy ON sprzet.status_id = statusy.status_id
+                    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+                    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+               AND sprzet.stan_id = stany.stan_id
+             WHERE sprzet.przedmiot_id = ?
     `;
-    let [rows, columns] = await con.execute(query, [newID]);
-    response.json({'newRow': build_table_sprzet(rows)});
+    await con.execute(query, [newID]);
+    response.json({success: true});
     response.end();
-  });
 
-  app.post('/sprzet_panel/odloz', function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}`);
+  });
+  // putting items back into parent row
+  app.post('/odloz', upload.none(), async function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/odloz', token: ${request.headers["x-access-token"]}, body: `, request.body);
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+    let query = "SELECT ilosc, og_id FROM sprzet WHERE przedmiot_id=?";
+    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        message: "Nie ma przedmiotu z takim id"
+      });
       return;
     }
-    let query = `UPDATE sus_database.sprzet SET czy_usuniete = 1 WHERE przedmiot_id=?;`;
+    const amount = rows[0]['ilosc'], og_id = rows[0]['og_id'];
+    query = "DELETE FROM sprzet WHERE przedmiot_id=?";
     con.execute(query, [request.body['id']]);
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc + ? where przedmiot_id = ?";
-    con.execute(query, [request.body['amount'], request.body['ogid']]);
+    con.execute(query, [amount, og_id]);
+    response.json({
+      success: true
+    });
     response.end();
-  });
 
-  app.post('/sprzet_panel/zapomnij', function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
+  });
+  // forgetting the parent row
+  app.post('/zapomnij', function(request, response) {
+    if(nicent_logs)
+      console.log(` | ${Date.now()} |\t\tpost request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: `, request.body);
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
       return;
-    }
     let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
     con.execute(query, [request.body['id']]);
+    response.json({
+      success: true
+    })
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" forgor og_id for the row with the following id: "${request.body['id']}"`);
   });
 
   if(process.env.FOR_PRODUCTION === '1') {
