@@ -502,10 +502,7 @@ async function main() {
 
     let body = request.body;
 
-    let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
-    let [rows, columns] = await con.execute(query, [body['id']]);
-    let baseAmount = rows[0]['ilosc'];
-    if(baseAmount <= body['ilosc'] || body['ilosc'] <= 0) {
+    if(body['ilosc'] <= 0) {
       response.json({
         success: false,
         message: "Niepoprawna ilość"
@@ -790,10 +787,7 @@ async function main() {
       return;
     let body = request.body;
 
-    let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
-    let [rows, columns] = await con.execute(query, [body['id']]);
-    let baseAmount = rows[0]['ilosc'];
-    if(baseAmount <= body['ilosc'] || body['ilosc'] <= 0) {
+    if(body['ilosc'] <= 0) {
       response.json({
         success: false,
         message: "Niepoprawna ilość"
