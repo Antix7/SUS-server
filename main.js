@@ -460,6 +460,10 @@ async function main() {
       conditions = [];
     }
 
+    if(request.body['box_id'] && request.body['box_id']['box_id']) {
+      clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}`);
+    }
+
 
     let clause = clauses.join(' AND ');
     if(clause) {
