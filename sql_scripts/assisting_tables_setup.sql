@@ -8,7 +8,7 @@ INSERT INTO lokalizacje VALUES (1, 'Zielonka');
 INSERT INTO lokalizacje VALUES (2, '1 Sierpnia');
 INSERT INTO lokalizacje VALUES (3, 'Tajny 3. magazyn');
 INSERT INTO lokalizacje VALUES (4, 'Dom Basi');
-INSERT INTO lokalizacje VALUES (5, 'Nieznana Lokalizacja');
+INSERT INTO lokalizacje VALUES (5, 'Nieznana');
 
 INSERT INTO statusy VALUES (1, 'Dostępny');
 INSERT INTO statusy VALUES (2, 'W użyciu');
@@ -20,8 +20,9 @@ INSERT INTO podmioty VALUES (1, '174 WDH-y "Wilki"');
 INSERT INTO podmioty VALUES (2, '178 WDH-ek "Ognisty Krąg"');
 INSERT INTO podmioty VALUES (3, '151 WGZ "Smocze Stowarzyszenie"');
 INSERT INTO podmioty VALUES (4, '151 WDSh "Enigma"');
-INSERT INTO podmioty VALUES (5, '151 WDW "A co może pójśc źle?"');
+INSERT INTO podmioty VALUES (5, '151 WDW "A co może pójść źle?"');
 INSERT INTO podmioty VALUES (6, 'Szczep Burza');
+INSERT INTO podmioty VALUES (7, 'Nieznany');
 
 INSERT INTO kategorie VALUES (1, 'Narzędzia');
 INSERT INTO stany VALUES (1, 2, 'Dobry');

@@ -1,5 +1,5 @@
-DROP TABLE sus_database.stany;
-DROP TABLE sus_database.statusy;
-DROP TABLE sus_database.podmioty;
-DROP TABLE sus_database.lokalizacje;
-DROP TABLE sus_database.kategorie;
+DROP TABLE IF EXISTS sus_database.stany;
+DROP TABLE IF EXISTS sus_database.statusy;
+DROP TABLE IF EXISTS sus_database.podmioty;
+DROP TABLE IF EXISTS sus_database.lokalizacje;
+DROP TABLE IF EXISTS sus_database.kategorie;

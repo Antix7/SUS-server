@@ -151,21 +151,31 @@ async function main() {
     process.env.MYSQL_USERNAME,
     process.env.MYSQL_PASSWORD,
     process.env.MYSQL_DATABASE) !== 0) {
-    console.log("Problem z bazą danych");
+    console.log('Problem z bazą danych');
     return -1;
   }
 
-  if(process.env.DEVELOPMENT_MODE === "1")
+  if(process.env.DEVELOPMENT_MODE === '1')
     await developmentScripts();
 
   // initialising the express app
   const app = express();
 
   // CORS is required when Node.js acts as an external server
-  const corsOptions ={
-    origin:'https://antix7.github.io/SUS-UI',
-    credentials:true, //access-control-allow-credentials:true
-    optionSuccessStatus:200,
+  let corsOptions = {};
+  if(process.env.FOR_PRODUCTION === '1') {
+    corsOptions = {
+      origin:'https://antix7.github.io',
+      credentials:true, //access-control-allow-credentials:true
+      optionSuccessStatus:200,
+    }
+  }
+  else {
+    corsOptions = {
+      origin:'*',
+      credentials:false, //access-control-allow-credentials:false
+      optionSuccessStatus:200,
+    }
   }
   app.use(cors(corsOptions));
 
@@ -177,7 +187,7 @@ async function main() {
     extended: false
   }));
 
-  app.get("/", function(request, response) {
+  app.get('/', function(request, response) {
     response.send("Witaj w SUSie");
   });
 
@@ -380,8 +390,10 @@ async function main() {
     wla.podmiot_nazwa AS wlasciciel,
     uzy.podmiot_nazwa AS uzytkownik,
     sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie,
-    sprzet.og_id AS og_id
+    sprzet.zdjecie_path AS zdjecie_path,
+    sprzet.og_id AS og_id,
+    sprzet.czy_usuniete AS czy_usuniete,
+    sprzet.box_id AS box_id
     FROM sprzet
     JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
     JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
@@ -391,9 +403,8 @@ async function main() {
     JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
     AND sprzet.stan_id = stany.stan_id
     `;
-
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
-    let clauses = ['sprzet.czy_usuniete = 0']; // array to store joined conditions form before, later to be joined with AND
+    let clauses = [`sprzet.czy_usuniete = ${request.body['usuniete'] ? 1 : 0}`]; // array to store joined conditions form before, later to be joined with AND
 
     // we unfortunately need to process each column separately
 
@@ -449,6 +460,10 @@ async function main() {
       conditions = [];
     }
 
+    if(request.body['box_id'] && request.body['box_id']['box_id']) {
+      clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}`);
+    }
+
 
     let clause = clauses.join(' AND ');
     if(clause) {
@@ -478,19 +493,30 @@ async function main() {
 
   });
 
+  app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
+    let query = `SELECT zdjecie_path FROM sprzet WHERE przedmiot_id = ?;`;
+    let [rows, columns] = await con.execute(query, [request.body.id]);
+    if(rows[0]['zdjecie_path'] === null) return;
+    response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
+  });
+
   app.post('/usun_sprzet', async function (request, response) {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
-    let query = `UPDATE sus_database.sprzet 
-    SET sprzet.czy_usuniete = 1 
-    WHERE sprzet.przedmiot_id = ?;`;
+    let query = 'SELECT czy_usuniete FROM sprzet WHERE przedmiot_id = ?;';
+    let [rows, columns] = await con.execute(query, [request.body.id]);
 
-    con.execute(query, [request.body.id]);
+    query = `UPDATE sus_database.sprzet 
+    SET sprzet.czy_usuniete = ? 
+    WHERE sprzet.przedmiot_id = ?;`;
+    con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
 
     query = "UPDATE sus_database.sprzet SET sprzet.og_id = ? WHERE sprzet.og_id = ?;";
     con.execute(query, [null, request.body.id]);
-
     response.end();
   });
 
@@ -518,7 +544,8 @@ async function main() {
     let lokalizacja = body["lokalizacja"];
     let wlasciciel = body["wlasciciel"];
     let uzytkownik = body["uzytkownik"];
-    let opis = body["opis"];
+    let opis = body["opis"]!=='' ? body["opis"] : null;
+    let box_id = body["box_id"]!=='' ? body["box_id"] : null;
 
     if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
       response.json({
@@ -531,22 +558,22 @@ async function main() {
     if(!request.file) {
       const query = `INSERT INTO sprzet 
       (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, 
+      kategoria_id, stan_id, lokalizacja_id, box_id,
       wlasciciel_id, uzytkownik_id, opis) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis]);
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
     }
     else {
-      let zdjecie_path = '/images/' + request.file.filename;
+      let zdjecie_path = request.file.filename;
 
       const query = `INSERT INTO sprzet 
       (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, 
+      kategoria_id, stan_id, lokalizacja_id, box_id,
       wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, wlasciciel, uzytkownik, opis, zdjecie_path]);
+      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
     }
 
     response.json({
@@ -923,9 +950,13 @@ async function main() {
     response.end();
   });
 
-
-  app.listen(3001);
-  console.log("Server listening at localhost:3001")
+  if(process.env.FOR_PRODUCTION === '1') {
+    app.listen(3001);
+  }
+  else {
+    app.listen(3001, '0.0.0.0');
+  }
+  console.log('Server listening at localhost:3001')
 }
 
 
