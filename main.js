@@ -552,7 +552,7 @@ async function main() {
       wlasciciel_id, uzytkownik_id, opis) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+      await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
     }
     else {
       let zdjecie_path = request.file.filename;
@@ -563,7 +563,7 @@ async function main() {
       wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+      await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
     }
 
     response.json({
