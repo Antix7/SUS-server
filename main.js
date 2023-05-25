@@ -513,8 +513,10 @@ async function main() {
     query = `UPDATE sus_database.sprzet 
     SET sprzet.czy_usuniete = ? 
     WHERE sprzet.przedmiot_id = ?;`;
-
     con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
+
+    query = "UPDATE sus_database.sprzet SET sprzet.og_id = ? WHERE sprzet.og_id = ?;";
+    con.execute(query, [null, request.body.id]);
     response.end();
   });
 
@@ -525,6 +527,14 @@ async function main() {
     if(!verifyToken(token, false)) return;
 
     let body = request.body;
+
+    if(body['ilosc'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
+      return;
+    }
 
     let nazwa = body["nazwa"];
     let ilosc = body["ilosc"];
@@ -761,44 +771,72 @@ async function main() {
 
   });
 
-
-
-
-  // Not implemented with React yet
-
-
-  app.post('/sprzet_panel/edytuj/info', async function (request, response) {
+  // enpoint which returns values of one specific row in order to edit said row
+  app.post('/editing_info', upload.none(), async function (request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+    if(!request.body.editid) {
+      response.json({
+        success: false,
+        message: "Brak id do edycji"
+      });
+      return;
+    }
     let [rows, columns] = await con.execute(`SELECT *
                                              FROM sus_database.sprzet
-                                             WHERE przedmiot_id = ${request.session.editid}`);
+                                             WHERE przedmiot_id = ${request.body.editid}`);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        message: "Przedmiot o takim id nie istnieje"
+      })
+      return;
+    }
     response.json({
-      kat: rows[0]['kategoria_id'],
-      lok: rows[0]['lokalizacja_id'],
-      wla: rows[0]['wlasciciel_id'],
-      uzy: rows[0]['uzytkownik_id'],
-      stn: rows[0]['stan_id'],
-      sts: rows[0]['status_id'],
+      success: true,
+      kat: parseInt(rows[0]['kategoria_id']),
+      lok: parseInt(rows[0]['lokalizacja_id']),
+      wla: parseInt(rows[0]['wlasciciel_id']),
+      uzy: parseInt(rows[0]['uzytkownik_id']),
+      stn: parseInt(rows[0]['stan_id']),
+      sts: parseInt(rows[0]['status_id']),
       nazwa: rows[0]['nazwa'],
       ilosc: rows[0]['ilosc'],
       opis: rows[0]['opis']});
     response.end();
   });
 
-  app.post('/sprzet_panel/edytuj/auth', upload.single('zdjecie'), function (request, response) {
+  // editing a row
+  app.post('/edytuj', upload.single('zdjecie'), async function (request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
     let body = request.body;
 
-    let kat = body['kat_id'];
-    let lok = body['lok_id'];
-    let wla = body['wla_id'];
-    let uzy = body['uzy_id'];
-    let sts = body['sts_id'];
-    let stn = body['stn_id'];
+    if(body['ilosc'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
+      return;
+    }
+
+    let kat = body['kategoria'];
+    let lok = body['lokalizacja'];
+    let wla = body['wlasciciel'];
+    let uzy = body['uzytkownik'];
+    let sts = body['status'];
+    let stn = body['stan'];
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
     let opis = body['opis'];
 
-    if (kat == '0' || lok == '0' || wla == '0' || uzy == '0' || sts == '0' || stn == '0' || ilo == '' || naz == '') {
-      response.json({"msg": "Niepoprawne dane"});
+    if (!(naz && ilo && sts && kat && stn && lok && wla && uzy)) {
+      response.json({
+        success: false,
+        message: "Niepoprawne dane"
+      });
       return
     }
 
@@ -807,24 +845,42 @@ async function main() {
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, request.session.editid]);
-    } else {
+      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+    }
+    else {
       let zdj = '/images/' + request.file.filename;
       let sql = 'UPDATE sus_database.sprzet t\n' +
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, request.session.editid]);
+      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
     }
-    response.json({'redirect': '/sprzet_panel/wyswietl'});
+    response.json({
+      success: true
+    });
   });
 
-  app.post('/sprzet_panel/zabierz', async function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+
+  // the three following endpoints are for og_id related functions
+
+  // taking items from a row
+  app.post('/zabierz', upload.none(), async function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+
+    let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
+    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    let baseAmount = rows[0]['ilosc'];
+    if(baseAmount <= request.body['amount'] || request.body['amount'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
       return;
     }
-    let query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
+
+    query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
     let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     newID = newID[0].insertId;
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc - ? where przedmiot_id = ?";
@@ -853,30 +909,44 @@ async function main() {
     AND sprzet.stan_id = stany.stan_id
     WHERE sprzet.przedmiot_id = ?
     `;
-    let [rows, columns] = await con.execute(query, [newID]);
-    response.json({'newRow': build_table_sprzet(rows)});
+    await con.execute(query, [newID]);
+    response.json({success: true});
     response.end();
   });
-
-  app.post('/sprzet_panel/odloz', function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+  // putting items back into parent row
+  app.post('/odloz', upload.none(), async function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
+      return;
+    let query = "SELECT ilosc, og_id FROM sprzet WHERE przedmiot_id=?";
+    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    if(rows.length === 0) {
+      response.json({
+        success: false,
+        message: "Nie ma przedmiotu z takim id"
+      });
       return;
     }
-    let query = `UPDATE sus_database.sprzet SET czy_usuniete = 1 WHERE przedmiot_id=?;`;
+    const amount = rows[0]['ilosc'], og_id = rows[0]['og_id'];
+    query = "DELETE FROM sprzet WHERE przedmiot_id=?";
     con.execute(query, [request.body['id']]);
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc + ? where przedmiot_id = ?";
-    con.execute(query, [request.body['amount'], request.body['ogid']]);
+    con.execute(query, [amount, og_id]);
+    response.json({
+      success: true
+    });
     response.end();
   });
-
-  app.post('/sprzet_panel/zapomnij', function(request, response) {
-    if (!(request.session.loggedin)) {
-      response.sendFile(__dirname + "/login/oszust.html");
+  // forgetting the parent row
+  app.post('/zapomnij', function(request, response) {
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false))
       return;
-    }
     let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
     con.execute(query, [request.body['id']]);
+    response.json({
+      success: true
+    })
     response.end();
   });
 
