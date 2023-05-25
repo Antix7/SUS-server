@@ -14,7 +14,7 @@ const {response} = require("express");
 
 let con;
 
- // configuration of nodemailer module used for sending emails;
+// configuration of nodemailer module used for sending emails;
 let mail_client = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -44,8 +44,8 @@ function create_hash(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
- // this function adds a specified user to the database
- // used for debugging
+// this function adds a specified user to the database
+// used for debugging
 async function create_user(username, password, czy_admin) {
   let password_hash = create_hash(password);
   let query = "INSERT INTO users (username, password_hash, czy_admin) VALUES (?, ?, ?);";
@@ -86,8 +86,8 @@ function generate_random_string(length) {
 function isObjectEmpty(obj) {
   if(obj === undefined) return true;
   return obj
-    && Object.keys(obj).length === 0
-    && Object.getPrototypeOf(obj) === Object.prototype;
+      && Object.keys(obj).length === 0
+      && Object.getPrototypeOf(obj) === Object.prototype;
 }
 
 function verifyToken(token, shouldBeAdmin, resetOnly = false) {
@@ -146,11 +146,13 @@ async function main() {
   // configuring environment variables
   dotenv.config();
 
+  const nice_logs = process.env.NICE_EVENT_LOGS === "1";
+
   if(await connect_to_database(
-    process.env.MYSQL_HOSTNAME,
-    process.env.MYSQL_USERNAME,
-    process.env.MYSQL_PASSWORD,
-    process.env.MYSQL_DATABASE) !== 0) {
+      process.env.MYSQL_HOSTNAME,
+      process.env.MYSQL_USERNAME,
+      process.env.MYSQL_PASSWORD,
+      process.env.MYSQL_DATABASE) !== 0) {
     console.log('Problem z bazą danych');
     return -1;
   }
@@ -247,6 +249,8 @@ async function main() {
       token: newToken
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${username}" has logged in from the following ip: "${request.socket.remoteAddress}"`);
   });
 
   // activating an account
@@ -292,6 +296,8 @@ async function main() {
       message: 'Użytkownik został pomyślnie stworzony'
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tnew user activated: "${username}"`);
   });
 
   app.post('/zmien_haslo', upload.none(), async function (request, response) {
@@ -319,6 +325,7 @@ async function main() {
     });
     response.end();
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${username}" has changed their password`);
   });
 
   // sending the user data necessary for the form for adding new rows
@@ -380,28 +387,28 @@ async function main() {
 
     // this is the basic query structure to which a clause will be added
     let query = `SELECT
-    sprzet.przedmiot_id AS ID,
-    sprzet.nazwa AS nazwa,
-    sprzet.ilosc AS ilosc,
-    statusy.status_nazwa AS status,
-    kat.kategoria_nazwa AS kategoria,
-    stany.stan_nazwa AS stan,
-    lok.lokalizacja_nazwa AS lokalizacja,
-    wla.podmiot_nazwa AS wlasciciel,
-    uzy.podmiot_nazwa AS uzytkownik,
-    sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie_path,
-    sprzet.og_id AS og_id,
-    sprzet.czy_usuniete AS czy_usuniete,
-    sprzet.box_id AS box_id
-    FROM sprzet
-    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
-    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
-    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
-    JOIN statusy ON sprzet.status_id = statusy.status_id
-    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
-    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
-    AND sprzet.stan_id = stany.stan_id
+                   sprzet.przedmiot_id AS ID,
+                   sprzet.nazwa AS nazwa,
+                   sprzet.ilosc AS ilosc,
+                   statusy.status_nazwa AS status,
+                   kat.kategoria_nazwa AS kategoria,
+                   stany.stan_nazwa AS stan,
+                   lok.lokalizacja_nazwa AS lokalizacja,
+                   wla.podmiot_nazwa AS wlasciciel,
+                   uzy.podmiot_nazwa AS uzytkownik,
+                   sprzet.opis AS opis,
+                   sprzet.zdjecie_path AS zdjecie_path,
+                   sprzet.og_id AS og_id,
+                   sprzet.czy_usuniete AS czy_usuniete,
+                   sprzet.box_id AS box_id
+                 FROM sprzet
+                        JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+                        JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+                        JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+                        JOIN statusy ON sprzet.status_id = statusy.status_id
+                        JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+                        JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+                   AND sprzet.stan_id = stany.stan_id
     `;
     let conditions = []; // array to store individual conditions for each column, later to be joined with OR
     let clauses = [`sprzet.czy_usuniete = ${request.body['usuniete'] ? 1 : 0}`]; // array to store joined conditions form before, later to be joined with AND
@@ -491,6 +498,7 @@ async function main() {
       data: rows
     });
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the "sprzet" table`);
   });
 
   app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
@@ -501,6 +509,8 @@ async function main() {
     let [rows, columns] = await con.execute(query, [request.body.id]);
     if(rows[0]['zdjecie_path'] === null) return;
     response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
 
   app.post('/usun_sprzet', async function (request, response) {
@@ -510,14 +520,16 @@ async function main() {
     let query = 'SELECT czy_usuniete FROM sprzet WHERE przedmiot_id = ?;';
     let [rows, columns] = await con.execute(query, [request.body.id]);
 
-    query = `UPDATE sus_database.sprzet 
-    SET sprzet.czy_usuniete = ? 
-    WHERE sprzet.przedmiot_id = ?;`;
+    query = `UPDATE sus_database.sprzet
+             SET sprzet.czy_usuniete = ?
+             WHERE sprzet.przedmiot_id = ?;`;
     con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
 
     query = "UPDATE sus_database.sprzet SET sprzet.og_id = ? WHERE sprzet.og_id = ?;";
     con.execute(query, [null, request.body.id]);
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
   });
 
   // adding the new row to the database
@@ -556,22 +568,22 @@ async function main() {
     }
 
     if(!request.file) {
-      const query = `INSERT INTO sprzet 
-      (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, box_id,
-      wlasciciel_id, uzytkownik_id, opis) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const query = `INSERT INTO sprzet
+                     (nazwa, ilosc, status_id,
+                      kategoria_id, stan_id, lokalizacja_id, box_id,
+                      wlasciciel_id, uzytkownik_id, opis)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
     }
     else {
       let zdjecie_path = request.file.filename;
 
-      const query = `INSERT INTO sprzet 
-      (nazwa, ilosc, status_id, 
-      kategoria_id, stan_id, lokalizacja_id, box_id,
-      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const query = `INSERT INTO sprzet
+                     (nazwa, ilosc, status_id,
+                      kategoria_id, stan_id, lokalizacja_id, box_id,
+                      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
     }
@@ -579,6 +591,8 @@ async function main() {
     response.json({
       success: true
     });
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has added a new row`);
   });
 
   // generating an account activation key
@@ -601,6 +615,8 @@ async function main() {
       klucz: username
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has generated a new user key: "${username}"`);
   });
 
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
@@ -616,6 +632,8 @@ async function main() {
       data: rows
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the "users" table`);
   });
 
   app.post('/usun_uzytkownika', async function (request, response) {
@@ -634,6 +652,8 @@ async function main() {
     let query = 'DELETE FROM users WHERE username = ?;';
     await con.execute(query, [username]);
     response.json({success: true});
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted the following user: "${username}"`);
   });
 
   // performing a custom query to the database
@@ -659,6 +679,8 @@ async function main() {
         result: rows
       });
       response.end();
+
+      if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has preformed the following query: "${query}"`);
     }
     catch(err) {
       response.json({
@@ -667,6 +689,8 @@ async function main() {
       });
       console.log(err);
       response.end();
+
+      if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}"'s query has failed: "${query}"`);
     }
   });
 
@@ -706,12 +730,16 @@ async function main() {
             success: true,
             message: 'Pomyślnie wysłano e-mail'
           });
+
+          if(nice_logs) console.log(`| ${Date.now()} |\t\tpassword resetting email for user "${username}" has been sent`);
         })
         .catch(error => {
           response.json({
             success: false,
             message: 'Wystąpił błąd, spróbuj ponownie później'
           });
+
+          if(nice_logs) console.log(`| ${Date.now()} |\t\tpassword resetting email for user "${username}" has failed`);
         });
   });
 
@@ -741,6 +769,7 @@ async function main() {
       token: newToken
     });
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has authenticated with reset code from email`);
   });
 
   // changing one's password from the reset form
@@ -769,6 +798,7 @@ async function main() {
     });
     response.end();
 
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has reset their password`);
   });
 
   // enpoint which returns values of one specific row in order to edit said row
@@ -858,6 +888,8 @@ async function main() {
     response.json({
       success: true
     });
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has edited the row with the following id: "${request.body.editid}"`);
   });
 
 
@@ -887,31 +919,33 @@ async function main() {
     await con.execute(query, [request.body['amount'], request.body['id']]);
 
     query = `SELECT
-    sprzet.przedmiot_id AS ID,
-    sprzet.nazwa AS nazwa,
-    sprzet.ilosc AS ilosc,
-    statusy.status_nazwa AS status,
-    kat.kategoria_nazwa AS kategoria,
-    stany.stan_nazwa AS stan,
-    lok.lokalizacja_nazwa AS lokalizacja,
-    wla.podmiot_nazwa AS wlasciciel,
-    uzy.podmiot_nazwa AS uzytkownik,
-    sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie,
-    sprzet.og_id AS og_id
-    FROM sprzet
-    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
-    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
-    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
-    JOIN statusy ON sprzet.status_id = statusy.status_id
-    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
-    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
-    AND sprzet.stan_id = stany.stan_id
-    WHERE sprzet.przedmiot_id = ?
+               sprzet.przedmiot_id AS ID,
+               sprzet.nazwa AS nazwa,
+               sprzet.ilosc AS ilosc,
+               statusy.status_nazwa AS status,
+               kat.kategoria_nazwa AS kategoria,
+               stany.stan_nazwa AS stan,
+               lok.lokalizacja_nazwa AS lokalizacja,
+               wla.podmiot_nazwa AS wlasciciel,
+               uzy.podmiot_nazwa AS uzytkownik,
+               sprzet.opis AS opis,
+               sprzet.zdjecie_path AS zdjecie,
+               sprzet.og_id AS og_id
+             FROM sprzet
+                    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
+                    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
+                    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
+                    JOIN statusy ON sprzet.status_id = statusy.status_id
+                    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
+                    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
+               AND sprzet.stan_id = stany.stan_id
+             WHERE sprzet.przedmiot_id = ?
     `;
     await con.execute(query, [newID]);
     response.json({success: true});
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}`);
   });
   // putting items back into parent row
   app.post('/odloz', upload.none(), async function(request, response) {
@@ -936,6 +970,8 @@ async function main() {
       success: true
     });
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
   });
   // forgetting the parent row
   app.post('/zapomnij', function(request, response) {
@@ -948,6 +984,8 @@ async function main() {
       success: true
     })
     response.end();
+
+    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" forgor og_id for the row with the following id: "${request.body['id']}"`);
   });
 
   if(process.env.FOR_PRODUCTION === '1') {
