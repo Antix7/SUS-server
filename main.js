@@ -502,6 +502,17 @@ async function main() {
 
     let body = request.body;
 
+    let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
+    let [rows, columns] = await con.execute(query, [body['id']]);
+    let baseAmount = rows[0]['ilosc'];
+    if(baseAmount <= body['ilosc'] || body['ilosc'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
+      return;
+    }
+
     let nazwa = body["nazwa"];
     let ilosc = body["ilosc"];
     let status = body["status"];
@@ -779,6 +790,17 @@ async function main() {
       return;
     let body = request.body;
 
+    let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
+    let [rows, columns] = await con.execute(query, [body['id']]);
+    let baseAmount = rows[0]['ilosc'];
+    if(baseAmount <= body['ilosc'] || body['ilosc'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
+      return;
+    }
+
     let kat = body['kategoria'];
     let lok = body['lokalizacja'];
     let wla = body['wlasciciel'];
@@ -825,7 +847,19 @@ async function main() {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
-    let query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
+
+    let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
+    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    let baseAmount = rows[0]['ilosc'];
+    if(baseAmount <= request.body['amount'] || request.body['amount'] <= 0) {
+      response.json({
+        success: false,
+        message: "Niepoprawna ilość"
+      });
+      return;
+    }
+
+    query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
     let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     newID = newID[0].insertId;
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc - ? where przedmiot_id = ?";
@@ -854,7 +888,7 @@ async function main() {
     AND sprzet.stan_id = stany.stan_id
     WHERE sprzet.przedmiot_id = ?
     `;
-    let [rows, columns] = await con.execute(query, [newID]);
+    await con.execute(query, [newID]);
     response.json({success: true});
     response.end();
   });
