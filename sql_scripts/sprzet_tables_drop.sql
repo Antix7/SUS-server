@@ -1,2 +1,2 @@
-DROP TABLE sus_database.zdjecia_uszkodzen;
-DROP TABLE sus_database.sprzet;
+DROP TABLE IF EXISTS sus_database.zdjecia_uszkodzen;
+DROP TABLE IF EXISTS sus_database.sprzet;

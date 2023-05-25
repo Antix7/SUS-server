@@ -1,1 +1,1 @@
-DROP TABLE sus_database.users;
+DROP TABLE IF EXISTS sus_database.users;
