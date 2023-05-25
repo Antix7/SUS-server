@@ -391,7 +391,8 @@ async function main() {
     uzy.podmiot_nazwa AS uzytkownik,
     sprzet.opis AS opis,
     sprzet.zdjecie_path AS zdjecie,
-    sprzet.og_id AS og_id
+    sprzet.og_id AS og_id,
+    sprzet.czy_usuniete AS czy_usuniete
     FROM sprzet
     JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
     JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
@@ -491,11 +492,14 @@ async function main() {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
-    let query = `UPDATE sus_database.sprzet 
-    SET sprzet.czy_usuniete = 1 
+    let query = 'SELECT czy_usuniete FROM sprzet WHERE przedmiot_id = ?;';
+    let [rows, columns] = await con.execute(query, [request.body.id]);
+
+    query = `UPDATE sus_database.sprzet 
+    SET sprzet.czy_usuniete = ? 
     WHERE sprzet.przedmiot_id = ?;`;
 
-    con.execute(query, [request.body.id]);
+    con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
     response.end();
   });
 
