@@ -151,21 +151,31 @@ async function main() {
     process.env.MYSQL_USERNAME,
     process.env.MYSQL_PASSWORD,
     process.env.MYSQL_DATABASE) !== 0) {
-    console.log("Problem z bazą danych");
+    console.log('Problem z bazą danych');
     return -1;
   }
 
-  if(process.env.DEVELOPMENT_MODE === "1")
+  if(process.env.DEVELOPMENT_MODE === '1')
     await developmentScripts();
 
   // initialising the express app
   const app = express();
 
   // CORS is required when Node.js acts as an external server
-  const corsOptions ={
-    origin:'https://antix7.github.io',
-    credentials:true, //access-control-allow-credentials:true
-    optionSuccessStatus:200,
+  let corsOptions = {};
+  if(process.env.FOR_PRODUCTION === '1') {
+    corsOptions = {
+      origin:'https://antix7.github.io',
+      credentials:true, //access-control-allow-credentials:true
+      optionSuccessStatus:200,
+    }
+  }
+  else {
+    corsOptions = {
+      origin:'*',
+      credentials:false, //access-control-allow-credentials:false
+      optionSuccessStatus:200,
+    }
   }
   app.use(cors(corsOptions));
 
@@ -851,8 +861,13 @@ async function main() {
     response.end();
   });
 
-  app.listen(3001);
-  console.log("Server listening at localhost:3001")
+  if(process.env.FOR_PRODUCTION === '1') {
+    app.listen(3001);
+  }
+  else {
+    app.listen(3001, '0.0.0.0');
+  }
+  console.log('Server listening at localhost:3001')
 }
 
 
