@@ -390,7 +390,7 @@ async function main() {
     wla.podmiot_nazwa AS wlasciciel,
     uzy.podmiot_nazwa AS uzytkownik,
     sprzet.opis AS opis,
-    sprzet.zdjecie_path AS zdjecie,
+    sprzet.zdjecie_path AS zdjecie_path,
     sprzet.og_id AS og_id,
     sprzet.czy_usuniete AS czy_usuniete,
     sprzet.box_id AS box_id
@@ -493,6 +493,16 @@ async function main() {
 
   });
 
+  app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
+    let token = request.headers["x-access-token"];
+    if(!verifyToken(token, false)) return;
+
+    let query = `SELECT zdjecie_path FROM sprzet WHERE przedmiot_id = ?;`;
+    let [rows, columns] = await con.execute(query, [request.body.id]);
+    if(rows[0]['zdjecie_path'] === null) return;
+    response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
+  });
+
   app.post('/usun_sprzet', async function (request, response) {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -545,7 +555,7 @@ async function main() {
       con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
     }
     else {
-      let zdjecie_path = '/images/' + request.file.filename;
+      let zdjecie_path = request.file.filename;
 
       const query = `INSERT INTO sprzet 
       (nazwa, ilosc, status_id, 
