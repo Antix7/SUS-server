@@ -116,9 +116,9 @@ function verifyToken(token, shouldBeAdmin, resetOnly = false) {
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
     if(err) return false;
     const tokenAge = new Date() - new Date(decoded.time);
-    if(tokenAge > process.env.JWT_LIFETIME) return false;
     if(shouldBeAdmin && (!decoded.isAdmin)) return false;
     if((!resetOnly) && decoded.resetOnly) return false;
+    if(tokenAge > process.env.JWT_LIFETIME) return null;
     return true;
   });
 }
@@ -138,9 +138,15 @@ function backupDatabase(file) {
 
 function updateQueriesSinceBackup() {
   queries_since_backup++;
-  if(queries_since_backup === parseInt(process.env.QUERIES_FOR_BACKUP)) {
+  if(queries_since_backup >= parseInt(process.env.QUERIES_FOR_BACKUP)) {
     log(sys_msg_filename, "Performing a database backup");
-    backupDatabase(`./backups/${Date.now()}.sql`);
+    try {
+      backupDatabase(`./backups/${Date.now()}.sql`);
+    }
+    catch(err) {
+      log(package_err_filename, `backup error failed, err: ${err}`);
+      log(sys_msg_filename, `backup error failed`);
+    }
     queries_since_backup = 0;
   }
 }
@@ -234,6 +240,13 @@ async function main() {
     if(verifyToken(token, false)) {
       response.json({
         success: true
+      });
+      return;
+    }
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
       });
       return;
     }
@@ -382,6 +395,13 @@ async function main() {
     log(nicent_logs_filename, `post request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, false)) return;
 
     let tokenData = getTokenData(token);
@@ -423,6 +443,13 @@ async function main() {
     log(nicent_logs_filename, `GET request for '/available_values', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, false)) return;
 
 
@@ -487,6 +514,13 @@ async function main() {
     log(nicent_logs_filename, `POST request for '/wyswietl', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, false)) return;
 
     // this is the basic query structure to which a clause will be added
@@ -612,12 +646,19 @@ async function main() {
       data: rows
     });
 
-    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "sprzet" table`);
+    // log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "sprzet" table`);
   });
 
   app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
     log(nicent_logs_filename, `POST request for '/wyswietl_zdjecie', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, false)) return;
 
     let query = `SELECT zdjecie_path FROM sprzet WHERE przedmiot_id = ?;`;
@@ -636,12 +677,19 @@ async function main() {
     if(rows[0]['zdjecie_path'] === null) return;
     response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
 
-    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
+    // log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
 
   app.post('/usun_sprzet', async function (request, response) {
     log(nicent_logs_filename, `POST request for '/usun_sprzet', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, false)) return;
 
     let query = 'SELECT czy_usuniete FROM sprzet WHERE przedmiot_id = ?;';
@@ -696,6 +744,13 @@ async function main() {
     log(nicent_logs_filename, `POST request for '/dodaj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, false)) return;
 
     let body = request.body;
@@ -781,6 +836,13 @@ async function main() {
     log(nicent_logs_filename, `POST request for '/generuj_klucz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, true) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, true)) return;
 
     let czy_admin = request.body.czy_admin ? 1 : 0;
@@ -815,6 +877,13 @@ async function main() {
     log(nicent_logs_filename, `POST request for '/uzytkownicy', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, true) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, true)) return;
 
     let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
@@ -837,12 +906,19 @@ async function main() {
     });
     response.end();
 
-    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "users" table`);
+    // log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "users" table`);
   });
 
   app.post('/usun_uzytkownika', async function (request, response) {
     log(nicent_logs_filename, `POST request for '/usun_uzytkownika', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, true) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, true)) return;
     const tokenData = getTokenData(token);
 
@@ -877,6 +953,13 @@ async function main() {
     log(nicent_logs_filename, `POST request for '/query', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, true) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, true)) return;
 
     let query = request.body.query;
@@ -968,6 +1051,7 @@ async function main() {
           });
 
           log(nice_logs_filename, `password resetting email for user "${username}" has failed. ${error}`);
+          log(package_err_filename, `password resetting email for user "${username}" has failed. ${error}`);
         });
   });
 
@@ -1057,8 +1141,14 @@ async function main() {
   app.post('/editing_info', upload.none(), async function (request, response) {
     log(nicent_logs_filename, `POST request for '/editing_info', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false))
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
       return;
+    }
+    if(!verifyToken(token, false)) return;
     if(!request.body.editid) {
       response.json({
         success: false,
@@ -1106,8 +1196,14 @@ async function main() {
   app.post('/edytuj', upload.single('zdjecie'), async function (request, response) {
     log(nicent_logs_filename, `POST request for '/edytuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false))
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
       return;
+    }
+    if(!verifyToken(token, false)) return;
     let body = request.body;
 
     if(body['ilosc'] <= 0) {
@@ -1185,8 +1281,14 @@ async function main() {
   app.post('/zabierz', upload.none(), async function(request, response) {
     log(nicent_logs_filename, `POST request for '/zabierz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false))
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
       return;
+    }
+    if(!verifyToken(token, false)) return;
 
     let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
     let rows, columns;
@@ -1281,8 +1383,14 @@ async function main() {
   app.post('/odloz', upload.none(), async function(request, response) {
     log(nicent_logs_filename, `POST request for '/odloz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
-    if(!verifyToken(token, false))
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
       return;
+    }
+    if(!verifyToken(token, false)) return;
     let query = "SELECT ilosc, og_id FROM sprzet WHERE przedmiot_id=?";
     let rows, columns;
     try {
@@ -1340,6 +1448,13 @@ async function main() {
   app.post('/zapomnij', async function(request, response) {
     log(nicent_logs_filename, `POST request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
+    if(verifyToken(token, false) == null) {
+      response.json({
+        success: false,
+        message: "Sesja wygasła, zaloguj się ponownie"
+      });
+      return;
+    }
     if(!verifyToken(token, false))
       return;
     let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
