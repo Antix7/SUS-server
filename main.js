@@ -20,7 +20,7 @@ let con;
 
 const nice_logs_filename = "nice_logs.log",
     nicent_logs_filename = "nicent_logs.log",
-    mysql_err_filename = "mysql_errors.log",
+    package_err_filename = "package_errors.log",
     sys_msg_filename = "system_messages.log";
 
 // configuration of nodemailer module used for sending emails;
@@ -184,7 +184,7 @@ async function main() {
       process.env.MYSQL_USERNAME,
       process.env.MYSQL_PASSWORD,
       process.env.MYSQL_DATABASE) !== 0) {
-    log(mysql_err_filename, "Nie można połączyć się z bazą danych");
+    log(package_err_filename, "Nie można połączyć się z bazą danych");
     log(sys_msg_filename, "Nie można połączyć się z bazą danych");
     return -1;
   }
@@ -254,7 +254,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username, create_hash(password)]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /auth endpoint, query: ${query}, arguments: ${[username, create_hash(password)]}\n${err}`);
+      log(package_err_filename, `mysql error in /auth endpoint, query: ${query}, arguments: ${[username, create_hash(password)]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -322,7 +322,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [key]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[key]}\n${err}`);
+      log(package_err_filename, `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[key]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -342,7 +342,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
+      log(package_err_filename, `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -362,7 +362,7 @@ async function main() {
       await con.execute(query, [username, create_hash(password), email, key]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[username, create_hash(password), email, key]}\n${err}`);
+      log(package_err_filename, `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[username, create_hash(password), email, key]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -395,7 +395,7 @@ async function main() {
       res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /zmien_haslo endpoint, query: ${query}, arguments: ${[create_hash(password_new), username, create_hash(password_old)]}\n${err}`);
+      log(package_err_filename, `mysql error in /zmien_haslo endpoint, query: ${query}, arguments: ${[create_hash(password_new), username, create_hash(password_old)]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -468,7 +468,7 @@ async function main() {
       }
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /available_values endpoint\n${err}`);
+      log(package_err_filename, `mysql error in /available_values endpoint\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -600,7 +600,7 @@ async function main() {
       [rows, columns] = await con.execute(query);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /wyswietl endpoint, query: ${query}\n${err}`);
+      log(package_err_filename, `mysql error in /wyswietl endpoint, query: ${query}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -626,7 +626,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body.id]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /wyswietl_zdjecie endpoint, query: ${query}, arguments: ${[request.body.id]}\n${err}`);
+      log(package_err_filename, `mysql error in /wyswietl_zdjecie endpoint, query: ${query}, arguments: ${[request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -650,7 +650,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body.id]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[request.body.id]}\n${err}`);
+      log(package_err_filename, `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -665,7 +665,7 @@ async function main() {
       con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]}\n${err}`);
+      log(package_err_filename, `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -678,7 +678,7 @@ async function main() {
       con.execute(query, [null, request.body.id]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[null, request.body.id]}\n${err}`);
+      log(package_err_filename, `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[null, request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -738,7 +738,7 @@ async function main() {
         await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
       }
       catch(err) {
-        log(mysql_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]}\n${err}`);
+        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -759,7 +759,7 @@ async function main() {
         await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
       }
       catch(err) {
-        log(mysql_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]}\n${err}`);
+        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -794,7 +794,7 @@ async function main() {
       await con.execute(query, [username, -1, czy_admin, data]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /generuj_klucz endpoint, query: ${query}, arguments: ${[username, -1, czy_admin, data]}\n${err}`);
+      log(package_err_filename, `mysql error in /generuj_klucz endpoint, query: ${query}, arguments: ${[username, -1, czy_admin, data]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -823,7 +823,7 @@ async function main() {
       [rows, columns] = await con.execute(query);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /uzytkownicy endpoint, query: ${query}\n${err}`);
+      log(package_err_filename, `mysql error in /uzytkownicy endpoint, query: ${query}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -859,7 +859,7 @@ async function main() {
       await con.execute(query, [username]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /usun_uzytkownika endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
+      log(package_err_filename, `mysql error in /usun_uzytkownika endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -903,7 +903,7 @@ async function main() {
         success: false,
         message: "Nastąpił błąd podczas wykonywania query"
       });
-      log(mysql_err_filename, `/query error: ${err}`);
+      log(package_err_filename, `/query error: ${err}`);
       response.end();
 
       log(nice_logs_filename, `user "${getTokenData(token).username}"'s query has failed: "${query}"`);
@@ -923,7 +923,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /send_reset_code endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
+      log(package_err_filename, `mysql error in /send_reset_code endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -967,6 +967,7 @@ async function main() {
             message: 'Wystąpił błąd, spróbuj ponownie później'
           });
 
+          log(package_err_filename, `password resetting email for user "${username}" has failed, error: ${error}`);
           log(nice_logs_filename, `password resetting email for user "${username}" has failed`);
         });
   });
@@ -982,7 +983,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username, code]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /check_reset_code endpoint, query: ${query}, arguments: ${[username, code]}\n${err}`);
+      log(package_err_filename, `mysql error in /check_reset_code endpoint, query: ${query}, arguments: ${[username, code]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1029,7 +1030,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [create_hash(password), username]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /resetuj_haslo endpoint, query: ${query}, arguments: ${[create_hash(password), username]}\n${err}`);
+      log(package_err_filename, `mysql error in /resetuj_haslo endpoint, query: ${query}, arguments: ${[create_hash(password), username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1072,7 +1073,7 @@ async function main() {
                                              WHERE przedmiot_id = ?`, [request.body.editid]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /editing_info endpoint, query: SELECT * FROM sus_database.sprzet WHERE przedmiot_id = ?, arguments: ${[request.body.editid]}\n${err}`);
+      log(package_err_filename, `mysql error in /editing_info endpoint, query: SELECT * FROM sus_database.sprzet WHERE przedmiot_id = ?, arguments: ${[request.body.editid]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1144,7 +1145,7 @@ async function main() {
         con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
       }
       catch(err) {
-        log(mysql_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
+        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1161,7 +1162,7 @@ async function main() {
       try {
         con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
       }catch(err) {
-        log(mysql_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
+        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1193,7 +1194,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
+      log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1215,7 +1216,7 @@ async function main() {
       newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['amount'], request.body['id'], request.body['id']]}\n${err}`);
+      log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['amount'], request.body['id'], request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1228,7 +1229,7 @@ async function main() {
       await con.execute(query, [request.body['amount'], request.body['id']]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['amount'], request.body['id']]}\n${err}`);
+      log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['amount'], request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1263,7 +1264,7 @@ async function main() {
       await con.execute(query, [newID]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[newID]}\n${err}`);
+      log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[newID]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1288,7 +1289,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /odloz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
+      log(package_err_filename, `mysql error in /odloz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1308,7 +1309,7 @@ async function main() {
       await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /odloz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
+      log(package_err_filename, `mysql error in /odloz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1320,7 +1321,7 @@ async function main() {
       await con.execute(query, [amount, og_id]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[amount, og_id]}\n${err}`);
+      log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[amount, og_id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1346,7 +1347,7 @@ async function main() {
       await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
+      log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
