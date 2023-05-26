@@ -262,7 +262,8 @@ async function main() {
 
     response.json({
       success: true,
-      token: newToken
+      token: newToken,
+      isAdmin: !!rows[0].czy_admin
     });
     response.end();
 
