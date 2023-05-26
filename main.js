@@ -711,7 +711,7 @@ async function main() {
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
-        con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
       }
       catch(err) {
         console.log("| ${Date.now()} |\tmysql error in /dodaj enpoint", query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
@@ -732,7 +732,7 @@ async function main() {
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
-        con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
       }
       catch(err) {
         console.log("| ${Date.now()} |\tmysql error in /dodaj enpoint", query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
