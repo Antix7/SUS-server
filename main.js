@@ -504,7 +504,8 @@ async function main() {
                    sprzet.zdjecie_path AS zdjecie_path,
                    sprzet.og_id AS og_id,
                    sprzet.czy_usuniete AS czy_usuniete,
-                   sprzet.box_id AS box_id
+                   sprzet.box_id AS box_id,
+                   sprzet.oznaczenie AS oznaczenie
                  FROM sprzet
                         JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
                         JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
@@ -573,6 +574,10 @@ async function main() {
 
     if(request.body['box_id'] && request.body['box_id']['box_id']) {
       clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}`);
+    }
+
+    if(request.body['oznaczenie'] && request.body['oznaczenie']['oznaczenie']) {
+      clauses.push(`sprzet.oznaczenie LIKE '%${request.body['oznaczenie']['oznaczenie']}%'`);
     }
 
 
@@ -718,6 +723,7 @@ async function main() {
     let uzytkownik = body["uzytkownik"];
     let opis = body["opis"]!=='' ? body["opis"] : null;
     let box_id = body["box_id"]!=='' ? body["box_id"] : null;
+    let oznaczenie = body["oznaczenie"]!=='' ? body["oznaczenie"] : null;
 
     if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
       response.json({
@@ -731,14 +737,14 @@ async function main() {
       const query = `INSERT INTO sprzet
                      (nazwa, ilosc, status_id,
                       kategoria_id, stan_id, lokalizacja_id, box_id,
-                      wlasciciel_id, uzytkownik_id, opis)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                      wlasciciel_id, uzytkownik_id, oznaczenie, opis)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
-        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis]);
       }
       catch(err) {
-        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]}\n${err}`);
+        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -752,14 +758,14 @@ async function main() {
       const query = `INSERT INTO sprzet
                      (nazwa, ilosc, status_id,
                       kategoria_id, stan_id, lokalizacja_id, box_id,
-                      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                      wlasciciel_id, uzytkownik_id, oznaczenie, opis, zdjecie_path)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
-        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis, zdjecie_path]);
       }
       catch(err) {
-        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]}\n${err}`);
+        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis, zdjecie_path]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
