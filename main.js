@@ -1178,7 +1178,7 @@ async function main() {
     let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
     let rows, columns;
     try {
-      let [rows, columns] = await con.execute(query, [request.body['id']]);
+      [rows, columns] = await con.execute(query, [request.body['id']]);
     }
     catch(err) {
       console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['id']]);
@@ -1200,7 +1200,7 @@ async function main() {
     query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
     let newID;
     try {
-      let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
+      newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     }
     catch(err) {
       console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['amount'], request.body['id'], request.body['id']]);
