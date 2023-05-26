@@ -640,7 +640,7 @@ async function main() {
       data: rows
     });
 
-    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "sprzet" table`);
+    // log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "sprzet" table`);
   });
 
   app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
@@ -671,7 +671,7 @@ async function main() {
     if(rows[0]['zdjecie_path'] === null) return;
     response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
 
-    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
+    // log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
 
   app.post('/usun_sprzet', async function (request, response) {
@@ -900,7 +900,7 @@ async function main() {
     });
     response.end();
 
-    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "users" table`);
+    // log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "users" table`);
   });
 
   app.post('/usun_uzytkownika', async function (request, response) {
@@ -1045,6 +1045,7 @@ async function main() {
           });
 
           log(nice_logs_filename, `password resetting email for user "${username}" has failed. ${error}`);
+          log(package_err_filename, `password resetting email for user "${username}" has failed. ${error}`);
         });
   });
 
