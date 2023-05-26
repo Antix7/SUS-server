@@ -460,7 +460,7 @@ async function main() {
       }
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /available_values endpoint`);
+      log(mysql_err_filename, `mysql error in /available_values endpoint\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -565,7 +565,7 @@ async function main() {
     }
 
     if(request.body['box_id'] && request.body['box_id']['box_id']) {
-      clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}\n${err}`);
+      clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}`);
     }
 
 
@@ -593,7 +593,7 @@ async function main() {
       [rows, columns] = await con.execute(query);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /wyswietl endpoint, query: ${query}`);
+      log(mysql_err_filename, `mysql error in /wyswietl endpoint, query: ${query}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -628,7 +628,7 @@ async function main() {
       return;
     }
     if(rows[0]['zdjecie_path'] === null) return;
-    response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}\n${err}`);
+    response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
 
     if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
@@ -819,7 +819,7 @@ async function main() {
       [rows, columns] = await con.execute(query);
     }
     catch(err) {
-      log(mysql_err_filename, `mysql error in /uzytkownicy endpoint, query: ${query}`);
+      log(mysql_err_filename, `mysql error in /uzytkownicy endpoint, query: ${query}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1276,7 +1276,7 @@ async function main() {
     response.json({success: true});
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}\n${err}`);
+    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}`);
   });
   // putting items back into parent row
   app.post('/odloz', upload.none(), async function(request, response) {
