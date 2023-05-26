@@ -16,13 +16,13 @@ INSERT INTO statusy VALUES (3, 'Wypożyczony');
 INSERT INTO statusy VALUES (4, 'W naprawie');
 INSERT INTO statusy VALUES (5, 'Zgubiony');
 
-INSERT INTO podmioty VALUES (1, '174 WDH-y "Wilki"');
-INSERT INTO podmioty VALUES (2, '178 WDH-ek "Ognisty Krąg"');
-INSERT INTO podmioty VALUES (3, '151 WGZ "Smocze Stowarzyszenie"');
-INSERT INTO podmioty VALUES (4, '151 WDSh "Enigma"');
-INSERT INTO podmioty VALUES (5, '151 WDW "A co może pójść źle?"');
-INSERT INTO podmioty VALUES (6, 'Szczep Burza');
-INSERT INTO podmioty VALUES (7, 'Nieznany');
+INSERT INTO podmioty VALUES (1, 'Szczep Burza');
+INSERT INTO podmioty VALUES (2, '174 WDH-y "Wilki"');
+INSERT INTO podmioty VALUES (3, '178 WDH-ek "Ognisty Krąg"');
+INSERT INTO podmioty VALUES (4, '151 WGZ "Smocze Stowarzyszenie"');
+INSERT INTO podmioty VALUES (5, '151 WDSh "Enigma"');
+INSERT INTO podmioty VALUES (6, '151 WDW "A co może pójść źle?"');
+INSERT INTO podmioty VALUES (7, 'Brak');
 
 INSERT INTO kategorie VALUES (1, 'Narzędzia');
 INSERT INTO stany VALUES (1, 2, 'Dobry');
