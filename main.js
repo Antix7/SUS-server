@@ -220,7 +220,18 @@ async function main() {
     }
 
     let query = "SELECT * FROM users WHERE username = ? AND password_hash = ?;";
-    let [rows, columns] = await con.execute(query, [username, create_hash(password)]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [username, create_hash(password)]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /auth enpoint", query, [username, create_hash(password)]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
 
     if(rows.length === 0) {
       response.json({
@@ -277,7 +288,18 @@ async function main() {
     }
 
     let query = "SELECT * FROM users WHERE username = ? AND password_hash = -1;";
-    let [rows, columns] = await con.execute(query, [key]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [key]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /aktywuj enpoint", query, [key]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     if (rows.length === 0) {
       response.json({
         success: false,
@@ -287,7 +309,17 @@ async function main() {
     }
 
     query = 'SELECT * FROM users WHERE username = ?';
-    [rows, columns] = await con.execute(query, [username]);
+    try {
+      [rows, columns] = await con.execute(query, [username]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /aktywuj enpoint", query, [username]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     if (rows.length > 0) {
       response.json({
         success: false,
@@ -297,7 +329,17 @@ async function main() {
     }
 
     query = "UPDATE users SET username = ?, password_hash = ?, adres_email = ? WHERE username = ?;";
-    await con.execute(query, [username, create_hash(password), email, key]);
+    try {
+      await con.execute(query, [username, create_hash(password), email, key]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /aktywuj enpoint", query, [username, create_hash(password), email, key]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     response.json({
       success: true,
       message: 'Użytkownik został pomyślnie stworzony'
@@ -320,7 +362,18 @@ async function main() {
     let password_new = request.body.password_new1;
 
     let query = "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash = ?;";
-    let res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
+    let res;
+    try {
+      res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /zmien_haslo enpoint", query, [create_hash(password_new), username, create_hash(password_old)]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
 
     if(res[0].affectedRows === 0) {
       response.json({
@@ -345,43 +398,55 @@ async function main() {
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
-    let [rows, columns] = await con.execute('SELECT * FROM lokalizacje;');
+
     let lok = {};
-    for(let i in rows) {
-      lok[rows[i]['lokalizacja_id']] = rows[i]['lokalizacja_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM kategorie;');
     let kat = {};
-    for(let i in rows) {
-      kat[rows[i]['kategoria_id']] = rows[i]['kategoria_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM podmioty;');
     let pod = {};
-    for(let i in rows) {
-      pod[rows[i]['podmiot_id']] = rows[i]['podmiot_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM statusy;');
     let statusy = {};
-    for(let i in rows) {
-      statusy[rows[i]['status_id']] = rows[i]['status_nazwa'];
-    }
-
-    [rows, columns] = await con.execute('SELECT * FROM stany ORDER BY kategoria_id, stan_id');
     let stany = {};
-    for(let i in rows) {
-      if(!stany.hasOwnProperty(rows[i]["kategoria_id"])) {
-        stany[rows[i]["kategoria_id"]] = {};
-      }
-      stany[rows[i]["kategoria_id"]][rows[i]["stan_id"]] = rows[i]["stan_nazwa"];
-    }
-
-    [rows, columns] = await con.execute('SELECT stan_id, stan_nazwa FROM stany GROUP BY stan_id, stan_nazwa ORDER BY stan_id');
     let stanyAll = {};
-    for(let i in rows) {
-      stanyAll[rows[i]['stan_id']] = rows[i]['stan_nazwa'];
+
+    try {
+      let [rows, columns] = await con.execute('SELECT * FROM lokalizacje;');
+      for (let i in rows) {
+        lok[rows[i]['lokalizacja_id']] = rows[i]['lokalizacja_nazwa'];
+      }
+
+      [rows, columns] = await con.execute('SELECT * FROM kategorie;');
+      for (let i in rows) {
+        kat[rows[i]['kategoria_id']] = rows[i]['kategoria_nazwa'];
+      }
+
+      [rows, columns] = await con.execute('SELECT * FROM podmioty;');
+      for (let i in rows) {
+        pod[rows[i]['podmiot_id']] = rows[i]['podmiot_nazwa'];
+      }
+
+      [rows, columns] = await con.execute('SELECT * FROM statusy;');
+      for (let i in rows) {
+        statusy[rows[i]['status_id']] = rows[i]['status_nazwa'];
+      }
+
+      [rows, columns] = await con.execute('SELECT * FROM stany ORDER BY kategoria_id, stan_id');
+      for (let i in rows) {
+        if (!stany.hasOwnProperty(rows[i]["kategoria_id"])) {
+          stany[rows[i]["kategoria_id"]] = {};
+        }
+        stany[rows[i]["kategoria_id"]][rows[i]["stan_id"]] = rows[i]["stan_nazwa"];
+      }
+
+      [rows, columns] = await con.execute('SELECT stan_id, stan_nazwa FROM stany GROUP BY stan_id, stan_nazwa ORDER BY stan_id');
+      for (let i in rows) {
+        stanyAll[rows[i]['stan_id']] = rows[i]['stan_nazwa'];
+      }
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /available_values enpoint");
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
     }
 
     response.json({
@@ -504,8 +569,18 @@ async function main() {
 
     query += ';';
 
-
-    let [rows, columns] = await con.execute(query);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /wyswietl enpoint", query);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     response.json({
       success: true,
       data: rows
@@ -521,7 +596,18 @@ async function main() {
     if(!verifyToken(token, false)) return;
 
     let query = `SELECT zdjecie_path FROM sprzet WHERE przedmiot_id = ?;`;
-    let [rows, columns] = await con.execute(query, [request.body.id]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [request.body.id]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /wyswietl_zdjecie enpoint", query, [request.body.id]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     if(rows[0]['zdjecie_path'] === null) return;
     response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
 
@@ -535,15 +621,46 @@ async function main() {
     if(!verifyToken(token, false)) return;
 
     let query = 'SELECT czy_usuniete FROM sprzet WHERE przedmiot_id = ?;';
-    let [rows, columns] = await con.execute(query, [request.body.id]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [request.body.id]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /usun_sprzet enpoint", query, [request.body.id]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
 
     query = `UPDATE sus_database.sprzet
              SET sprzet.czy_usuniete = ?
              WHERE sprzet.przedmiot_id = ?;`;
-    con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
+    try {
+      con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /usun_sprzet enpoint", query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
 
     query = "UPDATE sus_database.sprzet SET sprzet.og_id = ? WHERE sprzet.og_id = ?;";
-    con.execute(query, [null, request.body.id]);
+    try {
+      con.execute(query, [null, request.body.id]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /usun_sprzet enpoint", query, [null, request.body.id]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     response.end();
 
     if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
@@ -593,7 +710,17 @@ async function main() {
                       wlasciciel_id, uzytkownik_id, opis)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+      try {
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+      }
+      catch(err) {
+        console.log("| ${Date.now()} |\tmysql error in /dodaj enpoint", query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+        response.json({
+          success: false,
+          message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+        });
+        return;
+      }
     }
     else {
       let zdjecie_path = request.file.filename;
@@ -604,7 +731,17 @@ async function main() {
                       wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+      try {
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+      }
+      catch(err) {
+        console.log("| ${Date.now()} |\tmysql error in /dodaj enpoint", query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+        response.json({
+          success: false,
+          message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+        });
+        return;
+      }
     }
 
     response.json({
@@ -629,7 +766,17 @@ async function main() {
     username += generate_random_string(10);
 
     let query = 'INSERT INTO users (username, password_hash, czy_admin, data_wygasniecia) VALUES (?, ?, ?, ?);';
-    await con.execute(query, [username, -1, czy_admin, data]);
+    try {
+      await con.execute(query, [username, -1, czy_admin, data]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /generuj_klucz enpoint", query, [username, -1, czy_admin, data]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
 
     response.json({
       success: true,
@@ -648,7 +795,18 @@ async function main() {
     if(!verifyToken(token, true)) return;
 
     let query = "SELECT username, czy_admin, data_wygasniecia, adres_email FROM users";
-    let [rows, columns] = await con.execute(query);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /uzytkownicy enpoint", query);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
 
     response.json({
       success: true,
@@ -675,7 +833,17 @@ async function main() {
       return;
     }
     let query = 'DELETE FROM users WHERE username = ?;';
-    await con.execute(query, [username]);
+    try {
+      await con.execute(query, [username]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /usun_uzytkownika enpoint", query, [username]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     response.json({success: true});
 
     if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted the following user: "${username}"`);
@@ -730,7 +898,18 @@ async function main() {
     let username = request.body.username;
     let query = "SELECT adres_email, password_hash FROM sus_database.users WHERE users.username=?";
 
-    let [rows, columns] = await con.execute(query, [username]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [username]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /send_reset_code enpoint", query, [username]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     if(rows.length === 0) {
       response.json({
         success: false,
@@ -779,7 +958,18 @@ async function main() {
     let username = request.body.username;
     let code = request.body.code;
     let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
-    let [rows, columns] = await con.execute(query, [username, code]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [username, code]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /check_reset_code enpoint", query, [username, code]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     if(rows.length === 0) {
       response.json({
         success: false,
@@ -816,7 +1006,18 @@ async function main() {
       return;
     let password = request.body.password1;
     let query = 'UPDATE users SET password_hash = ? WHERE username = ?;';
-    let [rows, columns] = await con.execute(query, [create_hash(password), username]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [create_hash(password), username]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /resetuj_haslo enpoint", query, [create_hash(password), username]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     // console.log(username, password, rows);
     if(rows.affectedRows === 0) {
       response.json({
@@ -848,9 +1049,23 @@ async function main() {
       });
       return;
     }
-    let [rows, columns] = await con.execute(`SELECT *
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(`SELECT *
                                              FROM sus_database.sprzet
-                                             WHERE przedmiot_id = ${request.body.editid}`);
+                                             WHERE przedmiot_id = ?`, [request.body.editid]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /editing_info enpoint", `SELECT *
+                                             FROM sus_database.sprzet
+                                             WHERE przedmiot_id = ?`, [request.body.editid]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
+
     if(rows.length === 0) {
       response.json({
         success: false,
@@ -908,11 +1123,21 @@ async function main() {
     }
 
     if (!request.file) {
-      let sql = 'UPDATE sus_database.sprzet t\n' +
+      let query = 'UPDATE sus_database.sprzet t\n' +
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+      try {
+        con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+      }
+      catch(err) {
+        console.log("| ${Date.now()} |\tmysql error in /edytuj enpoint", query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+        response.json({
+          success: false,
+          message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+        });
+        return;
+      }
     }
     else {
       let zdj = '/images/' + request.file.filename;
@@ -920,7 +1145,16 @@ async function main() {
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
           'WHERE t.przedmiot_id = ?';
-      con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
+      try {
+        con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
+      }catch(err) {
+        console.log("| ${Date.now()} |\tmysql error in /edytuj enpoint", query, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
+        response.json({
+          success: false,
+          message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+        });
+        return;
+      }
     }
     response.json({
       success: true
@@ -941,7 +1175,18 @@ async function main() {
       return;
 
     let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
-    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    let rows, columns;
+    try {
+      let [rows, columns] = await con.execute(query, [request.body['id']]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['id']]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     let baseAmount = rows[0]['ilosc'];
     if(baseAmount <= request.body['amount'] || request.body['amount'] <= 0) {
       response.json({
@@ -952,10 +1197,31 @@ async function main() {
     }
 
     query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
-    let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
+    let newID;
+    try {
+      let newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['amount'], request.body['id'], request.body['id']]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     newID = newID[0].insertId;
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc - ? where przedmiot_id = ?";
-    await con.execute(query, [request.body['amount'], request.body['id']]);
+    try {
+      await con.execute(query, [request.body['amount'], request.body['id']]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['amount'], request.body['id']]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
 
     query = `SELECT
                sprzet.przedmiot_id AS ID,
@@ -980,7 +1246,17 @@ async function main() {
                AND sprzet.stan_id = stany.stan_id
              WHERE sprzet.przedmiot_id = ?
     `;
-    await con.execute(query, [newID]);
+    try {
+      await con.execute(query, [newID]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [newID]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     response.json({success: true});
     response.end();
 
@@ -994,7 +1270,18 @@ async function main() {
     if(!verifyToken(token, false))
       return;
     let query = "SELECT ilosc, og_id FROM sprzet WHERE przedmiot_id=?";
-    let [rows, columns] = await con.execute(query, [request.body['id']]);
+    let rows, columns;
+    try {
+      [rows, columns] = await con.execute(query, [request.body['id']]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /odloz enpoint", query, [request.body['id']]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     if(rows.length === 0) {
       response.json({
         success: false,
@@ -1004,9 +1291,29 @@ async function main() {
     }
     const amount = rows[0]['ilosc'], og_id = rows[0]['og_id'];
     query = "DELETE FROM sprzet WHERE przedmiot_id=?";
-    con.execute(query, [request.body['id']]);
+    try {
+      await con.execute(query, [request.body['id']]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /odloz enpoint", query, [request.body['id']]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc + ? where przedmiot_id = ?";
-    con.execute(query, [amount, og_id]);
+    try {
+      await con.execute(query, [amount, og_id]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [amount, og_id]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     response.json({
       success: true
     });
@@ -1015,14 +1322,24 @@ async function main() {
     if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
   });
   // forgetting the parent row
-  app.post('/zapomnij', function(request, response) {
+  app.post('/zapomnij', async function(request, response) {
     if(nicent_logs)
       console.log(` | ${Date.now()} |\t\tpost request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: `, request.body);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
     let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
-    con.execute(query, [request.body['id']]);
+    try {
+      await con.execute(query, [request.body['id']]);
+    }
+    catch(err) {
+      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['id']]);
+      response.json({
+        success: false,
+        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
+      });
+      return;
+    }
     response.json({
       success: true
     })
