@@ -1223,7 +1223,7 @@ async function main() {
       return;
     }
 
-    query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
+    query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id, box_id, oznaczenie) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ?, box_id, oznaczenie FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
     let newID;
     try {
       newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
@@ -1250,6 +1250,7 @@ async function main() {
       return;
     }
 
+    // WTF? This code is literally useless
     query = `SELECT
                sprzet.przedmiot_id AS ID,
                sprzet.nazwa AS nazwa,
