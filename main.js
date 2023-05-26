@@ -1104,7 +1104,10 @@ async function main() {
       sts: parseInt(rows[0]['status_id']),
       nazwa: rows[0]['nazwa'],
       ilosc: rows[0]['ilosc'],
-      opis: rows[0]['opis']});
+      opis: rows[0]['opis'],
+      box_id: rows[0]['box_id'],
+      oznaczenie: rows[0]['oznaczenie']
+    });
     response.end();
   });
 
@@ -1132,7 +1135,9 @@ async function main() {
     let stn = body['stan'];
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
-    let opis = body['opis'];
+    let opis = body['opis'] ? body['opis'] : null;
+    let box_id = body['box_id'] ? body['box_id'] : null;
+    let oznaczenie = body['oznaczenie'] ? body['oznaczenie'] : null;
 
     if (!(naz && ilo && sts && kat && stn && lok && wla && uzy)) {
       response.json({
@@ -1143,15 +1148,16 @@ async function main() {
     }
 
     if (!request.file) {
-      let query = 'UPDATE sus_database.sprzet t\n' +
-          'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.wlasciciel_id = ?,\n' +
-          't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
-          'WHERE t.przedmiot_id = ?';
+      let query = `UPDATE sus_database.sprzet t
+      SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, 
+      t.wlasciciel_id = ?, t.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?,
+      t.box_id = ?, t.oznaczenie = ?
+      WHERE t.przedmiot_id = ?;`
       try {
-        con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+        con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]);
       }
       catch(err) {
-        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
+        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1161,14 +1167,15 @@ async function main() {
     }
     else {
       let zdj = request.file.filename;
-      let sql = 'UPDATE sus_database.sprzet t\n' +
-          'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
-          't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
-          'WHERE t.przedmiot_id = ?';
+      let sql = `UPDATE sus_database.sprzet t
+      SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,
+      t.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?,
+      t.box_id = ?, t.oznaczenie = ?
+      WHERE t.przedmiot_id = ?`;
       try {
-        con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
+        con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]);
       }catch(err) {
-        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
+        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
