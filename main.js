@@ -138,9 +138,15 @@ function backupDatabase(file) {
 
 function updateQueriesSinceBackup() {
   queries_since_backup++;
-  if(queries_since_backup === parseInt(process.env.QUERIES_FOR_BACKUP)) {
+  if(queries_since_backup >= parseInt(process.env.QUERIES_FOR_BACKUP)) {
     log(sys_msg_filename, "Performing a database backup");
-    backupDatabase(`./backups/${Date.now()}.sql`);
+    try {
+      backupDatabase(`./backups/${Date.now()}.sql`);
+    }
+    catch(err) {
+      log(package_err_filename, `backup error failed, err: ${err}`);
+      log(sys_msg_filename, `backup error failed`);
+    }
     queries_since_backup = 0;
   }
 }
