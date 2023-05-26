@@ -11,6 +11,7 @@ const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const cors=require("cors");
 const {response} = require("express");
+const util = require("util");
 
 let con;
 
@@ -38,6 +39,16 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage
 });
+
+function log(destination, content) {
+  let log_file = fs.createWriteStream(__dirname + '/logs/' + destination, {flags: 'a'});
+
+  let time = new Date().toISOString().replace(/T/, ' ');
+  log_file.write(`|${time}| ${util.format(content)}\n`);
+
+  console.log(`|${time}| ${util.format(content)}`);
+  log_file.close();
+}
 
 // this function returns a hex representation of a sha256 hash of the password parameter
 function create_hash(password) {
@@ -115,7 +126,7 @@ function getTokenData(token) {
 // it resets the entire database and should NEVER be used outside development
 // con.query is used, since con.execute doesn't allow multiple statements
 async function developmentScripts() {
-  console.log("Development mode enabled. Executing development scripts...");
+  log("system_messages.log", "Development mode enabled. Executing development scripts...");
 
   if(process.env.DEV_MODE_SPRZET_DROP === "1")
     await con.query(fs.readFileSync('./sql_scripts/sprzet_tables_drop.sql').toString());
@@ -138,11 +149,12 @@ async function developmentScripts() {
     await create_user('twoj_stary', '2137', 0);
   }
 
-  console.log("Executed development scripts. Powering up the server");
+  log("system_messages.log", "Executed development scripts. Powering up the server");
 }
 
 async function main() {
 
+  log('system_messages.log', "main() has been called");
   // configuring environment variables
   dotenv.config();
 
@@ -154,7 +166,8 @@ async function main() {
       process.env.MYSQL_USERNAME,
       process.env.MYSQL_PASSWORD,
       process.env.MYSQL_DATABASE) !== 0) {
-    console.log('Problem z bazą danych');
+    log("mysql_errors.log.log", "Nie można połączyć się z bazą danych");
+    log("system_messages.log", "Nie można połączyć się z bazą danych");
     return -1;
   }
 
@@ -192,14 +205,14 @@ async function main() {
 
   app.get('/', function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tget request for '/', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `get request for '/', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     response.send("Witaj w SUSie");
   });
 
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/auth', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/auth', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(verifyToken(token, false)) {
@@ -225,7 +238,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username, create_hash(password)]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /auth enpoint", query, [username, create_hash(password)]);
+      log("mysql_errors.log", `mysql error in /auth endpoint, query: ${query}, arguments: ${[username, create_hash(password)]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -267,13 +280,13 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${username}" has logged in from the following ip: "${request.socket.remoteAddress}"`);
+    if(nice_logs) log("nice_logs.log", `user "${username}" has logged in from the following ip: "${request.socket.remoteAddress}"`);
   });
 
   // activating an account
   app.post('/aktywuj', upload.none(), async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let key = request.body.key;
     let username = request.body.username;
@@ -294,7 +307,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [key]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /aktywuj enpoint", query, [key]);
+      log("mysql_errors.log", `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[key]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -314,7 +327,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /aktywuj enpoint", query, [username]);
+      log("mysql_errors.log", `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -334,7 +347,7 @@ async function main() {
       await con.execute(query, [username, create_hash(password), email, key]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /aktywuj enpoint", query, [username, create_hash(password), email, key]);
+      log("mysql_errors.log", `mysql error in /aktywuj endpoint, query: ${query}, arguments: ${[username, create_hash(password), email, key]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -347,12 +360,12 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tnew user activated: "${username}"`);
+    if(nice_logs) log("nice_logs.log", `new user activated: "${username}"`);
   });
 
   app.post('/zmien_haslo', upload.none(), async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -368,7 +381,7 @@ async function main() {
       res = await con.execute(query, [create_hash(password_new), username, create_hash(password_old)]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /zmien_haslo enpoint", query, [create_hash(password_new), username, create_hash(password_old)]);
+      log("mysql_errors.log", `mysql error in /zmien_haslo endpoint, query: ${query}, arguments: ${[create_hash(password_new), username, create_hash(password_old)]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -388,13 +401,13 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${username}" has changed their password`);
+    if(nice_logs) log("nice_logs.log", `user "${username}" has changed their password`);
   });
 
   // sending the user data necessary for the form for adding new rows
   app.get('/available_values', async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tget request for '/available_values', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `get request for '/available_values', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -442,7 +455,7 @@ async function main() {
       }
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /available_values enpoint");
+      log("mysql_errors.log", `mysql error in /available_values endpoint`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -459,7 +472,7 @@ async function main() {
 
   app.post('/wyswietl', upload.none(), async function (request, response){
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/wyswietl', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/wyswietl', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -547,7 +560,7 @@ async function main() {
     }
 
     if(request.body['box_id'] && request.body['box_id']['box_id']) {
-      clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}`);
+      clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}\n${err}`);
     }
 
 
@@ -575,7 +588,7 @@ async function main() {
       [rows, columns] = await con.execute(query);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /wyswietl enpoint", query);
+      log("mysql_errors.log", `mysql error in /wyswietl endpoint, query: ${query}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -587,12 +600,12 @@ async function main() {
       data: rows
     });
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the "sprzet" table`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has opened the "sprzet" table`);
   });
 
   app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/wyswietl_zdjecie', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/wyswietl_zdjecie', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
@@ -602,7 +615,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body.id]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /wyswietl_zdjecie enpoint", query, [request.body.id]);
+      log("mysql_errors.log", `mysql error in /wyswietl_zdjecie endpoint, query: ${query}, arguments: ${[request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -610,14 +623,14 @@ async function main() {
       return;
     }
     if(rows[0]['zdjecie_path'] === null) return;
-    response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
+    response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}\n${err}`);
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
 
   app.post('/usun_sprzet', async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/usun_sprzet', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/usun_sprzet', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
@@ -627,7 +640,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body.id]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /usun_sprzet enpoint", query, [request.body.id]);
+      log("mysql_errors.log", `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -642,7 +655,7 @@ async function main() {
       con.execute(query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /usun_sprzet enpoint", query, [rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]);
+      log("mysql_errors.log", `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[rows[0]['czy_usuniete'] ? 0 : 1, request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -655,7 +668,7 @@ async function main() {
       con.execute(query, [null, request.body.id]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /usun_sprzet enpoint", query, [null, request.body.id]);
+      log("mysql_errors.log", `mysql error in /usun_sprzet endpoint, query: ${query}, arguments: ${[null, request.body.id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -664,13 +677,13 @@ async function main() {
     }
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
   });
 
   // adding the new row to the database
   app.post('/dodaj', upload.single('zdjecie'), async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/dodaj', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/dodaj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -715,7 +728,7 @@ async function main() {
         await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
       }
       catch(err) {
-        console.log("| ${Date.now()} |\tmysql error in /dodaj enpoint", query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+        log("mysql_errors.log", `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -736,7 +749,7 @@ async function main() {
         await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
       }
       catch(err) {
-        console.log("| ${Date.now()} |\tmysql error in /dodaj enpoint", query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+        log("mysql_errors.log", `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -749,13 +762,13 @@ async function main() {
       success: true
     });
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has added a new row`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has added a new row`);
   });
 
   // generating an account activation key
   app.post('/generuj_klucz', upload.none(), async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/generuj_klucz', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/generuj_klucz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -771,7 +784,7 @@ async function main() {
       await con.execute(query, [username, -1, czy_admin, data]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /generuj_klucz enpoint", query, [username, -1, czy_admin, data]);
+      log("mysql_errors.log", `mysql error in /generuj_klucz endpoint, query: ${query}, arguments: ${[username, -1, czy_admin, data]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -785,12 +798,12 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has generated a new user key: "${username}"`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has generated a new user key: "${username}"`);
   });
 
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/uzytkownicy', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/uzytkownicy', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -801,7 +814,7 @@ async function main() {
       [rows, columns] = await con.execute(query);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /uzytkownicy enpoint", query);
+      log("mysql_errors.log", `mysql error in /uzytkownicy endpoint, query: ${query}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -815,12 +828,12 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has opened the "users" table`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has opened the "users" table`);
   });
 
   app.post('/usun_uzytkownika', async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/usun_uzytkownika', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/usun_uzytkownika', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
     const tokenData = getTokenData(token);
@@ -838,7 +851,7 @@ async function main() {
       await con.execute(query, [username]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /usun_uzytkownika enpoint", query, [username]);
+      log("mysql_errors.log", `mysql error in /usun_uzytkownika endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -847,14 +860,14 @@ async function main() {
     }
     response.json({success: true});
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has deleted the following user: "${username}"`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has deleted the following user: "${username}"`);
   });
 
   // performing a custom query to the database
   // DROP and DELETE keywords are forbidden
   app.post('/query', upload.none(), async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/query', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/query', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -876,17 +889,17 @@ async function main() {
       });
       response.end();
 
-      if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has preformed the following query: "${query}"`);
+      if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has preformed the following query: "${query}"`);
     }
     catch(err) {
       response.json({
         success: false,
         message: "Nastąpił błąd podczas wykonywania query"
       });
-      console.log(err);
+      log("mysql_errors.log", `/query error: ${err}`);
       response.end();
 
-      if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}"'s query has failed: "${query}"`);
+      if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}"'s query has failed: "${query}"`);
     }
   });
 
@@ -895,7 +908,7 @@ async function main() {
   // (as long as it is not a frequently used password :skull:)
   app.post('/send_reset_code', upload.none(), async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/send_reset_code', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/send_reset_code', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let username = request.body.username;
     let query = "SELECT adres_email, password_hash FROM sus_database.users WHERE users.username=?";
 
@@ -904,7 +917,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /send_reset_code enpoint", query, [username]);
+      log("mysql_errors.log", `mysql error in /send_reset_code endpoint, query: ${query}, arguments: ${[username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -940,7 +953,7 @@ async function main() {
             message: 'Pomyślnie wysłano e-mail'
           });
 
-          if(nice_logs) console.log(`| ${Date.now()} |\t\tpassword resetting email for user "${username}" has been sent`);
+          if(nice_logs) log("nice_logs.log", `password resetting email for user "${username}" has been sent`);
         })
         .catch(error => {
           response.json({
@@ -948,14 +961,14 @@ async function main() {
             message: 'Wystąpił błąd, spróbuj ponownie później'
           });
 
-          if(nice_logs) console.log(`| ${Date.now()} |\t\tpassword resetting email for user "${username}" has failed`);
+          if(nice_logs) log("nice_logs.log", `password resetting email for user "${username}" has failed`);
         });
   });
 
   // checking the reset code and sending the temporary token
   app.post('/check_reset_code', upload.none(), async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/check_reset_code', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/check_reset_code', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let username = request.body.username;
     let code = request.body.code;
     let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
@@ -964,7 +977,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [username, code]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /check_reset_code enpoint", query, [username, code]);
+      log("mysql_errors.log", `mysql error in /check_reset_code endpoint, query: ${query}, arguments: ${[username, code]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -991,13 +1004,13 @@ async function main() {
       token: newToken
     });
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has authenticated with reset code from email`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has authenticated with reset code from email`);
   });
 
   // changing one's password from the reset form
   app.post('/resetuj_haslo', upload.none(), async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false, true))
       return;
@@ -1012,14 +1025,13 @@ async function main() {
       [rows, columns] = await con.execute(query, [create_hash(password), username]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /resetuj_haslo enpoint", query, [create_hash(password), username]);
+      log("mysql_errors.log", `mysql error in /resetuj_haslo endpoint, query: ${query}, arguments: ${[create_hash(password), username]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
       });
       return;
     }
-    // console.log(username, password, rows);
     if(rows.affectedRows === 0) {
       response.json({
         success: false,
@@ -1033,13 +1045,13 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has reset their password`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has reset their password`);
   });
 
-  // enpoint which returns values of one specific row in order to edit said row
+  // endpoint which returns values of one specific row in order to edit said row
   app.post('/editing_info', upload.none(), async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/editing_info', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/editing_info', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1057,9 +1069,7 @@ async function main() {
                                              WHERE przedmiot_id = ?`, [request.body.editid]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /editing_info enpoint", `SELECT *
-                                             FROM sus_database.sprzet
-                                             WHERE przedmiot_id = ?`, [request.body.editid]);
+      log("mysql_errors.log", `mysql error in /editing_info endpoint, query: SELECT * FROM sus_database.sprzet WHERE przedmiot_id = ?, arguments: ${[request.body.editid]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1091,7 +1101,7 @@ async function main() {
   // editing a row
   app.post('/edytuj', upload.single('zdjecie'), async function (request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/edytuj', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/edytuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1132,7 +1142,7 @@ async function main() {
         con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
       }
       catch(err) {
-        console.log("| ${Date.now()} |\tmysql error in /edytuj enpoint", query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+        log("mysql_errors.log", `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1149,7 +1159,7 @@ async function main() {
       try {
         con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
       }catch(err) {
-        console.log("| ${Date.now()} |\tmysql error in /edytuj enpoint", query, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
+        log("mysql_errors.log", `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1161,7 +1171,7 @@ async function main() {
       success: true
     });
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has edited the row with the following id: "${request.body.editid}"`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has edited the row with the following id: "${request.body.editid}"`);
   });
 
 
@@ -1170,7 +1180,7 @@ async function main() {
   // taking items from a row
   app.post('/zabierz', upload.none(), async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/zabierz', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/zabierz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1181,7 +1191,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['id']]);
+      log("mysql_errors.log", `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1203,7 +1213,7 @@ async function main() {
       newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['amount'], request.body['id'], request.body['id']]);
+      log("mysql_errors.log", `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['amount'], request.body['id'], request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1216,7 +1226,7 @@ async function main() {
       await con.execute(query, [request.body['amount'], request.body['id']]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['amount'], request.body['id']]);
+      log("mysql_errors.log", `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['amount'], request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1251,7 +1261,7 @@ async function main() {
       await con.execute(query, [newID]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [newID]);
+      log("mysql_errors.log", `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[newID]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1261,12 +1271,12 @@ async function main() {
     response.json({success: true});
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}\n${err}`);
   });
   // putting items back into parent row
   app.post('/odloz', upload.none(), async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/odloz', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/odloz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1276,7 +1286,7 @@ async function main() {
       [rows, columns] = await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /odloz enpoint", query, [request.body['id']]);
+      log("mysql_errors.log", `mysql error in /odloz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1296,7 +1306,7 @@ async function main() {
       await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /odloz enpoint", query, [request.body['id']]);
+      log("mysql_errors.log", `mysql error in /odloz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1308,7 +1318,7 @@ async function main() {
       await con.execute(query, [amount, og_id]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [amount, og_id]);
+      log("mysql_errors.log", `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[amount, og_id]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1320,12 +1330,12 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
   });
   // forgetting the parent row
   app.post('/zapomnij', async function(request, response) {
     if(nicent_logs)
-      console.log(` | ${Date.now()} |\t\tpost request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: `, request.body);
+      log("nicent_logs.log", `post request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1334,7 +1344,7 @@ async function main() {
       await con.execute(query, [request.body['id']]);
     }
     catch(err) {
-      console.log("| ${Date.now()} |\tmysql error in /zabierz enpoint", query, [request.body['id']]);
+      log("mysql_errors.log", `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['id']]}\n${err}`);
       response.json({
         success: false,
         message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1346,7 +1356,7 @@ async function main() {
     })
     response.end();
 
-    if(nice_logs) console.log(`| ${Date.now()} |\t\tuser "${getTokenData(token).username}" forgor og_id for the row with the following id: "${request.body['id']}"`);
+    if(nice_logs) log("nice_logs.log", `user "${getTokenData(token).username}" forgor og_id for the row with the following id: "${request.body['id']}"`);
   });
 
   if(process.env.FOR_PRODUCTION === '1') {
@@ -1355,7 +1365,7 @@ async function main() {
   else {
     app.listen(3001, '0.0.0.0');
   }
-  console.log('Server listening at localhost:3001')
+  log('system_messages.log', 'Server listening at localhost:3001');
 }
 
 
