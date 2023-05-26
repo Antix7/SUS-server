@@ -163,9 +163,6 @@ async function main() {
   // configuring environment variables
   dotenv.config();
 
-  const nice_logs = process.env.NICE_EVENT_LOGS === "1";
-  const nicent_logs = process.env.NICENT_EVENT_LOGS === "1";
-
   if(await connect_to_database(
       process.env.MYSQL_HOSTNAME,
       process.env.MYSQL_USERNAME,
@@ -209,15 +206,13 @@ async function main() {
   }));
 
   app.get('/', function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `GET request for '/', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `GET request for '/', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     response.send("Witaj w SUSie");
   });
 
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `post request for '/auth', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `post request for '/auth', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(verifyToken(token, false)) {
@@ -285,13 +280,12 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${username}" has logged in from the following ip: "${request.socket.remoteAddress}"`);
+    log(nice_logs_filename, `user "${username}" has logged in from the following ip: "${request.socket.remoteAddress}"`);
   });
 
   // activating an account
   app.post('/aktywuj', upload.none(), async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `post request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `post request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let key = request.body.key;
     let username = request.body.username;
@@ -365,12 +359,11 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `new user activated: "${username}"`);
+    log(nice_logs_filename, `new user activated: "${username}"`);
   });
 
   app.post('/zmien_haslo', upload.none(), async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `post request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `post request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -406,13 +399,12 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${username}" has changed their password`);
+    log(nice_logs_filename, `user "${username}" has changed their password`);
   });
 
   // sending the user data necessary for the form for adding new rows
   app.get('/available_values', async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `GET request for '/available_values', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `GET request for '/available_values', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -476,8 +468,7 @@ async function main() {
   });
 
   app.post('/wyswietl', upload.none(), async function (request, response){
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/wyswietl', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/wyswietl', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -605,12 +596,11 @@ async function main() {
       data: rows
     });
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "sprzet" table`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "sprzet" table`);
   });
 
   app.post('/wyswietl_zdjecie', upload.none(), async function (request, response){
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/wyswietl_zdjecie', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/wyswietl_zdjecie', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
@@ -630,12 +620,11 @@ async function main() {
     if(rows[0]['zdjecie_path'] === null) return;
     response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
 
   app.post('/usun_sprzet', async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/usun_sprzet', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/usun_sprzet', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
 
@@ -682,13 +671,12 @@ async function main() {
     }
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
   });
 
   // adding the new row to the database
   app.post('/dodaj', upload.single('zdjecie'), async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/dodaj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/dodaj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false)) return;
@@ -767,13 +755,12 @@ async function main() {
       success: true
     });
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has added a new row`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has added a new row`);
   });
 
   // generating an account activation key
   app.post('/generuj_klucz', upload.none(), async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/generuj_klucz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/generuj_klucz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -803,12 +790,11 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has generated a new user key: "${username}"`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has generated a new user key: "${username}"`);
   });
 
   app.get('/uzytkownicy', upload.none(), async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/uzytkownicy', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/uzytkownicy', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -833,12 +819,11 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "users" table`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the "users" table`);
   });
 
   app.post('/usun_uzytkownika', async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/usun_uzytkownika', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/usun_uzytkownika', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
     const tokenData = getTokenData(token);
@@ -865,14 +850,13 @@ async function main() {
     }
     response.json({success: true});
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has deleted the following user: "${username}"`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has deleted the following user: "${username}"`);
   });
 
   // performing a custom query to the database
   // DROP and DELETE keywords are forbidden
   app.post('/query', upload.none(), async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/query', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/query', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
 
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, true)) return;
@@ -894,7 +878,7 @@ async function main() {
       });
       response.end();
 
-      if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has preformed the following query: "${query}"`);
+      log(nice_logs_filename, `user "${getTokenData(token).username}" has preformed the following query: "${query}"`);
     }
     catch(err) {
       response.json({
@@ -904,7 +888,7 @@ async function main() {
       log(mysql_err_filename, `/query error: ${err}`);
       response.end();
 
-      if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}"'s query has failed: "${query}"`);
+      log(nice_logs_filename, `user "${getTokenData(token).username}"'s query has failed: "${query}"`);
     }
   });
 
@@ -912,8 +896,7 @@ async function main() {
   // the reset code is password hash since it is already in the database and knowing it is not a security concern
   // (as long as it is not a frequently used password :skull:)
   app.post('/send_reset_code', upload.none(), async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/send_reset_code', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/send_reset_code', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let username = request.body.username;
     let query = "SELECT adres_email, password_hash FROM sus_database.users WHERE users.username=?";
 
@@ -958,7 +941,7 @@ async function main() {
             message: 'Pomyślnie wysłano e-mail'
           });
 
-          if(nice_logs) log(nice_logs_filename, `password resetting email for user "${username}" has been sent`);
+          log(nice_logs_filename, `password resetting email for user "${username}" has been sent`);
         })
         .catch(error => {
           response.json({
@@ -966,14 +949,13 @@ async function main() {
             message: 'Wystąpił błąd, spróbuj ponownie później'
           });
 
-          if(nice_logs) log(nice_logs_filename, `password resetting email for user "${username}" has failed`);
+          log(nice_logs_filename, `password resetting email for user "${username}" has failed`);
         });
   });
 
   // checking the reset code and sending the temporary token
   app.post('/check_reset_code', upload.none(), async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/check_reset_code', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/check_reset_code', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let username = request.body.username;
     let code = request.body.code;
     let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
@@ -1009,13 +991,12 @@ async function main() {
       token: newToken
     });
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has authenticated with reset code from email`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has authenticated with reset code from email`);
   });
 
   // changing one's password from the reset form
   app.post('/resetuj_haslo', upload.none(), async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false, true))
       return;
@@ -1050,13 +1031,12 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has reset their password`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has reset their password`);
   });
 
   // endpoint which returns values of one specific row in order to edit said row
   app.post('/editing_info', upload.none(), async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/editing_info', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/editing_info', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1105,8 +1085,7 @@ async function main() {
 
   // editing a row
   app.post('/edytuj', upload.single('zdjecie'), async function (request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/edytuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/edytuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1176,7 +1155,7 @@ async function main() {
       success: true
     });
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has edited the row with the following id: "${request.body.editid}"`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has edited the row with the following id: "${request.body.editid}"`);
   });
 
 
@@ -1184,8 +1163,7 @@ async function main() {
 
   // taking items from a row
   app.post('/zabierz', upload.none(), async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/zabierz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/zabierz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1276,12 +1254,11 @@ async function main() {
     response.json({success: true});
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}`);
   });
   // putting items back into parent row
   app.post('/odloz', upload.none(), async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/odloz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/odloz', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1335,12 +1312,11 @@ async function main() {
     });
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
   });
   // forgetting the parent row
   app.post('/zapomnij', async function(request, response) {
-    if(nicent_logs)
-      log(nicent_logs_filename, `POST request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    log(nicent_logs_filename, `POST request for '/zapomnij', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false))
       return;
@@ -1361,7 +1337,7 @@ async function main() {
     })
     response.end();
 
-    if(nice_logs) log(nice_logs_filename, `user "${getTokenData(token).username}" forgor og_id for the row with the following id: "${request.body['id']}"`);
+    log(nice_logs_filename, `user "${getTokenData(token).username}" forgor og_id for the row with the following id: "${request.body['id']}"`);
   });
 
   if(process.env.FOR_PRODUCTION === '1') {
