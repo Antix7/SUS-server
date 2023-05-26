@@ -12,6 +12,8 @@ const bodyParser = require('body-parser');
 const cors=require("cors");
 const {response} = require("express");
 const util = require("util");
+// configuring environment variables
+dotenv.config();
 
 let con;
 
@@ -160,8 +162,6 @@ async function developmentScripts() {
 async function main() {
 
   log('system_messages.log', "main() has been called");
-  // configuring environment variables
-  dotenv.config();
 
   if(await connect_to_database(
       process.env.MYSQL_HOSTNAME,
@@ -929,7 +929,7 @@ async function main() {
       return;
     }
     let mail = {
-      from: sus_email_address,
+      from: process.env.SUS_EMAIL_ADDRESS,
       to: user_email,
       subject: 'Reset hasła do SUS',
       text: `Kod do resetu hasła dla użytkownika ${username}: ${rows[0].password_hash}`
@@ -949,13 +949,14 @@ async function main() {
             message: 'Wystąpił błąd, spróbuj ponownie później'
           });
 
-          log(nice_logs_filename, `password resetting email for user "${username}" has failed`);
+          log(nice_logs_filename, `password resetting email for user "${username}" has failed. ${error}`);
         });
   });
 
   // checking the reset code and sending the temporary token
   app.post('/check_reset_code', upload.none(), async function(request, response) {
-    log(nicent_logs_filename, `POST request for '/check_reset_code', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+    let token = request.headers["x-access-token"];
+    log(nicent_logs_filename, `POST request for '/check_reset_code', token: ${token}, body: ${JSON.stringify(request.body)}`);
     let username = request.body.username;
     let code = request.body.code;
     let query = 'SELECT * FROM users WHERE username = ? AND password_hash = ?;';
