@@ -12,6 +12,9 @@ const bodyParser = require('body-parser');
 const cors=require("cors");
 const {response} = require("express");
 const util = require("util");
+const shell = require('shelljs');
+
+let queries_since_backup = 98;
 
 let con;
 
@@ -126,6 +129,19 @@ function getTokenData(token) {
   });
 }
 
+function backupDatabase(file) {
+  const command = `mysqldump -u ${process.env.MYSQL_USERNAME} -p${process.env.MYSQL_PASSWORD} ${process.env.MYSQL_DATABASE} > ${file}`;
+  shell.exec(command);
+}
+
+function updateQueriesSinceBackup() {
+  queries_since_backup++;
+  if(queries_since_backup === parseInt(process.env.QUERIES_FOR_BACKUP)) {
+    log(sys_msg_filename, "Performing a database backup");
+    backupDatabase(`./backups/${Date.now()}.sql`);
+    queries_since_backup = 0;
+  }
+}
 
 // this function only runs if the "DEVELOPMENT_MODE" property in .env file is set to 1
 // it resets the entire database and should NEVER be used outside development
@@ -159,7 +175,7 @@ async function developmentScripts() {
 
 async function main() {
 
-  log('system_messages.log', "main() has been called");
+  log(sys_msg_filename, "main() has been called");
   // configuring environment variables
   dotenv.config();
 
@@ -671,6 +687,7 @@ async function main() {
     }
     response.end();
 
+    updateQueriesSinceBackup();
     log(nice_logs_filename, `user "${getTokenData(token).username}" has deleted/restored the following row: "${request.body.id}"`);
   });
 
@@ -755,6 +772,7 @@ async function main() {
       success: true
     });
 
+    updateQueriesSinceBackup();
     log(nice_logs_filename, `user "${getTokenData(token).username}" has added a new row`);
   });
 
@@ -1155,6 +1173,7 @@ async function main() {
       success: true
     });
 
+    updateQueriesSinceBackup();
     log(nice_logs_filename, `user "${getTokenData(token).username}" has edited the row with the following id: "${request.body.editid}"`);
   });
 
@@ -1254,6 +1273,7 @@ async function main() {
     response.json({success: true});
     response.end();
 
+    updateQueriesSinceBackup();
     log(nice_logs_filename, `user "${getTokenData(token).username}" has taken away ${request.body["amount"]} row(s) from the row with the following id: ${request.body["id"]}`);
   });
   // putting items back into parent row
@@ -1312,6 +1332,7 @@ async function main() {
     });
     response.end();
 
+    updateQueriesSinceBackup();
     log(nice_logs_filename, `user "${getTokenData(token).username}" has put ${amount} items back into the row with the following id: "${og_id}"`);
   });
   // forgetting the parent row
@@ -1337,6 +1358,7 @@ async function main() {
     })
     response.end();
 
+    updateQueriesSinceBackup();
     log(nice_logs_filename, `user "${getTokenData(token).username}" forgor og_id for the row with the following id: "${request.body['id']}"`);
   });
 
@@ -1346,7 +1368,7 @@ async function main() {
   else {
     app.listen(3001, '0.0.0.0');
   }
-  log('system_messages.log', 'Server listening at localhost:3001');
+  log(sys_msg_filename, 'Server listening at localhost:3001');
 }
 
 main();

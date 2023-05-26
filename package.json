@@ -12,6 +12,7 @@
     "mysql2": "^3.2.0",
     "mysql2-promise": "^0.1.4",
     "nodemailer": "^6.9.1",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "shelljs": "^0.8.5"
   }
 }
