@@ -1135,7 +1135,7 @@ async function main() {
       }
     }
     else {
-      let zdj = '/images/' + request.file.filename;
+      let zdj = request.file.filename;
       let sql = 'UPDATE sus_database.sprzet t\n' +
           'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
           't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
