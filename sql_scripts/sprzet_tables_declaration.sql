@@ -15,6 +15,7 @@ CREATE TABLE sprzet
     og_id          INT                  NULL,
     czy_usuniete   TINYINT(1) DEFAULT 0 NULL,
     box_id         INT                  NULL,
+    oznaczenie     VARCHAR(7)           NULL,
     CONSTRAINT sprzet_kategorie_KategoriaID_fk
         FOREIGN KEY (kategoria_id) REFERENCES kategorie (kategoria_id),
     CONSTRAINT sprzet_lokalizacje_LokalizacjaID_fk

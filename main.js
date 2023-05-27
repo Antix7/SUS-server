@@ -538,7 +538,8 @@ async function main() {
                    sprzet.zdjecie_path AS zdjecie_path,
                    sprzet.og_id AS og_id,
                    sprzet.czy_usuniete AS czy_usuniete,
-                   sprzet.box_id AS box_id
+                   sprzet.box_id AS box_id,
+                   sprzet.oznaczenie AS oznaczenie
                  FROM sprzet
                         JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
                         JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
@@ -607,6 +608,10 @@ async function main() {
 
     if(request.body['box_id'] && request.body['box_id']['box_id']) {
       clauses.push(`sprzet.box_id = ${request.body['box_id']['box_id']}`);
+    }
+
+    if(request.body['oznaczenie'] && request.body['oznaczenie']['oznaczenie']) {
+      clauses.push(`sprzet.oznaczenie LIKE '%${request.body['oznaczenie']['oznaczenie']}%'`);
     }
 
 
@@ -773,6 +778,7 @@ async function main() {
     let uzytkownik = body["uzytkownik"];
     let opis = body["opis"]!=='' ? body["opis"] : null;
     let box_id = body["box_id"]!=='' ? body["box_id"] : null;
+    let oznaczenie = body["oznaczenie"]!=='' ? body["oznaczenie"] : null;
 
     if(!(nazwa && ilosc && status && kategoria && stan && lokalizacja && wlasciciel && uzytkownik)){
       response.json({
@@ -786,14 +792,14 @@ async function main() {
       const query = `INSERT INTO sprzet
                      (nazwa, ilosc, status_id,
                       kategoria_id, stan_id, lokalizacja_id, box_id,
-                      wlasciciel_id, uzytkownik_id, opis)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                      wlasciciel_id, uzytkownik_id, oznaczenie, opis)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
-        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]);
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis]);
       }
       catch(err) {
-        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis]}\n${err}`);
+        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -807,14 +813,14 @@ async function main() {
       const query = `INSERT INTO sprzet
                      (nazwa, ilosc, status_id,
                       kategoria_id, stan_id, lokalizacja_id, box_id,
-                      wlasciciel_id, uzytkownik_id, opis, zdjecie_path)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                      wlasciciel_id, uzytkownik_id, oznaczenie, opis, zdjecie_path)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
-        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]);
+        await con.execute(query, [nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis, zdjecie_path]);
       }
       catch(err) {
-        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, opis, zdjecie_path]}\n${err}`);
+        log(package_err_filename, `mysql error in /dodaj endpoint, query: ${query}, arguments: ${[nazwa, ilosc, status, kategoria, stan, lokalizacja, box_id, wlasciciel, uzytkownik, oznaczenie, opis, zdjecie_path]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1188,7 +1194,10 @@ async function main() {
       sts: parseInt(rows[0]['status_id']),
       nazwa: rows[0]['nazwa'],
       ilosc: rows[0]['ilosc'],
-      opis: rows[0]['opis']});
+      opis: rows[0]['opis'],
+      box_id: rows[0]['box_id'],
+      oznaczenie: rows[0]['oznaczenie']
+    });
     response.end();
   });
 
@@ -1222,7 +1231,9 @@ async function main() {
     let stn = body['stan'];
     let naz = body['nazwa'];
     let ilo = body['ilosc'];
-    let opis = body['opis'];
+    let opis = body['opis'] ? body['opis'] : null;
+    let box_id = body['box_id'] ? body['box_id'] : null;
+    let oznaczenie = body['oznaczenie'] ? body['oznaczenie'] : null;
 
     if (!(naz && ilo && sts && kat && stn && lok && wla && uzy)) {
       response.json({
@@ -1233,15 +1244,16 @@ async function main() {
     }
 
     if (!request.file) {
-      let query = 'UPDATE sus_database.sprzet t\n' +
-          'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.wlasciciel_id = ?,\n' +
-          't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
-          'WHERE t.przedmiot_id = ?';
+      let query = `UPDATE sus_database.sprzet t
+      SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, 
+      t.wlasciciel_id = ?, t.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?,
+      t.box_id = ?, t.oznaczenie = ?
+      WHERE t.przedmiot_id = ?;`
       try {
-        con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]);
+        con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]);
       }
       catch(err) {
-        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
+        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1251,14 +1263,15 @@ async function main() {
     }
     else {
       let zdj = request.file.filename;
-      let sql = 'UPDATE sus_database.sprzet t\n' +
-          'SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,\n' +
-          't.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?\n' +
-          'WHERE t.przedmiot_id = ?';
+      let sql = `UPDATE sus_database.sprzet t
+      SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, t.zdjecie_path = ?, t.wlasciciel_id = ?,
+      t.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?,
+      t.box_id = ?, t.oznaczenie = ?
+      WHERE t.przedmiot_id = ?`;
       try {
-        con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]);
+        con.execute(sql, [naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]);
       }catch(err) {
-        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, body.editid]}\n${err}`);
+        log(package_err_filename, `mysql error in /edytuj endpoint, query: ${query}, arguments: ${[naz, kat, ilo, lok, zdj, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]}\n${err}`);
         response.json({
           success: false,
           message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
@@ -1312,7 +1325,7 @@ async function main() {
       return;
     }
 
-    query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ? FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
+    query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id, box_id, oznaczenie) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ?, box_id, oznaczenie FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
     let newID;
     try {
       newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
@@ -1339,6 +1352,7 @@ async function main() {
       return;
     }
 
+    // WTF? This code is literally useless
     query = `SELECT
                sprzet.przedmiot_id AS ID,
                sprzet.nazwa AS nazwa,
@@ -1479,7 +1493,7 @@ async function main() {
   });
 
   if(process.env.FOR_PRODUCTION === '1') {
-    app.listen(3001);
+    app.listen(2137);
   }
   else {
     app.listen(3001, '0.0.0.0');
