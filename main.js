@@ -613,7 +613,7 @@ async function main() {
     }
 
     if(request.body['oznaczenie'] && request.body['oznaczenie']['oznaczenie']) {
-      clauses.push(`sprzet.oznaczenie LIKE '%${request.body['oznaczenie']['oznaczenie']}%'`);
+      clauses.push(`sprzet.oznaczenie = '${request.body['oznaczenie']['oznaczenie']}'`);
     }
 
 
