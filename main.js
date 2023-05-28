@@ -223,8 +223,10 @@ async function main() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
 
+  app.use(bodyParser.json({limit:'10mb'}));
   app.use(bodyParser.urlencoded({
-    extended: false
+    extended: false,
+    limit:'10mb'
   }));
 
   app.get('/', function(request, response) {
