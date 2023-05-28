@@ -1199,7 +1199,8 @@ async function main() {
       ilosc: rows[0]['ilosc'],
       opis: rows[0]['opis'],
       box_id: rows[0]['box_id'],
-      oznaczenie: rows[0]['oznaczenie']
+      oznaczenie: rows[0]['oznaczenie'],
+      zdjecie_path: rows[0]['zdjecie_path']
     });
     response.end();
   });
@@ -1250,7 +1251,7 @@ async function main() {
       let query = `UPDATE sus_database.sprzet t
       SET t.nazwa = ?, t.kategoria_id = ?, t.ilosc = ?, t.lokalizacja_id = ?, 
       t.wlasciciel_id = ?, t.uzytkownik_id = ?, t.status_id = ?, t.stan_id = ?, t.opis = ?,
-      t.box_id = ?, t.oznaczenie = ?
+      t.box_id = ?, t.oznaczenie = ? ${body['deletePhoto'] == "true" ? ", t.zdjecie_path = null" : ""}
       WHERE t.przedmiot_id = ?;`
       try {
         con.execute(query, [naz, kat, ilo, lok, wla, uzy, sts, stn, opis, box_id, oznaczenie, body.editid]);
