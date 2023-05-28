@@ -75,7 +75,7 @@ async function create_user(username, password, czy_admin) {
 
 // this function initialises the con variable for sql queries
 async function connect_to_database(host, user, password, database) {
-  con = await mysql_promise.createConnection({
+  con = await mysql_promise.createPool({
     host: host,
     user: user,
     password: password,
