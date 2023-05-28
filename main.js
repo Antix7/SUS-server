@@ -40,7 +40,7 @@ let mail_client = nodemailer.createTransport({
 // configuration of multer module used for saving images
 const storage = multer.diskStorage({
   destination: (req, file, callBack) => {
-    callBack(null, './public/images/')     // './public/images/' directory name where save the file
+    callBack(null, path.join(__dirname, process.env.IMAGES_DIRECTORY) );     // the argument is the path to where we save the files
   },
   filename: (req, file, callBack) => {
     callBack(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
@@ -682,7 +682,7 @@ async function main() {
       return;
     }
     if(rows[0]['zdjecie_path'] === null) return;
-    response.sendFile(`${__dirname}/public/images/${rows[0]['zdjecie_path']}`);
+    response.sendFile(path.join(__dirname, process.env.IMAGES_DIRECTORY, rows[0]['zdjecie_path']));
 
     // log(nice_logs_filename, `user "${getTokenData(token).username}" has opened the following row's photo: "${request.body.id}"`);
   });
