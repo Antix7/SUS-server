@@ -728,6 +728,7 @@ async function main() {
       return;
     }
 
+    // making sure all the children of the deleted row are marked as orphans
     query = "UPDATE sus_database.sprzet SET sprzet.og_id = ? WHERE sprzet.og_id = ?;";
     try {
       con.execute(query, [null, request.body.id]);
@@ -1305,6 +1306,7 @@ async function main() {
     }
     if(!verifyToken(token, false)) return;
 
+    // checking if the query won't result in a negative/zero `ilosc` value
     let query = 'SELECT ilosc FROM sprzet WHERE przedmiot_id=?';
     let rows, columns;
     try {
@@ -1327,10 +1329,10 @@ async function main() {
       return;
     }
 
+    // creating the new row
     query = 'INSERT into sus_database.sprzet (nazwa, kategoria_id, ilosc, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, status_id, stan_id, opis, og_id, box_id, oznaczenie) SELECT nazwa, kategoria_id, ?, lokalizacja_id, zdjecie_path, wlasciciel_id, uzytkownik_id, 2, stan_id, opis, ?, box_id, oznaczenie FROM sus_database.sprzet WHERE sprzet.przedmiot_id=?; ';
-    let newID;
     try {
-      newID = await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
+      await con.execute(query, [request.body['amount'], request.body['id'], request.body['id']]);
     }
     catch(err) {
       log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[request.body['amount'], request.body['id'], request.body['id']]}\n${err}`);
@@ -1340,7 +1342,8 @@ async function main() {
       });
       return;
     }
-    newID = newID[0].insertId;
+
+    // subtracting items from parent row
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc - ? where przedmiot_id = ?";
     try {
       await con.execute(query, [request.body['amount'], request.body['id']]);
@@ -1354,41 +1357,6 @@ async function main() {
       return;
     }
 
-    // WTF? This code is literally useless
-    query = `SELECT
-               sprzet.przedmiot_id AS ID,
-               sprzet.nazwa AS nazwa,
-               sprzet.ilosc AS ilosc,
-               statusy.status_nazwa AS status,
-               kat.kategoria_nazwa AS kategoria,
-               stany.stan_nazwa AS stan,
-               lok.lokalizacja_nazwa AS lokalizacja,
-               wla.podmiot_nazwa AS wlasciciel,
-               uzy.podmiot_nazwa AS uzytkownik,
-               sprzet.opis AS opis,
-               sprzet.zdjecie_path AS zdjecie,
-               sprzet.og_id AS og_id
-             FROM sprzet
-                    JOIN lokalizacje AS lok ON sprzet.lokalizacja_id = lok.lokalizacja_id
-                    JOIN podmioty AS wla ON sprzet.wlasciciel_id = wla.podmiot_id
-                    JOIN podmioty AS uzy ON sprzet.uzytkownik_id = uzy.podmiot_id
-                    JOIN statusy ON sprzet.status_id = statusy.status_id
-                    JOIN kategorie AS kat ON sprzet.kategoria_id = kat.kategoria_id
-                    JOIN stany ON sprzet.kategoria_id = stany.kategoria_id
-               AND sprzet.stan_id = stany.stan_id
-             WHERE sprzet.przedmiot_id = ?
-    `;
-    try {
-      await con.execute(query, [newID]);
-    }
-    catch(err) {
-      log(package_err_filename, `mysql error in /zabierz endpoint, query: ${query}, arguments: ${[newID]}\n${err}`);
-      response.json({
-        success: false,
-        message: "Na serwerze pojawił się błąd, najlepiej skontaktuj się z administratorem"
-      });
-      return;
-    }
     response.json({success: true});
     response.end();
 
@@ -1407,6 +1375,8 @@ async function main() {
       return;
     }
     if(!verifyToken(token, false)) return;
+
+    // getting parent id and amount of items to be put back
     let query = "SELECT ilosc, og_id FROM sprzet WHERE przedmiot_id=?";
     let rows, columns;
     try {
@@ -1420,6 +1390,8 @@ async function main() {
       });
       return;
     }
+
+    // deleting the child row
     if(rows.length === 0) {
       response.json({
         success: false,
@@ -1440,6 +1412,8 @@ async function main() {
       });
       return;
     }
+
+    // adding items back into the parent row
     query = "UPDATE sus_database.sprzet SET ilosc = ilosc + ? where przedmiot_id = ?";
     try {
       await con.execute(query, [amount, og_id]);
@@ -1473,6 +1447,7 @@ async function main() {
     }
     if(!verifyToken(token, false))
       return;
+
     let query = `UPDATE sus_database.sprzet SET og_id = null WHERE przedmiot_id=?;`;
     try {
       await con.execute(query, [request.body['id']]);
