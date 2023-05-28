@@ -992,7 +992,7 @@ async function main() {
     catch(err) {
       response.json({
         success: false,
-        message: "Nastąpił błąd podczas wykonywania query"
+        message: `Nastąpił błąd podczas wykonywania query, ${err}`
       });
       log(package_err_filename, `/query error: ${err}`);
       response.end();
