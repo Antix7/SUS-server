@@ -27,3 +27,8 @@ We also use various node.js packages as listed in package.json
 
     1. start the main.js file using node
     2. the server will open on localhost:3001
+
+## Front-end
+The front-end code can be found in the [SUS-UI](https://github.com/Antix7/SUS-UI) repository 
+If you wish to have only one program running, you may use the code from the `legacy-system`
+branch, however it is no longer supported
