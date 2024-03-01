@@ -1484,7 +1484,7 @@ async function main() {
   else {
     app.listen(3001, '0.0.0.0');
   }
-  log(sys_msg_filename, 'Server listening at localhost:3001');
+  log(sys_msg_filename, `Server listening at port ${process.env.FOR_PRODUCTION === '1' ? 2137 : 3001}`);
 }
 
 main();
