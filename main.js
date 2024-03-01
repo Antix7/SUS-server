@@ -231,7 +231,10 @@ async function main() {
 
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
-    log(nicent_logs_filename, `post request for '/auth', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+
+    let bodyCopy = request.body;
+    delete bodyCopy.password;
+    log(nicent_logs_filename, `post request for '/auth', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(bodyCopy)}`);
 
     let token = request.headers["x-access-token"];
     if(verifyToken(token, false)) {
@@ -311,7 +314,10 @@ async function main() {
 
   // activating an account
   app.post('/aktywuj', upload.none(), async function(request, response) {
-    log(nicent_logs_filename, `post request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+
+    let bodyCopy = request.body;
+    delete bodyCopy.password1;
+    log(nicent_logs_filename, `post request for '/aktywuj', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(bodyCopy)}`);
 
     let key = request.body.key;
     let username = request.body.username;
@@ -389,7 +395,11 @@ async function main() {
   });
 
   app.post('/zmien_haslo', upload.none(), async function (request, response) {
-    log(nicent_logs_filename, `post request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+
+    let bodyCopy = request.body;
+    delete bodyCopy.password_old;
+    delete bodyCopy.password_new1;
+    log(nicent_logs_filename, `post request for '/zmien_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(bodyCopy)}`);
 
     let token = request.headers["x-access-token"];
     if(verifyToken(token, false) == null) {
@@ -1103,7 +1113,10 @@ async function main() {
 
   // changing one's password from the reset form
   app.post('/resetuj_haslo', upload.none(), async function(request, response) {
-    log(nicent_logs_filename, `POST request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
+
+    let bodyCopy = request.body;
+    delete bodyCopy.password1;
+    log(nicent_logs_filename, `POST request for '/resetuj_haslo', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(bodyCopy)}`);
     let token = request.headers["x-access-token"];
     if(!verifyToken(token, false, true))
       return;
