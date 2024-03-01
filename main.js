@@ -229,11 +229,6 @@ async function main() {
     limit:'10mb'
   }));
 
-  app.get('/', function(request, response) {
-    log(nicent_logs_filename, `GET request for '/', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
-    response.send("Witaj w SUSie");
-  });
-
   // user authentication - sending/verifying a JSON Web Token
   app.post('/auth', upload.none(), async function(request, response) {
     log(nicent_logs_filename, `post request for '/auth', token: ${request.headers["x-access-token"]}, body: ${JSON.stringify(request.body)}`);
